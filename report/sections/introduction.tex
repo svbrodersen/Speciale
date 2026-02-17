@@ -1,0 +1,37 @@
+\section{Introduction}
+Side-channels occur when a program is able to gather information through
+channels not meant for communication. One such example is timing channels,
+which occur when a programs execution time varies based on information
+throughout the program execution. This way timing channels bypass the operating
+system's (OS's) security enforcement leaking information through the timing of
+observable events. Prominent examples of such channels includes side channels
+in cryptographic libraries \cite{PDFPracticalImplementation,
+aciicmezImprovingBrumleyBoneh2005}. Further, attacks showed that it is possible
+to do across VM's running in a cloud computing setting \cite{OffMyCloud}. Not
+only that, side-effects from out-of-order executions on modern processors gave
+way for the meltdown attacks to read arbitrary kernel-memory locations
+including personal data and passwords \cite{meltdown}. Mitigations against the
+Meldown attacks, where kernel memory is hidden from user space are moving
+forward \cite{corbetKAISERHidingKernel2017} Mitigations against these attacks
+have been proposed. Notably in cryptography a push towards more constant-time
+libraries gave way to implementations such as FaCT \cite{cauligiFaCTDSLTimingsensitive2019}, which aims to
+guarantee constant-time execution with respect to information marked secret.
+However, while this does produce seemingly constant-time program, CPU's
+speculative execution still leaves doors open for timing attacks such as the
+ones seen in \cite{spectre}.
+
+The attack front is clear, but the solution is not as simple. While some
+proposed solutions focus on the user side implementing secure programs, this
+creates a huge burden on the programmer to implement secure code. Instead
+implementations of secure microkernels \cite{S3K, MissingOSAbstraction}
+attempt to guarantee security through the OS. The operating system would then
+be in charge of partitioning domains in regards to the microarchitectural
+state, such that no channel between domains is possible. This is already done
+for memory, and examples of separation kernels on the memory level have been
+formally proven \cite{murraySeL4GeneralPurpose2013}, similar work attempts to
+provide same rigorous proof for the absence of timing channels
+\cite{buckleyProvingAbsenceMicroarchitectural2023}. However, currently no
+formal proof for multicore systems exists, and the proof also relies on the
+secure system to track the touched addresses.
+
+

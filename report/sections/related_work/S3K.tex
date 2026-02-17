@@ -1,0 +1,109 @@
+\subsection{S3K}
+S3k provides an implementation for a real time operating system, which aims to
+provide a capability-based multicore partitioning kernel for embedded RISC-V
+systems. S3K provides spatial and temporal isolation\footnote{Spatial means
+separation of memory, where as temporal indicates that the failure of one
+component should not affect the schedulability of another.}, time protection
+and dynamic resource reconfiguration. Further, S3K's scheduler guarantees
+deterministic process dispatch, free from microarchitectural interference.
+\cite{S3K}
+
+It does via. 3 main attributes
+\begin{itemize}
+  \item Capability model;
+  \item Time-driven capability based scheduler with systematic use of
+    \texttt{fence.t} with worst time padding, and constant time kernel
+    operations;
+  \item Predictable constant time system calls.
+\end{itemize}
+
+\subsubsection{Implementation}
+The implementation provides a minimal trusted computing base (TCB) with strong
+isolation and security guarantees. The basic execution unit for S3K is a
+\emph{process}, a self contained entity with resources defined by its
+capabilities. These processes are designed to host bare-metal real-time
+operating systems or applications, with the kernel acting as a bare-metal
+hypervisor. The number of processes is statically defined at compile time.
+Processes use \emph{monitor capabilities} and capability revocation to manage
+other processes, reclaim resourceses, and repurpose existing processes for new
+tasks. \cite{S3K}
+
+\paragraph{Capabilities:}
+Every S3K capability operation has a bounded worst-case execution time (WCET)
+and is free of timing side-channels. Capabilities are implemented in software,
+and are stored in a capability derivation tree (CDT), which are stored in
+memory in a statically allocated capability table (ctable). 
+
+\paragraph{Scheduling:}
+S3K's scheduler is a partition scheduler, which divides time into \emph{major
+frames}, which are further partitioned into \emph{minor frames}. S3K treats
+minor frames as first-class capabilities, which enables dynamic reconfiguration
+of computing resources while maintaining process isolation. \cite{S3K}
+
+A major frame is divided into a fixed number of time slots, each with equal
+duration. A single time slot represents the smallest scheduling unit. A time
+slice capability grants control over a range of time slots on a hardware
+thread(hart). The process that owns the time slice capability receives a minor
+frame, which is less than or equal to the major frame. Each time slice
+capability has an \emph{enable} field, which specifies if the minor frame is
+active. If set, the owner of the time slice is scheduled during the
+corresponding minor frame; otherwise the minor frame represents idle time.
+
+The kernel is in principle non-preemptable, it uses preemption points, to
+ensure the WCET is bounded by constant. The kernel checks for preemption at the
+start of every system call, and aborts the system call if preemption is
+required. 
+
+By the definition of domains in S3K processes from different domains are never
+scheduled in parallel. Thus, during a domain switch, all running processes of
+the current domain are preempted, invoke the scheduler, and are subsequently
+delayed by the temporal fence.
+
+\subsubsection{Time protection}
+S3K uses the temporal fence instruction at context switches, which flushes the
+core-local microarchitectural state.
+
+S3K is designed to reside entirely within the small scratchpad memory (SPM)
+backed by the core-local L1 cache.This enables the kernel's microarchitectural
+footprint to be efficiently flushed and avoids reliance on larger caches.
+
+S3K only protects a process's in-kernel state from side-channels. It does not
+protect a process's user-level state. Each process is responsible for
+protecting their own user-level execution from side-channels in higher level
+caches. This is different than what is provided within
+\cite{MissingOSAbstraction}, where cache-coloring guarantees that processes in
+different domains do not access the same parts of the cache, and thus prevents
+side channels even in larger cases.
+
+All system calls are designed to be non-interfering and constant-time with
+respect to the invoking process's authorized observations; that is, all control
+flow decisions and memory accesses depend only on data the process is permitted
+to observe.
+
+\subsubsection{Evaluation}
+They evaluate the implementation by looking at a variety of different elements,
+most significant for ours is: scheduling jitter and side-channels. Initially
+they find that the Inter Process Communication (IPC) operations have the
+highest recorded non-preemptable cost of 1,195 cpu cycles, together with an
+estimated 16,000 cycles for data cache write-back for temporal fence, they set
+the CSPAD to 18,000 cycles for the fence.t instruction.
+
+\paragraph{Scheduling Jitter:} A measurer process, shceduled once per major
+frame, records the \emph{mcycle} performance counter value upon dispatch. To
+simulate interference they introduce interfering processes that execute random
+system calls and pollute the cache. They find, that when the measurer
+exclusively occupies the SPM, there is no impact from the other processes on
+the measurements. However, when the measurer occupies the dram, then there is
+noticeable jitter, which they note is in some cases due to the small part of
+code in the measurer that records the dispatch time and not the scheduler
+itself. When more than one process is scheduled at a time, then there is jitter
+in the scheduler as well.
+
+\paragraph{Side channels:} They implement a Trojan process and a spy process.
+The Trojans signal a "0" by remaining idle and a "1" by behaving like the
+interferes from before. The spy then measures jitter, system call execution
+times, and cache access times to infer the Trojans' signal.
+
+They find that when the measurer and Trojan both reside in the dram, then there
+is a near perfect information flow, whereas when both reside in the SPM, there
+is no measurable amount of information flow. 

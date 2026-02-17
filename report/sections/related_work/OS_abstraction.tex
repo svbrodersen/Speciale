@@ -1,0 +1,74 @@
+\subsection{The missing OS Abstraction: sel4}
+In the paper Time Protection: The missing OS Abstraction
+\cite{MissingOSAbstraction} a customized version of the sel4 microkernel is
+presented, which aims to protect against all possible timing channels via. the
+OS.
+
+\subsubsection{Threat model}
+In the paper they present the threat model as being a victim program, where a
+Trojan within the program uses any means necessary to attempt to leak
+information through timing channels. There are no restrictions on the Trojan
+outside it simply running in a separate domain than that of the receiver/spy
+program.
+
+Specifically they differentiate between two types of channels, namely the
+\textbf{covert} and \textbf{side} channel. The covert channel requires the
+collusion between the sender and the receiver and represents the worst-case
+scenario, where the sender intentionally attempts to transmit information. The
+side channel is instead when the sender leaks information to the receiver
+unwittingly. That is, the sender leaks information via normal program
+execution. By protecting against the covert channel it immediately follows,
+that the side channel is protected.
+
+
+\subsubsection{Channels}
+Two main types of channels are referenced throughout the paper. The on-core
+state, including the L1, L2 caches, Translation Lookaside Buffers and more,
+which are unique to each core on the CPU and the shared state which includes
+higher level caches that are shared between different cores. To protect against
+all, they provide the following five core requirements:
+
+\begin{itemize}
+  \item \emph{Flush on-core state:} When time-sharing a core, all on-core
+    microarchitectural state must be flushed on domain switch, unless the
+    hardware supports specific partitioning of this state.
+  \item \emph{Partition the OS:} Each security domain must have a private copy
+    of OS text, stack and global data. That is, all the dynamic OS kernel
+    memory must have the same separation as userland execution.
+  \item \emph{Deterministic data sharing:} Access to any remaining shared OS
+    data must be sufficiently deterministic to avoid information leakage.
+  \item \emph{Flush deterministically:} State flushing must be padded to its worst case latency.
+  \item \emph{Partition interrupts:} When sharing a core, the OS must disable
+    or partition any interrupts other than the preemption timer. (This is only a concern intra-core).
+\end{itemize}
+
+
+\subsubsection{Cloning the OS}
+In the paper they introduce a method for cloning the OS. A userland program,
+which has the capability of cloning gives up a subset of it's own allocated
+memory for the clone call, and the kernel then creates a kernel image copy in
+the user-supplied memory. This memory now gets marked as kernel data, meaning
+that the userland can not change it, but that any syscalls will run through
+this kernel copy.
+
+This works via the security domains of sel4. The initial kernel creates a
+master Kernel\_Image which represents the present kernel and includes the clone
+right. It hands this capability along with the size of the image to the initial
+user process, which then partitions the memory into security domains, where it
+clones the OS into each of these new security domains. 
+
+This cloning consists of three steps:
+\begin{enumerate}
+  \item The user process retypes some Untyped memory into an uninitialized Kernel\_Image and Kernel\_Memory of sufficient size.
+  \item it allocates address space identifier to the uninitialised Kernel\_Image.
+  \item it invokes the Kernel\_Clone on the new Kernel\_Image.
+\end{enumerate}
+
+\subsubsection{Cache coloring}
+To protect the caches that are too large to be flushed, cache coloring is
+implemented. This means, that separate security domains are unable to access
+the same parts of caches, such that they have no influence on each other. This
+reduces the total amount of available cache space for each domain, and it means
+that the process which creates each security domain has to take this factor
+into account, such that the distribution of the cache space is sufficient for
+all domains.

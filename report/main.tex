@@ -1,0 +1,44 @@
+%! TeX program = lualatex
+\documentclass[draft, 12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{algorithm,algorithmicx,algpseudocode}
+\usepackage[style=ieee, backend=biber]{biblatex}
+
+\addbibresource{refs.bib}
+
+\title{Eliminating Timing Channels in Microkernels \\
+  \large MSc Project Description
+}
+\author{Simon Vinding Brodersen(rzn875)}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\input{sections/description}
+
+\tableofcontents
+
+\input{sections/introduction}
+\input{sections/background}
+
+\section{Related work}
+\input{sections/related_work/OS_abstraction}
+\input{sections/related_work/S3K}
+
+{
+\emergencystretch=1em
+\printbibliography
+}
+
+\end{document}

@@ -1,0 +1,115 @@
+\section{Background}
+\subsection{Side-channels}
+Side-channels are unintended information channels, that leak information about
+the process. These channels infer secret data often through observable
+execution time of the process. The general case of such a channel can be seen in the snippet below:
+
+\begin{algorithm}
+  \floatname{algorithm}{Side channel example}
+  \begin{algorithmic}[1]
+    \If{secret}
+      \State{Some long computation}
+    \Else
+     \State{Do nothing}
+    \EndIf
+  \end{algorithmic}
+\end{algorithm}
+
+This algorithm is a naive example, where we simply branch on some secret, and
+the execution time of the program. If for example this algorithm was part of
+some library, then an attacker could infer information about the secret by
+simply measuring the execution time of the call to the algorithm. This example
+is quite naive, and is one of the side channels constant time programming can
+stop, such that we might do an equally long computation in both of the branches
+of the if statement. However, this still comes with some precautions, because
+even though the original program might seem sensibly constant time, some
+compilers might try to optimise the code, which could introduce new
+side-channel attacks \cite{schneiderBreakingBadHow2025}.
+
+Further, more complex examples of side channels includes those specified within
+\cite{spectre}, where speculative execution can be used to leak information
+about an otherwise safe algorithm. An example from the paper is the following:
+
+\begin{algorithm}
+  \floatname{algorithm}{Side channel example}
+  \algrenewcommand\algorithmicrequire{\textbf{Input: some unsigned integer, x}}
+  \begin{algorithmic}[1]
+    \If{$x < array1\_size$}
+    \State{$y = array2[array1[x] * 4096]$}
+    \EndIf
+  \end{algorithmic}
+\end{algorithm}
+
+This function could again be part of some library of system call, which
+receives from the user an unsigned integer x. The process, which runs this
+library code or system call has access to both array1 and array2. It does a
+bounds check on x, to make sure we have no out of bounds access, which could
+trigger an exception or access sensitive memory. If this algorithm was called
+multiple times, with correct input where $x < array1\_size$, then we might train
+the branch predictor on modern CPUS such that it would speculatively execute
+the "safe" path, which could bring in the location read from \texttt{array2}
+into the cache, and the attacker could then use attacks such as Flush+Reload or
+Prime+Probe to reveal which part of array2 was loaded into the cache. With
+this, it can gather the index of the loaded item, and can figure out what was
+read from array1[x], which could be some arbitrary secret that was obtained by
+the out of bounds indexing. A more detailed explanation along with a
+proof-of-concept is provided in \cite{spectre}, but this small example shows
+how seemingly safe code, might still leak secret information. 
+
+A multitude of possible attacks making use of these side-channels are presented
+in \cite{osvikCacheAttacksCountermeasures2006, PrimeAndProbe}.
+
+\subsection{Covert channels}
+While side-channels are passive and exploit unintended leakage, covert channels
+involve two processes working together. The usually revolves around a sender
+(Trojan) and a receiver (spy), where the sender has access to high security
+data but is restricted from communicating directly to the receiver. To bypass
+this, the sender makes use of some shared resource to signal information to the
+receiver.
+
+Generally two main categories of covert channels exists; \textbf{Storage
+channels:} which modify some stored object, e.g. a file or some metadata;
+\textbf{Timing channels:} which change the time of different observable events
+for the receiver. For this thesis storage channels are not referenced, as
+kernels such as sel4 have already proven the absence of them
+\cite{murraySeL4GeneralPurpose2013}.
+
+Covert timing channels work through the same mechanisms as the aforementioned
+side channel, but pose as a worst case, where the sender can make use of any
+and all leakage methods to convey the information. This way, we are not limited
+to the visible gadgets that might exist in a vulnerable program, but the
+information might also be conveyed through repeated use of non-constant time
+system calls, the receiver could then measure the cache misses on the cache
+sets which is know to be touched by the system calls such as done in the
+evaluation of \cite{MissingOSAbstraction}.
+
+\subsection{Isolation}
+Throughout many timing channel mitigations isolation is a common factor. There
+exists two types of isolation, namely spatial isolation and temporal isolation.
+Spatial isolation partitions software into distinct memory spaces, which
+prevents separate domains from interfering with each other. This separation is
+most commonly used for DRAM memory, where the OS kernel rely on hardware like
+the memory management units (MMUs) or memory protection units (MPUs). The MMU
+translates virtual memory addresses into physical addresses in main memory. It
+also generally provides memory protection by implementing access control rules
+and regulations stopping illegal usage of particular memory locations
+\cite{WhatMemoryManagement}. Another notable examples of spatial isolation is
+cache coloring, which I will come back to later.
+
+The latter isolation type, namely temporal isolation, must ensure that the
+service received from shared resources by the software in one domain cannot be
+affected by the software in another domain
+\cite{AvionicsArchitecturesMechanisms}. An example, which would require such
+isolation is any shared part of the OS between different domains. Calling
+shared OS code should not have any measurable timing affect for another domain
+calling the same OS code. 
+
+To achieve temporal isolation one must clean any microarchitectural state
+affect by shared calls. This is where an instruction such as \texttt{fence.t}
+\cite{fencet} would clear this state. That is, when spatial isolation is not
+possible, then one must implement temporal isolation by flushing any dirty
+state before switching domains to ensure complete isolation. 
+
+\subsection{Time protection}
+
+\subsection{Cache coloring}

@@ -1,0 +1,403 @@
+@inproceedings{aciicmezImprovingBrumleyBoneh2005,
+  title = {Improving {{Brumley}} and {{Boneh}} Timing Attack on Unprotected {{SSL}} Implementations},
+  booktitle = {Proceedings of the 12th {{ACM}} Conference on {{Computer}} and Communications Security},
+  author = {Acii{\c c}mez, Onur and Schindler, Werner and Ko{\c c}, {\c C}etin K.},
+  year = 2005,
+  month = nov,
+  series = {{{CCS}} '05},
+  pages = {139--146},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  doi = {10.1145/1102120.1102140},
+  urldate = {2026-02-17},
+  abstract = {Since the remarkable work of Kocher [7], several papers considering different types of timing attacks have been published. In 2003, Brumley and Boneh presented a timing attack on unprotected OpenSSL implementations [2]. In this paper, we improve the efficiency of their attack by a factor of more than 10. We exploit the timing behavior of Montgomery multiplications in the table initialization phase, which allows us to increase the number of multiplications that provide useful information to reveal one of the prime factors of RSA moduli. We also present other improvements, which can be applied to the attack in [2].},
+  isbn = {978-1-59593-226-6},
+  file = {/home/simon/Zotero/storage/76KCCPI8/Aciiçmez et al. - 2005 - Improving Brumley and Boneh timing attack on unprotected SSL implementations.pdf}
+}
+
+@article{AvionicsArchitecturesMechanisms,
+  title = {Avionics {{Architectures}}: {{Mechanisms}}, and {{Assurance}}},
+  author = {Rushby, John},
+  date = {1999},
+  langid = {english},
+  file = {/home/simon/Zotero/storage/4K462MB7/Rushby - 1999 - Avionics Architectures Mechanisms, and Assurance.pdf}
+}
+
+@misc{buckleyProvingAbsenceMicroarchitectural2023,
+  title = {Proving the {{Absence}} of {{Microarchitectural Timing Channels}}},
+  author = {Buckley, Scott and Sison, Robert and Wistoff, Nils and Millar, Curtis and Murray, Toby and Klein, Gerwin and Heiser, Gernot},
+  year = 2023,
+  month = oct,
+  number = {arXiv:2310.17046},
+  eprint = {2310.17046},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2310.17046},
+  urldate = {2026-02-10},
+  abstract = {Microarchitectural timing channels are a major threat to computer security. A set of OS mechanisms called time protection was recently proposed as a principled way of preventing information leakage through such channels and prototyped in the seL4 microkernel. We formalise time protection and the underlying hardware mechanisms in a way that allows linking them to the information-flow proofs that showed the absence of storage channels in seL4.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Cryptography and Security,Computer Science - Logic in Computer Science,Computer Science - Operating Systems},
+  file = {/home/simon/Zotero/storage/ZH6KIY4E/Buckley et al. - 2023 - Proving the Absence of Microarchitectural Timing Channels.pdf;/home/simon/Zotero/storage/XSWRK9NY/2310.html}
+}
+
+@inproceedings{cauligiFaCTDSLTimingsensitive2019,
+  title = {{{FaCT}}: A {{DSL}} for Timing-Sensitive Computation},
+  shorttitle = {{{FaCT}}},
+  booktitle = {Proceedings of the 40th {{ACM SIGPLAN Conference}} on {{Programming Language Design}} and {{Implementation}}},
+  author = {Cauligi, Sunjay and Soeller, Gary and Johannesmeyer, Brian and Brown, Fraser and Wahby, Riad S. and Renner, John and Gr{\'e}goire, Benjamin and Barthe, Gilles and Jhala, Ranjit and Stefan, Deian},
+  year = 2019,
+  month = jun,
+  series = {{{PLDI}} 2019},
+  pages = {174--189},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  doi = {10.1145/3314221.3314605},
+  urldate = {2026-02-03},
+  abstract = {Real-world cryptographic code is often written in a subset of C intended to execute in constant-time, thereby avoiding timing side channel vulnerabilities. This C subset eschews structured programming as we know it: if-statements, looping constructs, and procedural abstractions can leak timing information when handling sensitive data. The resulting obfuscation has led to subtle bugs, even in widely-used high-profile libraries like OpenSSL. To address the challenge of writing constant-time cryptographic code, we present FaCT, a crypto DSL that provides high-level but safe language constructs. The FaCT compiler uses a secrecy type system to automatically transform potentially timing-sensitive high-level code into low-level, constant-time LLVM bitcode. We develop the language and type system, formalize the constant-time transformation, and present an empirical evaluation that uses FaCT to implement core crypto routines from several open-source projects including OpenSSL, libsodium, and curve25519-donna. Our evaluation shows that FaCT's design makes it possible to write readable, high-level cryptographic code, with efficient, constant-time behavior.},
+  isbn = {978-1-4503-6712-7},
+  keywords = {cryptography,domain-specific language,program transformation},
+  file = {/home/simon/Zotero/storage/VVDNRV7R/Cauligi et al. - 2019 - FaCT a DSL for timing-sensitive computation.pdf}
+}
+
+@inproceedings{chenNovelSideChannelRealTime2019,
+  title = {A {{Novel Side-Channel}} in {{Real-Time Schedulers}}},
+  booktitle = {2019 {{IEEE Real-Time}} and {{Embedded Technology}} and {{Applications Symposium}} ({{RTAS}})},
+  author = {Chen, Chien-Ying and Mohan, Sibin and Pellizzoni, Rodolfo and Bobba, Rakesh B. and Kiyavash, Negar},
+  year = 2019,
+  month = apr,
+  pages = {90--102},
+  issn = {2642-7346},
+  doi = {10.1109/RTAS.2019.00016},
+  urldate = {2026-02-09},
+  abstract = {We demonstrate the presence of a novel scheduler side-channel in preemptive, fixed-priority real-time systems (RTS); examples of such systems can be found in automotive systems, avionic systems, power plants and industrial control systems among others. This side-channel can leak important timing information such as the future arrival times of real-time tasks. This information can then be used to launch devastating attacks, two of which are demonstrated here (on real hardware platforms). Note that it is not easy to capture this timing information due to runtime variations in the schedules, the presence of multiple other tasks in the system and the typical constraints (e.g., deadlines) in the design of RTS. Our ScheduLeak algorithms demonstrate how to effectively exploit this side-channel. A complete implementation is presented on real operating systems (in Real-time Linux and FreeRTOS). Timing information leaked by ScheduLeak can significantly aid other, more advanced, attacks in better accomplishing their goals.},
+  keywords = {Arrival Time Inferences,Hardware,Information Leakage,Pulse width modulation,Real-time systems,Real-Time Systems,Runtime,ScheduLeak,Schedulers,Schedules,Side-Channels,Task analysis,Timing},
+  file = {/home/simon/Zotero/storage/7Z22IL8R/Chen et al. - 2019 - A Novel Side-Channel in Real-Time Schedulers.pdf}
+}
+
+@inproceedings{cockLastMileEmpirical2014,
+  title = {The {{Last Mile}}: {{An Empirical Study}} of {{Timing Channels}} on {{seL4}}},
+  shorttitle = {The {{Last Mile}}},
+  booktitle = {Proceedings of the 2014 {{ACM SIGSAC Conference}} on {{Computer}} and {{Communications Security}}},
+  author = {Cock, David and Ge, Qian and Murray, Toby and Heiser, Gernot},
+  year = 2014,
+  month = nov,
+  pages = {570--581},
+  publisher = {ACM},
+  address = {Scottsdale Arizona USA},
+  doi = {10.1145/2660267.2660294},
+  urldate = {2026-02-04},
+  abstract = {Storage channels can be provably eliminated in well-designed, highassurance kernels. Timing channels remain the last mile for confidentiality and are still beyond the reach of formal analysis, so must be dealt with empirically. We perform such an analysis, collecting a large data set (2,000 hours of observations) for two representative timing channels, the locally-exploitable cache channel and a remote exploit of OpenSSL execution timing, on the verified seL4 microkernel. We also evaluate the effectiveness, in bandwidth reduction, of a number of black-box mitigation techniques (cache colouring, instruction-based scheduling and deterministic delivery of server responses) across a number of hardware platforms. Our (somewhat unexpected) results show that while these defences were highly effective a few processor generations ago, the trend towards imprecise events in modern microarchitectures weakens the defences and introduces new channels. This demonstrates the necessity of careful empirical analysis of timing channels.},
+  isbn = {978-1-4503-2957-6},
+  langid = {english},
+  file = {/home/simon/Zotero/storage/BA4Z8LBJ/Cock et al. - 2014 - The Last Mile An Empirical Study of Timing Channels on seL4.pdf}
+}
+
+@article{corbetKAISERHidingKernel2017,
+  title = {{{KAISER}}: Hiding the Kernel from User Space},
+  shorttitle = {{{KAISER}}},
+  author = {Corbet, Jonathan},
+  year = 2017,
+  month = nov,
+  journal = {LWN.net},
+  urldate = {2026-02-17},
+  langid = {american},
+  file = {/home/simon/Zotero/storage/JQ5383DL/738975.html}
+}
+
+@inproceedings{denizSchedulingMixedCriticalityRealTime2009,
+  title = {On the {{Scheduling}} of {{Mixed-Criticality Real-Time Task Sets}}},
+  booktitle = {2009 30th {{IEEE Real-Time Systems Symposium}}},
+  author = {{de Niz}, Dionisio and Lakshmanan, Karthik and Rajkumar, Ragunathan},
+  year = 2009,
+  month = dec,
+  pages = {291--300},
+  issn = {1052-8725},
+  doi = {10.1109/RTSS.2009.46},
+  urldate = {2026-02-09},
+  abstract = {The functional consolidation induced by the cost reduction trends in embedded systems can force tasks of different criticality (e.g. ABS Brakes with DVD) to share a processor and interfere with each other. These systems are known as mixed criticality systems. While traditional temporal isolation techniques prevent all inter-task interference, they waste utilization because they need to reserve for the absolute worst-case execution time (WCET) for all tasks. In many mixed-criticality systems the WCET is not only rare, but at times difficult to calculate, such as the time to localize all possible objects in an obstacle avoidance algorithm. In this situation it is more appropriate to allow the execution time to grow by stealing cycles from lower-criticality tasks. Even more crucial is the fact that temporal isolation techniques can stop a high-criticality task (that was overrunning its nomimal WCET) to allow a low-criticality task to run, making the former miss its deadline. We identify this as the criticality inversion problem. In this paper, we characterize the criticality inversion problem and present a new scheduling scheme called zero-slack scheduling that implements an alternative protection scheme we refer to as asymmetric protection. This protection only prevents interference from lower-criticality to higher-criticality tasks and improves the schedulable utilization. We use an offline algorithm with two parts: a zero-slack calculation algorithm, and a slack analysis algorithm. The zero-slack calculation algorithm minimizes the utilization needed by a task set by reducing the time low-criticality tasks are preempted by high-criticality ones. This algorithm can be used with priority-based preemptive schedulers (e.g. RMS, EDF). The slack analysis algorithm is specific for each priority-based preemptive scheduler and we develop and evaluated the one for RMS. We prove that this algorithm provides the same level of protection against criticality inversion as the best known priority assignment for this purpose, criticality as priority assignment (CAPA). We also prove that zero-slack RM provides the same level of schedulable utilization as RMS when all tasks have equal criticality levels. Finally, we present our implementation of the runtime enforcement mechanisms in Linux/RK to demonstrate its practicality.},
+  keywords = {Algorithm design and analysis,Cost function,DVD,Embedded system,Interference,Linux,mixed criticality,overload,Processor scheduling,Protection,real time,Runtime,scheduling,Scheduling algorithm},
+  file = {/home/simon/Zotero/storage/GWMUZNY2/de Niz et al. - 2009 - On the Scheduling of Mixed-Criticality Real-Time Task Sets.pdf}
+}
+
+@incollection{dhemPracticalImplementationTiming2000,
+  title = {A {{Practical Implementation}} of the {{Timing Attack}}},
+  booktitle = {Smart {{Card Research}} and {{Applications}}},
+  author = {Dhem, Jean-François and Koeune, François and Leroux, Philippe-Alexandre and Mestré, Patrick and Quisquater, Jean-Jacques and Willems, Jean-Louis},
+  editor = {Quisquater, Jean-Jacques and Schneier, Bruce},
+  editora = {Goos, Gerhard and Hartmanis, Juris and Van Leeuwen, Jan},
+  editoratype = {redactor},
+  date = {2000},
+  volume = {1820},
+  pages = {167--182},
+  publisher = {Springer Berlin Heidelberg},
+  location = {Berlin, Heidelberg},
+  doi = {10.1007/10721064_15},
+  url = {http://link.springer.com/10.1007/10721064_15},
+  urldate = {2026-02-17},
+  abstract = {When the running time of a cryptographic algorithm is nonconstant, timing measurements can leak information about the secret key. This idea, rst publicly introduced by Kocher, is developed here to attack an earlier version of the CASCADE smart card1. We propose several improvements on Kocher's ideas, leading to a practical implementation that is able to break a 512-bit key in few hours, provided we are able to collect 300 000 timing measurements (128-bit keys can be recovered in few seconds using a personal computer and less than 10 000 samples). We therefore show that the timing attack represents an important threat against cryptosystems, which must be very seriously taken into account.},
+  isbn = {978-3-540-67923-3 978-3-540-44534-0},
+  langid = {english},
+  file = {/home/simon/Zotero/storage/9RUZVDF6/Dhem et al. - 2000 - A Practical Implementation of the Timing Attack.pdf}
+}
+
+@misc{fasoulakisRevisitArimotoBlahutAlgorithm2025,
+  title = {Revisit the {{Arimoto-Blahut}} Algorithm: {{New Analysis}} with {{Approximation}}},
+  shorttitle = {Revisit the {{Arimoto-Blahut}} Algorithm},
+  author = {Fasoulakis, Michail and Varsos, Konstantinos and Traganitis, Apostolos},
+  year = 2025,
+  month = jul,
+  number = {arXiv:2407.06013},
+  eprint = {2407.06013},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2407.06013},
+  urldate = {2026-02-10},
+  abstract = {By the seminal paper of Claude Shannon [10], the computation of the capacity of a discrete memoryless channel has been considered as one of the most important and fundamental problems in Information Theory. Nearly 50 years ago, Arimoto and Blahut independently proposed identical algorithms to solve this problem in their seminal papers [1, 2]. The Arimoto-Blahut algorithm was proven to converge to the capacity of the channel as t {$\rightarrow$} {$\infty$}, with a convergence rate upper bounded by O (log(m)/t), where m is the size of the input distribution. Under the assumption that a unique optimal solution is in the interior of the input probability simplex, the convergence becomes inverse exponential after an iteration t0 [1]. More recently, it was demonstrated in [8] that in certain specific cases, the convergence rate is at worst case inverse linear.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Information Theory},
+  file = {/home/simon/Zotero/storage/STBQETJB/Fasoulakis et al. - 2025 - Revisit the Arimoto-Blahut algorithm New Analysis with Approximation.pdf}
+}
+
+@article{fencet,
+  title = {Systematic Prevention of On-Core Timing Channels by Full Temporal Partitioning},
+  author = {Wistoff, Nils and Schneider, Moritz and G{\"u}rkaynak, Frank K. and Heiser, Gernot and Benini, Luca},
+  year = 2023,
+  month = may,
+  journal = {IEEE Transactions on Computers},
+  volume = {72},
+  number = {5},
+  pages = {1420--1430},
+  publisher = {{Institute of Electrical and Electronics Engineers (IEEE)}},
+  issn = {2326-3814},
+  doi = {10.1109/tc.2022.3212636},
+  file = {/home/simon/Zotero/storage/EP8WQ9Q4/Wistoff et al. - 2023 - Systematic Prevention of On-Core Timing Channels by Full Temporal Partitioning.pdf}
+}
+
+@misc{heiserFastSecureAdaptable2025,
+  title = {Fast, {{Secure}}, {{Adaptable}}: {{LionsOS Design}}, {{Implementation}} and {{Performance}}},
+  shorttitle = {Fast, {{Secure}}, {{Adaptable}}},
+  author = {Heiser, Gernot and Velickovic, Ivan and Chubb, Peter and Joshy, Alwin and Ganesh, Anuraag and Nguyen, Bill and Li, Cheng and Darville, Courtney and Zhu, Guangtao and Archer, James and Zhou, Jingyao and Winter, Krishnan and Parker, Lucy and Duchniewicz, Szymon and Bai, Tianyi},
+  year = 2025,
+  month = may,
+  number = {arXiv:2501.06234},
+  eprint = {2501.06234},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.06234},
+  urldate = {2026-02-04},
+  abstract = {We present LionsOS, an operating system for securityand safety-critical embedded systems. LionsOS is based on the formally verified seL4 microkernel and designed with verification in mind. It uses a static architecture and features a highly modular design driven by strict separation of concerns and a focus on simplicity. We demonstrate that LionsOS achieves excellent performance on system-call intensive workloads.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Cryptography and Security,Computer Science - Operating Systems},
+  file = {/home/simon/Zotero/storage/9VQ5R7B7/Heiser et al. - 2025 - Fast, Secure, Adaptable LionsOS Design, Implementation and Performance.pdf}
+}
+
+@article{kadloorMitigatingTimingSide2016,
+  title = {Mitigating {{Timing Side Channel}} in {{Shared Schedulers}}},
+  author = {Kadloor, Sachin and Kiyavash, Negar and Venkitasubramaniam, Parv},
+  year = 2016,
+  month = jun,
+  journal = {IEEE/ACM Transactions on Networking},
+  volume = {24},
+  number = {3},
+  pages = {1562--1573},
+  issn = {1558-2566},
+  doi = {10.1109/TNET.2015.2418194},
+  urldate = {2026-02-09},
+  abstract = {In this work, we study information leakage in timing side channels that arise in the context of shared event schedulers. Consider two processes, one of them an innocuous process (referred to as Alice) and the other a malicious one (referred to as Bob), using a common scheduler to process their jobs. There are other innocuous users in addition to Alice and Bob using the scheduler to process their jobs. Based on when his jobs get processed, Bob wishes to learn about the pattern (size and timing) of Alice's jobs. Depending on the context, knowledge of this pattern could have serious implications on Alice's privacy and security. For instance, shared routers can reveal traffic patterns, shared memory access can reveal cloud usage patterns, and suchlike. We present a formal framework to study the information leakage in shared resource schedulers using the pattern estimation error as a performance metric. The first-come-first-serve (FCFS) scheduling policy and time-division-multiple-access (TDMA) are identified as two extreme policies on the privacy metric, FCFS has the least, and TDMA has the highest. However, on performance-based metrics, such as throughput and delay, it is well known that FCFS significantly outperforms TDMA. We then derive two parameterized policies, accumulate and serve, and proportional TDMA, which take two different approaches to offer a tunable trade-off between privacy and performance.},
+  keywords = {Delays,Estimation error,Forensics,privacy,Privacy,scheduling algorithms,security,Throughput,Time division multiple access},
+  file = {/home/simon/Zotero/storage/QGC36YNF/Kadloor et al. - 2016 - Mitigating Timing Side Channel in Shared Schedulers.pdf}
+}
+
+@inproceedings{meltdown,
+  title = {Meltdown: {{Reading}} Kernel Memory from User Space},
+  booktitle = {27th {{USENIX}} Security Symposium ({{USENIX}} Security 18)},
+  author = {Lipp, Moritz and Schwarz, Michael and Gruss, Daniel and Prescher, Thomas and Haas, Werner and Fogh, Anders and Horn, Jann and Mangard, Stefan and Kocher, Paul and Genkin, Daniel and Yarom, Yuval and Hamburg, Mike},
+  year = 2018,
+  file = {/home/simon/Zotero/storage/FVLLKGSD/Lipp et al. - 2018 - Meltdown Reading kernel memory from user space.pdf}
+}
+
+@online{MeltdownSpectre,
+  title = {Meltdown and {{Spectre}}},
+  url = {https://meltdownattack.com/},
+  urldate = {2026-02-04},
+  file = {/home/simon/Zotero/storage/WL5BCNLZ/meltdownattack.com.html}
+}
+
+@inproceedings{MissingOSAbstraction,
+  title = {Time {{Protection}}: {{The Missing OS Abstraction}}},
+  shorttitle = {Time {{Protection}}},
+  booktitle = {Proceedings of the {{Fourteenth EuroSys Conference}} 2019},
+  author = {Ge, Qian and Yarom, Yuval and Chothia, Tom and Heiser, Gernot},
+  year = 2019,
+  month = mar,
+  series = {{{EuroSys}} '19},
+  pages = {1--17},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  doi = {10.1145/3302424.3303976},
+  urldate = {2026-02-03},
+  abstract = {Timing channels enable data leakage that threatens the security of computer systems, from cloud platforms to smartphones and browsers executing untrusted third-party code. Preventing unauthorised information flow is a core duty of the operating system, however, present OSes are unable to prevent timing channels. We argue that OSes must provide time protection, the temporal equivalent of the established memory protection, for isolating security domains. We examine the requirements of time protection, present a design and its implementation in the seL4 microkernel, and evaluate efficacy and cost on x86 and Arm processors.},
+  isbn = {978-1-4503-6281-8},
+  file = {/home/simon/Zotero/storage/EGT7F4WX/Ge et al. - 2019 - Time Protection The Missing OS Abstraction.pdf;/home/simon/Zotero/storage/ZAT4AB2I/OS_abstraction.md}
+}
+
+@inproceedings{murraySeL4GeneralPurpose2013,
+  title = {{{seL4}}: {{From General Purpose}} to a {{Proof}} of {{Information Flow Enforcement}}},
+  shorttitle = {{{seL4}}},
+  booktitle = {2013 {{IEEE Symposium}} on {{Security}} and {{Privacy}}},
+  author = {Murray, T. and Matichuk, D. and Brassil, M. and Gammie, P. and Bourke, T. and Seefried, S. and Lewis, C. and {Xin Gao} and Klein, G.},
+  year = 2013,
+  month = may,
+  pages = {415--429},
+  publisher = {IEEE},
+  address = {Berkeley, CA},
+  doi = {10.1109/SP.2013.35},
+  urldate = {2026-02-17},
+  abstract = {In contrast to testing, mathematical reasoning and formal verification can show the absence of whole classes of security vulnerabilities. We present the, to our knowledge, first complete, formal, machine-checked verification of information flow security for the implementation of a general-purpose microkernel; namely seL4. Unlike previous proofs of information flow security for operating system kernels, ours applies to the actual 8,830 lines of C code that implement seL4, and so rules out the possibility of invalidation by implementation errors in this code. We assume correctness of compiler, assembly code, hardware, and boot code. We prove everything else. This proof is strong evidence of seL4's utility as a separation kernel, and describes precisely how the general purpose kernel should be configured to enforce isolation and mandatory information flow control. We describe the information flow security statement we proved (a variant of intransitive noninterference), including the assumptions on which it rests, as well as the modifications that had to be made to seL4 to ensure it was enforced. We discuss the practical limitations and implications of this result, including covert channels not covered by the formal proof.},
+  isbn = {978-0-7695-4977-4 978-1-4673-6166-8},
+  langid = {english},
+  keywords = {Abstracts,Access control,formal verification,Hardware,information flow control,Kernel,Message systems,Silicon},
+  file = {/home/simon/Zotero/storage/TZXGUIAA/Murray et al. - 2013 - seL4 From General Purpose to a Proof of Information Flow Enforcement.pdf;/home/simon/Zotero/storage/X62GUM2D/Murray et al. - 2013 - seL4 From General Purpose to a Proof of Information Flow Enforcement.pdf}
+}
+
+@inproceedings{OffMyCloud,
+  title = {Hey, You, Get off of My Cloud: Exploring Information Leakage in Third-Party Compute Clouds},
+  shorttitle = {Hey, You, Get off of My Cloud},
+  booktitle = {Proceedings of the 16th {{ACM}} Conference on {{Computer}} and Communications Security},
+  author = {Ristenpart, Thomas and Tromer, Eran and Shacham, Hovav and Savage, Stefan},
+  year = 2009,
+  month = nov,
+  pages = {199--212},
+  publisher = {ACM},
+  address = {Chicago Illinois USA},
+  doi = {10.1145/1653662.1653687},
+  urldate = {2026-02-04},
+  abstract = {Third-party cloud computing represents the promise of outsourcing as applied to computation. Services, such as Microsoft's Azure and Amazon's EC2, allow users to instantiate virtual machines (VMs) on demand and thus purchase precisely the capacity they require when they require it. In turn, the use of virtualization allows third-party cloud providers to maximize the utilization of their sunk capital costs by multiplexing many customer VMs across a shared physical infrastructure. However, in this paper, we show that this approach can also introduce new vulnerabilities. Using the Amazon EC2 service as a case study, we show that it is possible to map the internal cloud infrastructure, identify where a particular target VM is likely to reside, and then instantiate new VMs until one is placed co-resident with the target. We explore how such placement can then be used to mount cross-VM side-channel attacks to extract information from a target VM on the same machine.},
+  isbn = {978-1-60558-894-0},
+  langid = {english},
+  file = {/home/simon/Zotero/storage/3Y4J2VYU/Ristenpart et al. - 2009 - Hey, you, get off of my cloud exploring information leakage in third-party compute clouds.pdf}
+}
+
+@incollection{osvikCacheAttacksCountermeasures2006,
+  title = {Cache {{Attacks}} and {{Countermeasures}}: {{The Case}} of {{AES}}},
+  shorttitle = {Cache {{Attacks}} and {{Countermeasures}}},
+  booktitle = {Topics in {{Cryptology}} -- {{CT-RSA}} 2006},
+  author = {Osvik, Dag Arne and Shamir, Adi and Tromer, Eran},
+  editor = {Hutchison, David and Kanade, Takeo and Kittler, Josef and Kleinberg, Jon M. and Mattern, Friedemann and Mitchell, John C. and Naor, Moni and Nierstrasz, Oscar and Pandu Rangan, C. and Steffen, Bernhard and Sudan, Madhu and Terzopoulos, Demetri and Tygar, Dough and Vardi, Moshe Y. and Weikum, Gerhard and Pointcheval, David},
+  year = 2006,
+  volume = {3860},
+  pages = {1--20},
+  publisher = {Springer Berlin Heidelberg},
+  address = {Berlin, Heidelberg},
+  doi = {10.1007/11605805_1},
+  urldate = {2026-02-10},
+  abstract = {We describe several software side-channel attacks based on inter-process leakage through the state of the CPU's memory cache. This leakage reveals memory access patterns, which can be used for cryptanalysis of cryptographic primitives that employ data-dependent table lookups. The attacks allow an unprivileged process to attack other processes running in parallel on the same processor, despite partitioning methods such as memory protection, sandboxing and virtualization. Some of our methods require only the ability to trigger services that perform encryption or MAC using the unknown key, such as encrypted disk partitions or secure network links. Moreover, we demonstrate an extremely strong type of attack, which requires knowledge of neither the specific plaintexts nor ciphertexts, and works by merely monitoring the effect of the cryptographic process on the cache. We discuss in detail several such attacks on AES, and experimentally demonstrate their applicability to real systems, such as OpenSSL and Linux's dm-crypt encrypted partitions (in the latter case, the full key can be recovered after just 800 writes to the partition, taking 65 milliseconds). Finally, we describe several countermeasures which can be used to mitigate such attacks.},
+  isbn = {978-3-540-31033-4 978-3-540-32648-9},
+  langid = {english},
+  file = {/home/simon/Zotero/storage/CPQRFV6I/Osvik et al. - 2006 - Cache Attacks and Countermeasures The Case of AES.pdf}
+}
+
+@online{PDFPracticalImplementation,
+  title = {A {{Practical Implementation}} of the {{Timing Attack}}},
+  url = {https://www.researchgate.net/publication/2357530_A_Practical_Implementation_of_the_Timing_Attack},
+  urldate = {2026-02-17},
+  abstract = {PDF | . When the running time of a cryptographic algorithm is nonconstant, timing measurements can leak informations about the secret key. This idea,... | Find, read and cite all the research you need on ResearchGate},
+  langid = {english},
+  organization = {ResearchGate},
+  file = {/home/simon/Zotero/storage/VF99Q68R/2357530_A_Practical_Implementation_of_the_Timing_Attack.html}
+}
+
+@online{PDFPracticalImplementationa,
+  title = {({{PDF}}) {{A Practical Implementation}} of the {{Timing Attack}}},
+  url = {https://www.researchgate.net/publication/2357530_A_Practical_Implementation_of_the_Timing_Attack},
+  urldate = {2026-02-17},
+  abstract = {PDF | . When the running time of a cryptographic algorithm is nonconstant, timing measurements can leak informations about the secret key. This idea,... | Find, read and cite all the research you need on ResearchGate},
+  langid = {english},
+  organization = {ResearchGate}
+}
+
+@inproceedings{PrimeAndProbe,
+  title = {Last-{{Level Cache Side-Channel Attacks}} Are {{Practical}}},
+  booktitle = {2015 {{IEEE Symposium}} on {{Security}} and {{Privacy}}},
+  author = {Liu, Fangfei and Yarom, Yuval and Ge, Qian and Heiser, Gernot and Lee, Ruby B.},
+  year = 2015,
+  month = may,
+  pages = {605--622},
+  issn = {2375-1207},
+  doi = {10.1109/SP.2015.43},
+  urldate = {2026-02-04},
+  abstract = {We present an effective implementation of the Prime+Probe side-channel attack against the last-level cache. We measure the capacity of the covert channel the attack creates and demonstrate a cross-core, cross-VM attack on multiple versions of GnuPG. Our technique achieves a high attack resolution without relying on weaknesses in the OS or virtual machine monitor or on sharing memory between attacker and victim.},
+  keywords = {covert channel,cross-VM side channel,Cryptography,ElGamal,Indexes,last-level cache,Memory management,Monitoring,Multicore processing,Probes,side-channel attack,Virtual machine monitors},
+  file = {/home/simon/Zotero/storage/UCGGPCKG/Liu et al. - 2015 - Last-Level Cache Side-Channel Attacks are Practical.pdf}
+}
+
+@inproceedings{S3K,
+  title = {Partitioning {{Kernel With Capability Controlled Temporal}} and {{Spatial Partitioning}}},
+  booktitle = {2025 {{IEEE Real-Time Systems Symposium}} ({{RTSS}})},
+  author = {Karlsson, Henrik and Guanciale, Roberto},
+  year = 2025,
+  month = dec,
+  pages = {68--81},
+  issn = {2576-3172},
+  doi = {10.1109/RTSS66672.2025.00015},
+  urldate = {2026-02-04},
+  abstract = {Partitioning kernels often face challenges such as static resource allocation and insufficient temporal protection, limiting their applicability in dynamic and mixed-criticality systems where resource needs and security boundaries evolve over time. To address these limitations, we present S3K, a capability-based multicore partitioning kernel for embedded RISC-V systems. S3K provides robust spatial and temporal isolation, time protection, and dynamic resource reconfiguration, enabling flexible adaptation to changing operational requirements while maintaining strong safety and security guarantees. Its capability-based model ensures secure and efficient resource management, while in-kernel data partitioning prevents information leakage and mitigates side-channel attacks. Additionally, S3K's scheduler guarantees deterministic process dispatch, free from microarchitectural interference. Evaluation results demonstrate S3K's effectiveness, showing the absence of scheduling jitter, resistance to intra-core side-channels, and efficient interprocess communication. These results highlight S3K's suitability for safety-critical and security-critical applications in dynamic, resource-constrained environments.},
+  keywords = {capability-based systems,Dynamic scheduling,Hardware,Interference,Kernel,multicore scheduling,Protection,real-time systems,Real-time systems,Resistance,Resource management,risc-v,Security,separation kernel,Side-channel attacks,spatial isolation,temporal isolation,time protection},
+  file = {/home/simon/Zotero/storage/PLLT92SF/Karlsson and Guanciale - 2025 - Partitioning Kernel With Capability Controlled Temporal and Spatial Partitioning.pdf;/home/simon/Zotero/storage/TM2UFST6/11315078.html}
+}
+
+@inproceedings{schneiderBreakingBadHow2025,
+  title = {Breaking {{Bad}}: {{How Compilers Break Constant-Time Implementations}}},
+  shorttitle = {Breaking {{Bad}}},
+  booktitle = {Proceedings of the 20th {{ACM Asia Conference}} on {{Computer}} and {{Communications Security}}},
+  author = {Schneider, Moritz and Lain, Daniele and Puddu, Ivan and Dutly, Nicolas and Capkun, Srdjan},
+  year = 2025,
+  month = aug,
+  eprint = {2410.13489},
+  primaryclass = {cs},
+  pages = {1690--1706},
+  doi = {10.1145/3708821.3733909},
+  urldate = {2026-02-17},
+  abstract = {The implementations of most hardened cryptographic libraries use defensive programming techniques for side-channel resistance. These techniques are usually specified as guidelines to developers on specific code patterns to use or avoid. Examples include performing arithmetic operations to choose between two variables instead of executing a secret-dependent branch. However, such techniques are only meaningful if they persist across compilation. In this paper, we investigate how optimizations used by modern compilers break the protections introduced by defensive programming techniques. Specifically, how compilers break high-level constant-time implementations used to mitigate timing side-channel attacks. We run a large-scale experiment to see if such compiler-induced issues manifest in state-of-the-art cryptographic libraries. We develop a tool that can profile virtually any architecture, and we use it to run trace-based dynamic analysis on 44,604 different targets. Particularly, we focus on the most widely deployed cryptographic libraries, which aim to provide side-channel resistance. We are able to evaluate whether their claims hold across various CPU architectures, including x86-64, x86-i386, armv7, aarch64, RISC-V, and MIPS-32.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Cryptography and Security},
+  file = {/home/simon/Zotero/storage/YFRN924M/Schneider et al. - 2025 - Breaking Bad How Compilers Break Constant-Time Implementations.pdf}
+}
+
+@inproceedings{spectre,
+  title = {Spectre Attacks: {{Exploiting}} Speculative Execution},
+  booktitle = {40th {{IEEE}} Symposium on Security and Privacy ({{S}}\&{{P}}'19)},
+  author = {Kocher, Paul and Horn, Jann and Fogh, Anders and Genkin, {and} Daniel and Gruss, Daniel and Haas, Werner and Hamburg, Mike and Lipp, Moritz and Mangard, Stefan and Prescher, Thomas and Schwarz, Michael and Yarom, Yuval},
+  year = 2019,
+  file = {/home/simon/Zotero/storage/5MXEM372/Kocher et al. - 2019 - Spectre attacks Exploiting speculative execution.pdf}
+}
+
+@online{WhatMemoryManagement,
+  title = {What Is {{Memory Management Unit}}({{MMU}})?},
+  url = {https://www.geeksforgeeks.org/computer-organization-architecture/what-is-memory-management-unit/},
+  urldate = {2026-02-17},
+  abstract = {Your All-in-One Learning Portal: GeeksforGeeks is a comprehensive educational platform that empowers learners across domains-spanning computer science and programming, school education, upskilling, commerce, software tools, competitive exams, and more.},
+  langid = {english},
+  organization = {GeeksforGeeks},
+  file = {/home/simon/Zotero/storage/ALNFLLXV/what-is-memory-management-unit.html}
+}
+
+@inproceedings{wistoffFencetsClosingTiming2025,
+  title = {Fence.t.s: {{Closing Timing Channels}} in~{{High-Performance Out-of-Order Cores Through ISA-Supported Temporal Partitioning}}},
+  shorttitle = {Fence.t.s},
+  booktitle = {Applications in {{Electronics Pervading Industry}}, {{Environment}} and {{Society}}},
+  author = {Wistoff, Nils and Heiser, Gernot and Benini, Luca},
+  editor = {Ruo Roch, Massimo and Bellotti, Francesco and Berta, Riccardo and Martina, Maurizio and Motto Ros, Paolo},
+  year = 2025,
+  pages = {269--276},
+  publisher = {Springer Nature Switzerland},
+  address = {Cham},
+  doi = {10.1007/978-3-031-84100-2_32},
+  abstract = {Microarchitectural timing channels exploit information leakage between security domains that should be isolated, bypassing the operating system's security boundaries. These channels result from contention for shared microarchitectural state. In the RISC-V instruction set, the temporal fence instruction (fence.t) was proposed to close timing channels by providing an operating system with the means to temporally partition microarchitectural state inexpensively in simple in-order cores. This work explores challenges with fence.t in superscalar out-of-order cores featuring large and pervasive microarchitectural state. To overcome these challenges, we propose a novel SW-supported temporal fence (fence.t.s), which reuses existing mechanisms and supports advanced microarchitectural features, enabling full timing channel protection of an exemplary out-of-order core (OpenC910) at negligible hardware costs and a minimal performance impact of 1.0\%.},
+  isbn = {978-3-031-84100-2},
+  langid = {english},
+  file = {/home/simon/Zotero/storage/H244NU7S/Wistoff et al. - 2025 - fence.t.s Closing Timing Channels in High-Performance Out-of-Order Cores Through ISA-Supported Temp.pdf}
+}
