@@ -1,3 +1,6 @@
 [submodule "src/qemu"]
 	path = src/qemu
 	url = https://github.com/svbrodersen/qemu.git
+[submodule "src/s3k"]
+	path = src/s3k
+	url = https://github.com/svbrodersen/s3k.git
