@@ -1,0 +1,243 @@
+\documentclass[aspectratio=169]{beamer}
+
+% Theme settings
+\usetheme{Madrid}
+\usecolortheme{beaver}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+
+% Packages
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+\usepackage{booktabs}
+\usepackage{tikz}
+
+% Bibliography generation (for portable compilation)
+\usepackage{filecontents}
+\begin{filecontents}{refs.bib}
+@inproceedings{S3K,
+  author    = {Author(s) of S3K},
+  title     = {S3K: A Capability-Based Time-Hardened Kernel},
+  booktitle = {Proceedings of the IEEE Real-Time Systems Symposium (RTSS)},
+  year      = {2023},
+  note      = {(Hypothetical citation based on input text)}
+}
+
+@inproceedings{MissingOSAbstraction,
+  author    = {Ge, Qian and Yarom, Yuval and Chothia, Tom and Heiser, Gernot},
+  title     = {Time Protection: The Missing OS Abstraction},
+  booktitle = {EuroSys '19},
+  year      = {2019},
+  address   = {Dresden, Germany}
+}
+\end{filecontents}
+
+\addbibresource{refs.bib}
+
+% Title Info
+\title{Timing Channels in OS Design}
+\subtitle{Comparing S3K and seL4 Time Protection}
+\author{Operating Systems Comparison}
+\date{\today}
+
+\begin{document}
+
+%---------------------------------------------------------
+% Title Slide
+%---------------------------------------------------------
+\begin{frame}
+    \titlepage
+\end{frame}
+
+%---------------------------------------------------------
+% Outline
+%---------------------------------------------------------
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+
+%=========================================================
+% Section: S3K
+%=========================================================
+\section{S3K: Hardware-Assisted Isolation}
+
+\begin{frame}{S3K: Overview}
+    \begin{itemize}
+        \item \textbf{Target:} Embedded RISC-V systems.
+        \item \textbf{Goal:} A capability-based multicore partitioning kernel for Real-Time Systems.
+        \item \textbf{Core Philosophy:} 
+            \begin{itemize}
+                \item Uses RISC-V hardware features (specifically \texttt{fence.t}) to enforce temporal isolation.
+                \item Minimal Trusted Computing Base (TCB) acting as a bare-metal hypervisor.
+            \end{itemize}
+        \item \textbf{Key Attributes:}
+            \begin{itemize}
+                \item Capability model with bounded Worst-Case Execution Time (WCET).
+                \item Time-driven scheduler.
+                \item Predictable constant-time system calls 
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{S3K: Timing Isolation Mechanisms}
+    S3K employs a hardware-centric approach to prevent timing interference:
+    
+    \vspace{0.5em}
+    
+    \begin{block}{The \texttt{fence.t} Instruction}
+        \begin{itemize}
+            \item Used at context switches to flush core-local microarchitectural state.
+            \item Prevents state (like branch predictors or L1 cache) from leaking data to the next process.
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Scheduling \& Padding}
+        \begin{itemize}
+            \item \textbf{Major/Minor Frames:} Time is strictly partitioned.
+            \item \textbf{Padding:} The scheduler uses worst-case padding to ensure strict deterministic process dispatch.
+            \item \textbf{Execution:} Constant-time kernel operations prevent the kernel itself from becoming a timing channel.
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{S3K: Memory Hierarchy \& Limitations}
+    \textbf{Scratchpad Memory (SPM) Focus:}
+    \begin{itemize}
+        \item S3K is designed to reside entirely within the SPM (backed by L1).
+        \item \textbf{Benefit:} Enables efficient flushing of the kernel's footprint via \texttt{fence.t}.
+    \end{itemize}
+
+    \vspace{1em}
+
+    \textbf{Scope of Protection:}
+    \begin{itemize}
+        \item \textbf{In-Kernel:} Protected. All syscalls are non-interfering and constant-time.
+        \item \textbf{User-Level:} \alert{Not fully protected by the kernel.} 
+        \item Unlike seL4, S3K does not enforce cache coloring for user space. Processes must protect their own user-level state from side-channels in higher-level caches (L2/DRAM) 
+    \end{itemize}
+\end{frame}
+
+%=========================================================
+% Section: seL4
+%=========================================================
+\section{seL4: Time Protection Abstraction}
+
+\begin{frame}{seL4: The Missing OS Abstraction}
+    \begin{itemize}
+        \item \textbf{Problem:} Standard memory protection (spatial) is insufficient. Shared microarchitectural state (caches, TLB, branch predictors) creates timing channels.
+        \item \textbf{Solution:} \textbf{Time Protection} as a first-class OS abstraction.
+        \item \textbf{Definition:} Preventing interference between security domains such that execution speed in one domain is independent of another 
+    \end{itemize}
+    
+    \begin{alertblock}{Threat Model}
+        Addresses both \textbf{Side Channels} (victim leaks to attacker) and \textbf{Covert Channels} (colluding sender/receiver).
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{seL4: Implementation Mechanisms}
+    seL4 introduces software mechanisms to overcome hardware limitations:
+
+    \begin{enumerate}
+        \item \textbf{Kernel Cloning:}
+        \begin{itemize}
+            \item Replaces static partitioning with dynamic kernel clones.
+            \item Each domain gets a private copy of OS text/stack to prevent kernel state leakage.
+        \end{itemize}
+        
+        \item \textbf{Deterministic Flushing:}
+        \begin{itemize}
+            \item On domain switch: flush L1, TLB, BP.
+            \item \textbf{Crucial:} Operations are padded to worst-case latency to hide the cost of the flush itself.
+        \end{itemize}
+        
+        \item \textbf{Cache Coloring:}
+        \begin{itemize}
+            \item Partitions the Last Level Cache (LLC) by locking pages to specific cache sets.
+            \item Prevents cross-domain interference in shared memory hierarchies.
+        \end{itemize}
+    \end{enumerate}
+\end{frame}
+
+%=========================================================
+% Section: Comparison
+%=========================================================
+\section{Comparison: S3K vs. seL4}
+
+\begin{frame}{Comparison: State Clearing Strategy}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{S3K (Hardware-Centric)}
+            \begin{itemize}
+                \item Relies on RISC-V \texttt{fence.t}.
+                \item \textbf{Pros:} Efficient hardware implementation; single instruction handles local state.
+                \item \textbf{Cons:} Requires specific hardware support (RISC-V extensions); focuses mostly on core-local state.
+            \end{itemize}
+        \end{column}
+        
+        \begin{column}{0.48\textwidth}
+            \textbf{seL4 (Software-Centric)}
+            \begin{itemize}
+                \item Manual software flushing sequences (e.g., iterating cache lines) + Padding.
+                \item \textbf{Pros:} Works on commodity hardware (x86/Arm) by abstracting the lack of flush instructions.
+                \item \textbf{Cons:} Higher overhead due to manual flushing and padding requirements.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Comparison: Memory Hierarchy Protection}
+    How they handle the cache hierarchy (L2/LLC) differs significantly:
+
+    \vspace{1em}
+    \begin{table}[]
+        \centering
+        \begin{tabular}{@{}p{0.45\linewidth} p{0.45\linewidth}@{}}
+            \toprule
+            \textbf{S3K} & \textbf{seL4} \\
+            \midrule
+            Optimized for \textbf{SPM/L1} locality. & Optimized for \textbf{Deep Hierarchies} (L2/LLC). \\
+            \addlinespace
+            Does \textbf{not} provide inherent protection for shared upper-level caches (DRAM/L2). & Uses \textbf{Cache Coloring} to spatially partition shared caches. \\
+            \addlinespace
+            \emph{"User processes are responsible for protecting their own user-level state."} & \emph{"OS enforces isolation via coloring to prevent contention."} \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+\begin{frame}{Comparison: Kernel Architecture}
+    \begin{block}{S3K: The Hypervisor Model}
+        \begin{itemize}
+            \item Single kernel instance acting as a bare-metal hypervisor.
+            \item Relies on constant-time implementation of syscalls to prevent leakage.
+            \item \textbf{Focus:} Determinism via scheduling and instruction padding.
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{seL4: The Kernel Clone Model}
+        \begin{itemize}
+            \item \textbf{Kernel Cloning:} Creates separate kernel images per domain.
+            \item Spatially separates global kernel data (stacks, variables) to eliminate shared state channels.
+            \item \textbf{Focus:} Spatial separation of the kernel itself to aid temporal isolation 
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Summary of Differences}
+    \begin{table}[]
+        \small
+        \centering
+        \begin{tabular}{@{}l p{4cm} p{4cm}@{}}
+            \toprule
+            \textbf{Feature} & \textbf{S3K} & \textbf{seL4} \\
+            \midrule
+            \textbf{Primary Mechanism} & \texttt{fence.t} (RISC-V) & Software Flush + Padding \\
+            \textbf{Kernel State} & Single Constant-Time Kernel & Cloned Kernel Images \\
+            \textbf{Shared Cache} & User Responsibility & Cache Coloring (OS Managed) \\
+            \textbf{Isolation Scope} & Core-local (L1/SPM) & Full Hierarchy (L1-LLC) \\
+            \textbf{Target} & Embedded Real-Time & General Purpose / Cloud \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+\end{document}
