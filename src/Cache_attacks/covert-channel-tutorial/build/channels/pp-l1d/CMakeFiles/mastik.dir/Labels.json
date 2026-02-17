@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/CMakeFiles/mastik"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/CMakeFiles/mastik.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/CMakeFiles/mastik-complete.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-build.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-configure.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-download.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-install.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-mkdir.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-patch.rule"
+		},
+		{
+			"file" : "/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"mastik"
+		],
+		"name" : "mastik"
+	}
+}

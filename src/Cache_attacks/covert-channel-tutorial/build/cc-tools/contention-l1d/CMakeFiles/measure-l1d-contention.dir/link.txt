@@ -1,0 +1,1 @@
+/usr/bin/cc -I/usr/local/cuda-13/include -Wl,--dependency-file=CMakeFiles/measure-l1d-contention.dir/link.d "CMakeFiles/measure-l1d-contention.dir/measure_l1d_contention.c.o" -o ../../measure-l1d-contention  /home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/cc-libs/mastik-0.02/src/l1.o

@@ -1,0 +1,10 @@
+# Hashes of file build rules.
+00bc41cf8243e499d464bc66bc38e6e7 channels/pp-l1d/CMakeFiles/mastik
+e6589896998bf442109c0a09f0b22a6e channels/pp-l1d/CMakeFiles/mastik-complete
+262dfd9e0ff93827f8862d086daf2e18 channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-build
+f7754cfd05eeaf700966085b2ee3f68d channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-configure
+3f0999c27d421e57e1a7ea7a9e4b03c0 channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-download
+8dcf3ab49450d3ea5df3008a0caa9eca channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-install
+25db81081c2df0784d7e0628c981b7c8 channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-mkdir
+c7e29954e2107e86717b1fd943680869 channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-patch
+7b83e47b3e82de303cf42ed9376b3981 channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-update

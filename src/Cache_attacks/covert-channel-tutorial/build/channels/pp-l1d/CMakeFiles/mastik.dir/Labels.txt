@@ -1,0 +1,13 @@
+# Target labels
+ mastik
+# Source files and their labels
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/CMakeFiles/mastik
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/CMakeFiles/mastik.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/CMakeFiles/mastik-complete.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-build.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-configure.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-download.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-install.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-mkdir.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-patch.rule
+/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/mastik-update.rule

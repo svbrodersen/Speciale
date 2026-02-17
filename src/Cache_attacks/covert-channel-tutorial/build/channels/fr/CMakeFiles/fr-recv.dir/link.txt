@@ -1,0 +1,1 @@
+/usr/bin/cc -I/usr/local/cuda-13/include -Wl,--dependency-file=CMakeFiles/fr-recv.dir/link.d "CMakeFiles/fr-recv.dir/receiver.c.o" -o ../../fr-recv  ../../cc-libs/libfr_util.a

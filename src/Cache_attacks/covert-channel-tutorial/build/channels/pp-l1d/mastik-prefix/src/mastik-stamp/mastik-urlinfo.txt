@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=/usr/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/download-mastik.cmake;COMMAND;/usr/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/verify-mastik.cmake;COMMAND;/usr/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/build/channels/pp-l1d/mastik-prefix/src/mastik-stamp/extract-mastik.cmake
+source_dir=/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/cc-libs/mastik-0.02
+work_dir=/home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/cc-libs
+url(s)=https://gitlab.com/r0l/mastik/-/archive/v0.03/mastik-v0.03.tar
+hash=
+      no_extract=
+

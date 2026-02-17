@@ -1,0 +1,1 @@
+/usr/bin/cc -I/usr/local/cuda-13/include -Wl,--dependency-file=CMakeFiles/fr-send.dir/link.d "CMakeFiles/fr-send.dir/sender.c.o" -o ../../fr-send  ../../cc-libs/libfr_util.a

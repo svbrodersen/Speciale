@@ -1,0 +1,2 @@
+/usr/bin/ar qc libfr_util.a CMakeFiles/fr_util.dir/fr_util.c.o
+/usr/bin/ranlib libfr_util.a

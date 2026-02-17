@@ -1,0 +1,1 @@
+/usr/bin/cc -I/usr/local/cuda-13/include -Wl,--dependency-file=CMakeFiles/pp-l1d-send.dir/link.d "CMakeFiles/pp-l1d-send.dir/sender.c.o" -o ../../pp-l1d-send  /home/simon/Programming/MSc_cs/Speciale/src/Cache_attacks/covert-channel-tutorial/cc-libs/mastik-0.02/src/l1.o

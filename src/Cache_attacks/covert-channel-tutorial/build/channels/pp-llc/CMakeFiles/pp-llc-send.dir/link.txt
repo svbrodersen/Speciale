@@ -1,0 +1,1 @@
+/usr/bin/cc -Wall -Wextra -O1 -fPIC -Wl,--dependency-file=CMakeFiles/pp-llc-send.dir/link.d "CMakeFiles/pp-llc-send.dir/sender.c.o" -o ../../pp-llc-send  ../../cc-libs/libutil.a

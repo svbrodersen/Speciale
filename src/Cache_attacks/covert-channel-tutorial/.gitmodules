@@ -1,0 +1,11 @@
+[submodule "extern/pp-llc-repo"]
+	path = extern/pp-llc-repo
+	url = ../../0x161e-swei/covert-channel-101
+    branch = isca19_tut
+[submodule "extern/fr-repo"]
+	path = extern/fr-repo
+	url = ../../moehajj/Flush-Reload
+[submodule "extern/pp-l1d-repo"]
+	path = extern/pp-l1d-repo
+	url = ../../yshalabi/covert-channel-toolkit
+    branch = isca19_tutorial

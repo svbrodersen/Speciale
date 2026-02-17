@@ -1,0 +1,27 @@
+CFLAGS=-O0 -I /usr/local
+CC=gcc
+
+TARGETS=sender
+UTILS=fr_util.o 
+
+all: $(TARGETS)
+
+$(UTILS): %.o: %.c %.h
+	$(CC) $(CFLAGS) -c $<
+
+%.o: %.c fr_util.h
+	$(CC) $(CFLAGS)  -c $< 
+
+
+$(TARGETS): %:%.o fr_util.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+
+
+run:
+	./sender
+
+.PHONY:	clean
+
+clean:
+	rm *.o $(HELPERS) $(TARGETS) 
