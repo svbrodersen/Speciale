@@ -277,6 +277,103 @@ static STATE: OnceLock<PluginState> = OnceLock::new();
 pub static qemu_plugin_version: u32 = QEMU_PLUGIN_VERSION;
 
 #[unsafe(no_mangle)]
+extern "C" fn vcpu_mem_access(
+    vcpu_index: u32,
+    info: qemu_plugin_meminfo_t,
+    vaddr: u64,
+    user_data: *mut std::ffi::c_void,
+) {
+    let state = match STATE.get() {
+        Some(st) => st,
+        None => {
+            let msg = "No initialized state";
+            panic!("{msg}");
+        }
+    };
+
+    let hwaddr = unsafe { qemu_plugin_get_hwaddr(info, vaddr) };
+    if !hwaddr.is_null() && unsafe { qemu_plugin_hwaddr_is_io(hwaddr) } {
+        return;
+    }
+
+    let eff_addr = unsafe {
+        if !hwaddr.is_null() {
+            qemu_plugin_hwaddr_phys_addr(hwaddr) as usize
+        } else {
+            vaddr as usize
+        }
+    };
+
+    let cache_idx = (vcpu_index as usize) % state.cores;
+
+    let insn_data = unsafe { &*(user_data as *mut InsnData) };
+    let mut hit;
+
+    {
+        let mut l1_dcaches = state.l1_d_caches.lock().unwrap();
+        hit = l1_dcaches[cache_idx].access(eff_addr);
+        if !hit {
+            insn_data
+                .l1_dmisses
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+
+    if hit {
+        return;
+    }
+
+    {
+        let mut l2_ucaches = state.l2_u_caches.lock().unwrap();
+        hit = l2_ucaches[cache_idx].access(eff_addr);
+        if !hit {
+            insn_data
+                .l2_misses
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) {
+    let state = match STATE.get() {
+        Some(st) => st,
+        None => {
+            let msg = "No initialized state";
+            panic!("{msg}");
+        }
+    };
+
+    let insn_data = unsafe { &*(user_data as *mut InsnData) };
+    let cache_idx = (vcpu_index as usize) % state.cores;
+
+    let mut hit;
+    {
+        let mut l1_icaches = state.l1_i_caches.lock().unwrap();
+        hit = l1_icaches[cache_idx].access(insn_data.addr);
+        if !hit {
+            insn_data
+                .l1_imisses
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+
+    if hit {
+        return;
+    }
+
+    {
+        let mut l2_ucaches = state.l2_u_caches.lock().unwrap();
+        hit = l2_ucaches[cache_idx].access(insn_data.addr);
+        if !hit {
+            insn_data
+                .l2_misses
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
 extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
     let state = match STATE.get() {
         Some(st) => st,
@@ -340,69 +437,6 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
             );
         };
     }
-}
-
-#[unsafe(no_mangle)]
-extern "C" fn vcpu_mem_access(
-    vcpu_index: u32,
-    info: qemu_plugin_meminfo_t,
-    vaddr: u64,
-    user_data: *mut std::ffi::c_void,
-) {
-    let state = match STATE.get() {
-        Some(st) => st,
-        None => {
-            let msg = "No initialized state";
-            panic!("{msg}");
-        }
-    };
-
-    let hwaddr = unsafe { qemu_plugin_get_hwaddr(info, vaddr) };
-    if !hwaddr.is_null() && unsafe { qemu_plugin_hwaddr_is_io(hwaddr) } {
-        return;
-    }
-
-    let eff_addr = unsafe {
-        if !hwaddr.is_null() {
-            qemu_plugin_hwaddr_phys_addr(hwaddr) as usize
-        } else {
-            vaddr as usize
-        }
-    };
-
-    let cache_idx = (vcpu_index as usize) % state.cores;
-
-    let insn_data = unsafe { &*(user_data as *mut InsnData) };
-    let mut hit;
-
-    {
-        let mut l1_dcaches = state.l1_d_caches.lock().unwrap();
-        hit = l1_dcaches[cache_idx].access(eff_addr);
-        if !hit {
-            insn_data
-                .l1_dmisses
-                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        }
-    }
-
-    if hit {
-        return;
-    }
-
-    {
-        let mut l2_ucaches = state.l2_u_caches.lock().unwrap();
-        hit = l2_ucaches[cache_idx].access(eff_addr);
-        if !hit {
-            insn_data
-                .l2_misses
-                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        }
-    }
-}
-
-#[unsafe(no_mangle)]
-extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void){
-
 }
 
 #[unsafe(no_mangle)]
