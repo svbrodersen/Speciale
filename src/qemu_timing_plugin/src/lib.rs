@@ -14,7 +14,10 @@ use std::{
 };
 
 use queues::{IsQueue, Queue, queue};
-use rand::RngExt;
+use rand::{
+    RngExt, SeedableRng,
+    rngs::{StdRng, SysRng},
+};
 
 struct CacheBlock {
     tag: usize,
@@ -47,7 +50,7 @@ struct FIFOCacheSet {
 struct RandCacheSet {
     blocks: Vec<CacheBlock>,
     assoc: usize,
-    rng: rand::rngs::ThreadRng,
+    rng: StdRng,
 }
 
 impl CacheSet for LRUCacheSet {
@@ -133,13 +136,13 @@ impl CacheSet for FIFOCacheSet {
 impl CacheSet for RandCacheSet {
     fn new(assoc: usize) -> Self {
         let mut blocks = Vec::with_capacity(assoc);
-        for _ in 0..blocks.len() {
+        for _ in 0..assoc {
             blocks.push(CacheBlock::new(0, false));
         }
         Self {
             blocks,
             assoc,
-            rng: rand::rng(),
+            rng: StdRng::try_from_rng(&mut SysRng).unwrap(),
         }
     }
 
@@ -395,6 +398,11 @@ extern "C" fn vcpu_mem_access(
                 .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         }
     }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void){
+
 }
 
 #[unsafe(no_mangle)]
