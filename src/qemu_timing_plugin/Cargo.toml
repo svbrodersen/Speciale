@@ -1,0 +1,17 @@
+[package]
+name = "qemu_timing_plugin"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+cty = "0.2.2"
+lazy_static = "1.4"
+queues = "1.1.0"
+rand = "0.10.0"
+
+[build-dependencies]
+bindgen = "0.72.1"
+pkg-config = "0.3.32"

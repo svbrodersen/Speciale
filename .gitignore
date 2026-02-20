@@ -313,3 +313,4 @@ TSWLatexianTemp*
 *.glstex
 
 src/microkit_tutorial
+src/qemu_timing_plugin/target
