@@ -6,9 +6,11 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+use sprintf::sprintf;
 use std::{
+    collections::HashMap,
     ffi::CStr,
-    sync::{OnceLock, atomic::AtomicUsize},
+    sync::{Mutex, OnceLock, atomic::AtomicUsize},
 };
 
 use queues::{IsQueue, Queue, queue};
@@ -255,8 +257,8 @@ struct InsnData {
 }
 
 struct PluginState {
-    sys: Mutex<bool>,
-    cores: Mutex<usize>,
+    sys: bool,
+    cores: usize,
 
     l1_d_caches: Mutex<Vec<Box<dyn CacheDyn>>>,
     l1_i_caches: Mutex<Vec<Box<dyn CacheDyn>>>,
@@ -275,9 +277,9 @@ pub static qemu_plugin_version: u32 = QEMU_PLUGIN_VERSION;
 extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
     let state = match STATE.get() {
         Some(st) => st,
-        Err(err) => {
-            let msg = sprintf!("No initialized state, err: %s", err);
-            panic!(msg);
+        None => {
+            let msg = "No initialized state";
+            panic!("{msg}");
         }
     };
 
@@ -286,30 +288,38 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
         let insn = unsafe { qemu_plugin_tb_get_insn(tb, i) };
         let eff_addr = unsafe {
             if state.sys {
-                qemu_plugin_insn_haddr(insn);
+                qemu_plugin_insn_haddr(insn) as usize
             } else {
-                qemu_plugin_insn_vaddr(insn);
-            };
+                qemu_plugin_insn_vaddr(insn) as usize
+            }
         };
 
-        {
-            let mut map = state.insn_map.lock();
+        let mut map = state.insn_map.lock().unwrap();
 
-            let entry = map.entry(insn).or_insert_with(|| {
-                let disas = unsafe { qemu_plugin_insn_disas(insn) };
-                let symbol = unsafe { qemu_plugin_insn_symbol(insn) };
-                InsnData {
-                    addr: eff_addr,
-                    disas: disas,
-                    symbol: symbol,
-                    l1_imisses: AtomicUsize::new(0),
-                    l1_dmisses: AtomicUsize::new(0),
-                    l2_misses: AtomicUsize::new(0),
-                }
-            });
-        }
-        let data_ptr = entry.as_mut() as *mut _ as *mut std::ffi::c_void;
+        let entry = map.entry(insn as usize).or_insert_with(|| {
+            let disas_ptr = unsafe { qemu_plugin_insn_disas(insn) };
+            let symbol_ptr = unsafe { qemu_plugin_insn_symbol(insn) };
+            let disas = if !disas_ptr.is_null() {
+                unsafe { CStr::from_ptr(disas_ptr).to_string_lossy().into_owned() }
+            } else {
+                String::from("unknown")
+            };
 
+            let symbol = if !symbol_ptr.is_null() {
+                unsafe { CStr::from_ptr(symbol_ptr).to_string_lossy().into_owned() }
+            } else {
+                String::new()
+            };
+            InsnData {
+                addr: eff_addr,
+                disas,
+                symbol,
+                l1_imisses: AtomicUsize::new(0),
+                l1_dmisses: AtomicUsize::new(0),
+                l2_misses: AtomicUsize::new(0),
+            }
+        });
+        let data_ptr = entry as *mut _ as *mut std::ffi::c_void;
         unsafe {
             qemu_plugin_register_vcpu_mem_cb(
                 insn,
@@ -338,48 +348,48 @@ extern "C" fn vcpu_mem_access(
 ) {
     let state = match STATE.get() {
         Some(st) => st,
-        Err(err) => {
-            let msg = sprintf!("No initialized state, err: %s", err);
-            panic!(msg);
+        None => {
+            let msg = "No initialized state";
+            panic!("{msg}");
         }
     };
 
     let hwaddr = unsafe { qemu_plugin_get_hwaddr(info, vaddr) };
-    if (hwaddr && unsafe { qemu_plugin_hwaddr_is_io(haddr) }) {
+    if !hwaddr.is_null() && unsafe { qemu_plugin_hwaddr_is_io(hwaddr) } {
         return;
     }
 
     let eff_addr = unsafe {
-        if hwaddr {
-            qemu_plugin_hwaddr_phys_addr(insn);
+        if !hwaddr.is_null() {
+            qemu_plugin_hwaddr_phys_addr(hwaddr) as usize
         } else {
-            vaddr;
-        };
+            vaddr as usize
+        }
     };
 
     let cache_idx = (vcpu_index as usize) % state.cores;
 
-    let insn_data = unsafe { &*(userdata as *mut InsnData) };
+    let insn_data = unsafe { &*(user_data as *mut InsnData) };
     let mut hit;
 
     {
-        let mut l1_dcaches = state.l1_d_caches.lock();
+        let mut l1_dcaches = state.l1_d_caches.lock().unwrap();
         hit = l1_dcaches[cache_idx].access(eff_addr);
-        if (!hit) {
+        if !hit {
             insn_data
                 .l1_dmisses
                 .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         }
     }
 
-    if (hit) {
+    if hit {
         return;
     }
 
     {
-        let mut l2_ucaches = state.l2_u_caches.lock();
+        let mut l2_ucaches = state.l2_u_caches.lock().unwrap();
         hit = l2_ucaches[cache_idx].access(eff_addr);
-        if (!hit) {
+        if !hit {
             insn_data
                 .l2_misses
                 .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
