@@ -6,7 +6,10 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-use std::ffi::CStr;
+use std::{
+    ffi::CStr,
+    sync::{OnceLock, atomic::AtomicUsize},
+};
 
 use queues::{IsQueue, Queue, queue};
 use rand::RngExt;
@@ -160,7 +163,7 @@ impl CacheSet for RandCacheSet {
     }
 }
 
-trait CacheSet {
+trait CacheSet: Send {
     fn new(assoc: usize) -> Self;
     fn access(&mut self, tag: usize) -> bool;
 }
@@ -217,7 +220,7 @@ impl<T: CacheSet> Cache<T> {
         (addr & self.set_mask) >> self.block_shift
     }
 
-    fn accessCache(&mut self, addr: usize) -> bool {
+    fn access(&mut self, addr: usize) -> bool {
         let tag = self.extractTag(addr);
         let set = self.extractSet(addr);
         self.accesses += 1;
@@ -232,12 +235,156 @@ impl<T: CacheSet> Cache<T> {
     }
 }
 
+trait CacheDyn: Send {
+    fn access(&mut self, addr: usize) -> bool;
+}
+
+impl<T: CacheSet + 'static> CacheDyn for Cache<T> {
+    fn access(&mut self, addr: usize) -> bool {
+        Cache::access(self, addr)
+    }
+}
+
+struct InsnData {
+    addr: usize,
+    disas: String,
+    symbol: String,
+    l1_imisses: AtomicUsize,
+    l1_dmisses: AtomicUsize,
+    l2_misses: AtomicUsize,
+}
+
+struct PluginState {
+    sys: Mutex<bool>,
+    cores: Mutex<usize>,
+
+    l1_d_caches: Mutex<Vec<Box<dyn CacheDyn>>>,
+    l1_i_caches: Mutex<Vec<Box<dyn CacheDyn>>>,
+
+    l2_u_caches: Mutex<Vec<Box<dyn CacheDyn>>>,
+    insn_map: Mutex<HashMap<usize, InsnData>>,
+}
+
+// Allow only one initialization of PluginState
+static STATE: OnceLock<PluginState> = OnceLock::new();
+
 #[unsafe(no_mangle)]
 pub static qemu_plugin_version: u32 = QEMU_PLUGIN_VERSION;
 
 #[unsafe(no_mangle)]
-extern "C" fn vcpu_init_callback(_id: qemu_plugin_id_t, vcpu_index: u32) {
-    println!("Rust Plugin: vCPU {vcpu_index} initialized!");
+extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
+    let state = match STATE.get() {
+        Some(st) => st,
+        Err(err) => {
+            let msg = sprintf!("No initialized state, err: %s", err);
+            panic!(msg);
+        }
+    };
+
+    let n_insns = unsafe { qemu_plugin_tb_n_insns(tb) };
+    for i in 0..n_insns {
+        let insn = unsafe { qemu_plugin_tb_get_insn(tb, i) };
+        let eff_addr = unsafe {
+            if state.sys {
+                qemu_plugin_insn_haddr(insn);
+            } else {
+                qemu_plugin_insn_vaddr(insn);
+            };
+        };
+
+        {
+            let mut map = state.insn_map.lock();
+
+            let entry = map.entry(insn).or_insert_with(|| {
+                let disas = unsafe { qemu_plugin_insn_disas(insn) };
+                let symbol = unsafe { qemu_plugin_insn_symbol(insn) };
+                InsnData {
+                    addr: eff_addr,
+                    disas: disas,
+                    symbol: symbol,
+                    l1_imisses: AtomicUsize::new(0),
+                    l1_dmisses: AtomicUsize::new(0),
+                    l2_misses: AtomicUsize::new(0),
+                }
+            });
+        }
+        let data_ptr = entry.as_mut() as *mut _ as *mut std::ffi::c_void;
+
+        unsafe {
+            qemu_plugin_register_vcpu_mem_cb(
+                insn,
+                Some(vcpu_mem_access),
+                qemu_plugin_cb_flags_QEMU_PLUGIN_CB_NO_REGS,
+                qemu_plugin_mem_rw_QEMU_PLUGIN_MEM_RW,
+                data_ptr,
+            );
+
+            qemu_plugin_register_vcpu_insn_exec_cb(
+                insn,
+                Some(vcpu_insn_exec),
+                qemu_plugin_cb_flags_QEMU_PLUGIN_CB_NO_REGS,
+                data_ptr,
+            );
+        };
+    }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn vcpu_mem_access(
+    vcpu_index: u32,
+    info: qemu_plugin_meminfo_t,
+    vaddr: u64,
+    user_data: *mut std::ffi::c_void,
+) {
+    let state = match STATE.get() {
+        Some(st) => st,
+        Err(err) => {
+            let msg = sprintf!("No initialized state, err: %s", err);
+            panic!(msg);
+        }
+    };
+
+    let hwaddr = unsafe { qemu_plugin_get_hwaddr(info, vaddr) };
+    if (hwaddr && unsafe { qemu_plugin_hwaddr_is_io(haddr) }) {
+        return;
+    }
+
+    let eff_addr = unsafe {
+        if hwaddr {
+            qemu_plugin_hwaddr_phys_addr(insn);
+        } else {
+            vaddr;
+        };
+    };
+
+    let cache_idx = (vcpu_index as usize) % state.cores;
+
+    let insn_data = unsafe { &*(userdata as *mut InsnData) };
+    let mut hit;
+
+    {
+        let mut l1_dcaches = state.l1_d_caches.lock();
+        hit = l1_dcaches[cache_idx].access(eff_addr);
+        if (!hit) {
+            insn_data
+                .l1_dmisses
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+
+    if (hit) {
+        return;
+    }
+
+    {
+        let mut l2_ucaches = state.l2_u_caches.lock();
+        hit = l2_ucaches[cache_idx].access(eff_addr);
+        if (!hit) {
+            insn_data
+                .l2_misses
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
 }
 
 #[unsafe(no_mangle)]
