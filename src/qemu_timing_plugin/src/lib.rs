@@ -9,25 +9,35 @@ use crate::cache::{Cache, CacheSet, FIFOCacheSet, LRUCacheSet, RandCacheSet};
 use std::{
     collections::HashMap,
     ffi::CStr,
+    ptr,
     sync::{Mutex, OnceLock, atomic::AtomicUsize},
 };
 
 mod cache;
 
 trait CacheDyn: Send {
-    fn access(&mut self, addr: usize) -> bool;
+    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> bool;
     fn get_stats(&self) -> (usize, usize);
 }
 
 impl<T: CacheSet + 'static> CacheDyn for Cache<T> {
-    fn access(&mut self, addr: usize) -> bool {
-        Cache::access(self, addr)
+    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> bool {
+        Cache::access(self, addr, domain_id)
     }
 
     fn get_stats(&self) -> (usize, usize) {
         (self.accesses, self.misses)
     }
 }
+
+struct Cpu {
+    pub reg_tp: *mut qemu_plugin_register,
+    pub cpu_data: Vec<Mutex<*mut GByteArray>>,
+}
+
+// Note the pointer is unsafe, but let qemu handle it
+unsafe impl Send for Cpu {}
+unsafe impl Sync for Cpu {}
 
 struct InsnData {
     addr: usize,
@@ -48,6 +58,7 @@ struct PluginState {
 
     l2_u_caches: Vec<Mutex<Box<dyn CacheDyn>>>,
     insn_map: Mutex<HashMap<usize, Box<InsnData>>>,
+    cpu: Cpu,
 }
 
 fn build_caches(
@@ -88,6 +99,26 @@ fn qemu_print(msg: &str) {
 #[unsafe(no_mangle)]
 pub static qemu_plugin_version: u32 = QEMU_PLUGIN_VERSION;
 
+fn get_domain_id(state: &PluginState, vcpu_index: u32) -> Option<usize> {
+    if state.cpu.reg_tp.is_null() {
+        return None;
+    }
+    let cache_idx = (vcpu_index as usize) & state.cores;
+    let guard = state.cpu.cpu_data[cache_idx].lock().unwrap();
+    let buf_ptr = *guard;
+
+    unsafe { g_byte_array_set_size(buf_ptr, 0) };
+    let success = unsafe { qemu_plugin_read_register(state.cpu.reg_tp, buf_ptr) };
+    let buf_ref = unsafe { buf_ptr.cast::<u64>().as_ref() };
+    if success {
+        return buf_ref.map(|val_ref| {
+            usize::try_from(*val_ref)
+                .expect("Failed to convert u64 to usize, are you on 64-bit platform?")
+        });
+    }
+    None
+}
+
 #[unsafe(no_mangle)]
 extern "C" fn vcpu_mem_access(
     vcpu_index: u32,
@@ -115,10 +146,13 @@ extern "C" fn vcpu_mem_access(
 
     let insn_data =
         unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
+
+    let domain_id = get_domain_id(state, vcpu_index);
+
     let hit = state.l1_d_caches[cache_idx]
         .lock()
         .unwrap()
-        .access(eff_addr);
+        .access(eff_addr, domain_id);
 
     if !hit {
         insn_data
@@ -128,7 +162,7 @@ extern "C" fn vcpu_mem_access(
         let l2_hit = state.l2_u_caches[cache_idx]
             .lock()
             .unwrap()
-            .access(eff_addr);
+            .access(eff_addr, domain_id);
         if !l2_hit {
             insn_data
                 .l2_misses
@@ -145,10 +179,12 @@ extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) 
         unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
     let cache_idx = (vcpu_index as usize) % state.cores;
 
+    let domain_id = get_domain_id(state, vcpu_index);
+
     let hit = state.l1_i_caches[cache_idx]
         .lock()
         .unwrap()
-        .access(insn_data.addr);
+        .access(insn_data.addr, domain_id);
 
     if !hit {
         insn_data
@@ -158,7 +194,7 @@ extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) 
         let l2_hit = state.l2_u_caches[cache_idx]
             .lock()
             .unwrap()
-            .access(insn_data.addr);
+            .access(insn_data.addr, domain_id);
         if !l2_hit {
             insn_data
                 .l2_misses
@@ -217,7 +253,7 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
             qemu_plugin_register_vcpu_mem_cb(
                 insn,
                 Some(vcpu_mem_access),
-                qemu_plugin_cb_flags_QEMU_PLUGIN_CB_NO_REGS,
+                qemu_plugin_cb_flags_QEMU_PLUGIN_CB_R_REGS,
                 qemu_plugin_mem_rw_QEMU_PLUGIN_MEM_RW,
                 data_ptr,
             );
@@ -225,7 +261,7 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
             qemu_plugin_register_vcpu_insn_exec_cb(
                 insn,
                 Some(vcpu_insn_exec),
-                qemu_plugin_cb_flags_QEMU_PLUGIN_CB_NO_REGS,
+                qemu_plugin_cb_flags_QEMU_PLUGIN_CB_R_REGS,
                 data_ptr,
             );
         };
@@ -240,6 +276,25 @@ fn cache_config_error(blksize: usize, assoc: usize, cachesize: usize) -> Result<
     } else {
         Ok(())
     }
+}
+
+fn plugin_find_register(name: &str) -> *mut qemu_plugin_register {
+    let regs_ref = unsafe {
+        qemu_plugin_get_registers()
+            .as_ref()
+            .expect("QEMU passed a null registers pointer")
+    };
+    let data = regs_ref.data.cast::<qemu_plugin_reg_descriptor>();
+
+    for i in 0..regs_ref.len {
+        let reg = unsafe { data.add(i as usize) };
+        let reg_ref = unsafe { reg.as_ref().expect("QEMU reg is null pointer") };
+        let reg_name = unsafe { CStr::from_ptr(reg_ref.name).to_str() }.unwrap_or("");
+        if reg_name == name {
+            return reg_ref.handle;
+        }
+    }
+    ptr::null_mut()
 }
 
 /// Install plugin
@@ -355,6 +410,10 @@ pub extern "C" fn qemu_plugin_install(
         l1_i_caches: build_caches(&policy, cores, l1_iblksize, l1_iassoc, l1_icachesize),
         l2_u_caches: build_caches(&policy, cores, l2_blksize, l2_assoc, l2_cachesize),
         insn_map: Mutex::new(HashMap::new()),
+        cpu: Mutex::new(Cpu {
+            reg_tp: plugin_find_register("tp"),
+            buf: unsafe { g_byte_array_new() },
+        }),
     };
 
     STATE
@@ -468,5 +527,3 @@ fn print_insn_table(
         writeln!(out, "{:#x}{sym}, {}, {}", insn.addr, misses, insn.disas).unwrap();
     }
 }
-
-

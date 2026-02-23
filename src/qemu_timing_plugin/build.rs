@@ -14,6 +14,7 @@ fn main() {
         // Optimization: Only generate bindings for QEMU-related things
         // This stops the bindings file from being 17,000+ lines of GLib code
         .allowlist_function("qemu_plugin_.*")
+        .allowlist_function("g_byte_array_.*")
         .allowlist_type("qemu_plugin_.*")
         .allowlist_var("QEMU_PLUGIN_.*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));

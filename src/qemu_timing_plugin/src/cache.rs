@@ -52,7 +52,7 @@ impl CacheSet for LRUCacheSet {
         }
     }
 
-    fn access(&mut self, tag: usize) -> bool {
+    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool {
         if let Some(block) = self.blocks.iter_mut().find(|b| b.valid && b.tag == tag) {
             block.priority = self.gen_counter;
             self.gen_counter += 1;
@@ -95,7 +95,7 @@ impl CacheSet for FIFOCacheSet {
         }
     }
 
-    fn access(&mut self, tag: usize) -> bool {
+    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool {
         if self.blocks.iter().any(|b| b.valid && b.tag == tag) {
             return true;
         }
@@ -131,7 +131,7 @@ impl CacheSet for RandCacheSet {
         }
     }
 
-    fn access(&mut self, tag: usize) -> bool {
+    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool {
         if self.blocks.iter().any(|b| b.valid && b.tag == tag) {
             return true;
         }
@@ -155,7 +155,7 @@ impl CacheSet for RandCacheSet {
 
 pub trait CacheSet: Send {
     fn new(assoc: usize) -> Self;
-    fn access(&mut self, tag: usize) -> bool;
+    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool;
 }
 
 pub struct Cache<T: CacheSet> {
@@ -206,12 +206,12 @@ impl<T: CacheSet> Cache<T> {
         (addr & self.set_mask) >> self.block_shift
     }
 
-    pub fn access(&mut self, addr: usize) -> bool {
+    pub fn access(&mut self, addr: usize, domain_id: Option<usize>) -> bool {
         let tag = self.extract_tag(addr);
         let set = self.extract_set(addr);
         self.accesses += 1;
 
-        let hit = self.sets[set].access(tag);
+        let hit = self.sets[set].access(tag, domain_id);
 
         if !hit {
             self.misses += 1;
