@@ -1,237 +1,22 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
 #![allow(clippy::similar_names)]
-#![allow(clippy::upper_case_acronyms)]
+#![allow(dead_code)]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+use crate::cache::{Cache, CacheSet, FIFOCacheSet, LRUCacheSet, RandCacheSet};
 use std::{
     collections::HashMap,
     ffi::CStr,
     sync::{Mutex, OnceLock, atomic::AtomicUsize},
 };
 
-use queues::{IsQueue, Queue, queue};
-use rand::{
-    RngExt, SeedableRng,
-    rngs::{StdRng, SysRng},
-};
-
-struct CacheBlock {
-    tag: usize,
-    valid: bool,
-    priority: usize,
-}
-
-impl CacheBlock {
-    pub fn new(tag: usize, valid: bool) -> Self {
-        Self {
-            tag,
-            valid,
-            priority: 0,
-        }
-    }
-}
-
-struct LRUCacheSet {
-    blocks: Vec<CacheBlock>,
-    gen_counter: usize,
-}
-
-struct FIFOCacheSet {
-    blocks: Vec<CacheBlock>,
-    queue: Queue<usize>,
-}
-
-struct RandCacheSet {
-    blocks: Vec<CacheBlock>,
-    rng: StdRng,
-}
-
-impl CacheSet for LRUCacheSet {
-    fn new(assoc: usize) -> Self {
-        let mut blocks = Vec::with_capacity(assoc);
-        for _ in 0..assoc {
-            blocks.push(CacheBlock::new(0, false));
-        }
-        Self {
-            blocks,
-            gen_counter: 0,
-        }
-    }
-    fn access(&mut self, tag: usize) -> bool {
-        if let Some(block) = self.blocks.iter_mut().find(|b| b.valid && b.tag == tag) {
-            block.priority = self.gen_counter;
-            self.gen_counter += 1;
-            return true;
-        }
-
-        let mut replace_idx = 0;
-        let mut min_priority = usize::MAX;
-
-        for (i, block) in self.blocks.iter().enumerate() {
-            if !block.valid {
-                replace_idx = i;
-                break;
-            }
-            if block.priority < min_priority {
-                min_priority = block.priority;
-                replace_idx = i;
-            }
-        }
-
-        let block = &mut self.blocks[replace_idx];
-        block.tag = tag;
-        block.valid = true;
-        block.priority = self.gen_counter;
-        self.gen_counter += 1;
-
-        false
-    }
-}
-
-impl CacheSet for FIFOCacheSet {
-    fn new(assoc: usize) -> Self {
-        let mut blocks = Vec::with_capacity(assoc);
-        for _ in 0..assoc {
-            blocks.push(CacheBlock::new(0, false));
-        }
-        Self {
-            blocks,
-            queue: queue![],
-        }
-    }
-
-    fn access(&mut self, tag: usize) -> bool {
-        if self.blocks.iter().any(|b| b.valid && b.tag == tag) {
-            return true;
-        }
-
-        let replace_idx: usize;
-
-        let invalid_pos = self.blocks.iter().position(|b| !b.valid);
-        if let Some(pos) = invalid_pos {
-            replace_idx = pos;
-        } else {
-            replace_idx = self.queue.remove().unwrap_or(0);
-        }
-
-        let block = &mut self.blocks[replace_idx];
-        block.tag = tag;
-        block.valid = true;
-
-        let _ = self.queue.add(replace_idx);
-
-        false
-    }
-}
-
-impl CacheSet for RandCacheSet {
-    fn new(assoc: usize) -> Self {
-        let mut blocks = Vec::with_capacity(assoc);
-        for _ in 0..assoc {
-            blocks.push(CacheBlock::new(0, false));
-        }
-        Self {
-            blocks,
-            rng: StdRng::try_from_rng(&mut SysRng).unwrap(),
-        }
-    }
-
-    fn access(&mut self, tag: usize) -> bool {
-        if self.blocks.iter().any(|b| b.valid && b.tag == tag) {
-            return true;
-        }
-
-        let replace_idx: usize;
-
-        let invalid_pos = self.blocks.iter().position(|b| !b.valid);
-        if let Some(pos) = invalid_pos {
-            replace_idx = pos;
-        } else {
-            replace_idx = self.rng.random_range(0..self.blocks.len());
-        }
-
-        let block = &mut self.blocks[replace_idx];
-        block.tag = tag;
-        block.valid = true;
-
-        false
-    }
-}
-
-trait CacheSet: Send {
-    fn new(assoc: usize) -> Self;
-    fn access(&mut self, tag: usize) -> bool;
-}
-
-struct Cache<T: CacheSet> {
-    sets: Vec<T>,
-    block_shift: u64,
-    set_mask: usize,
-    tag_mask: usize,
-    accesses: usize,
-    misses: usize,
-}
-
-impl<T: CacheSet> Cache<T> {
-    fn checkParams(blk_size: usize, assoc: usize, cache_size: usize) -> Result<(), String> {
-        if !cache_size.is_multiple_of(blk_size) || !cache_size.is_multiple_of(blk_size * assoc) {
-            Err("Bad cache parameters".to_string())
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn new(blk_size: usize, assoc: usize, cache_size: usize) -> Cache<T> {
-        Cache::<T>::checkParams(blk_size, assoc, cache_size).expect("Bad cache params on creation");
-        let num_sets = cache_size / (blk_size * assoc);
-        let block_shift = (blk_size as f64).log2() as u64;
-        let blk_mask = blk_size - 1;
-        let set_mask = (num_sets - 1) << block_shift;
-        let tag_mask = !(set_mask | blk_mask);
-
-        let mut sets = Vec::with_capacity(num_sets);
-        for _ in 0..num_sets {
-            sets.push(T::new(assoc));
-        }
-
-        Cache {
-            sets,
-            block_shift,
-            set_mask,
-            tag_mask,
-            accesses: 0,
-            misses: 0,
-        }
-    }
-
-    fn extractTag(&self, addr: usize) -> usize {
-        addr & self.tag_mask
-    }
-    fn extractSet(&self, addr: usize) -> usize {
-        (addr & self.set_mask) >> self.block_shift
-    }
-
-    fn access(&mut self, addr: usize) -> bool {
-        let tag = self.extractTag(addr);
-        let set = self.extractSet(addr);
-        self.accesses += 1;
-
-        let hit = self.sets[set].access(tag);
-
-        if !hit {
-            self.misses += 1;
-        }
-
-        hit
-    }
-}
+mod cache;
 
 trait CacheDyn: Send {
     fn access(&mut self, addr: usize) -> bool;
-    fn getStats(&self) -> (usize, usize);
+    fn get_stats(&self) -> (usize, usize);
 }
 
 impl<T: CacheSet + 'static> CacheDyn for Cache<T> {
@@ -239,7 +24,7 @@ impl<T: CacheSet + 'static> CacheDyn for Cache<T> {
         Cache::access(self, addr)
     }
 
-    fn getStats(&self) -> (usize, usize) {
+    fn get_stats(&self) -> (usize, usize) {
         (self.accesses, self.misses)
     }
 }
@@ -288,14 +73,16 @@ fn build_caches(
 // Allow only one initialization of PluginState
 static STATE: OnceLock<PluginState> = OnceLock::new();
 
-fn getState() -> &'static PluginState {
+fn get_state() -> &'static PluginState {
     STATE.get().expect("QEMU plugin state not initialized")
 }
 
 fn qemu_print(msg: &str) {
-    if let Ok(c_str) = std::ffi::CString::new(msg) {
-        unsafe { qemu_plugin_outs(c_str.as_ptr()) };
-    }
+    use std::io::Write;
+    let stderr = std::io::stderr();
+    let mut handle = stderr.lock();
+    let _ = handle.write_all(msg.as_bytes());
+    let _ = handle.flush();
 }
 
 #[unsafe(no_mangle)]
@@ -308,20 +95,20 @@ extern "C" fn vcpu_mem_access(
     vaddr: u64,
     user_data: *mut std::ffi::c_void,
 ) {
-    let state = getState();
+    let state = get_state();
 
-    let hwaddr = unsafe { qemu_plugin_get_hwaddr(info, vaddr) };
-    if !hwaddr.is_null() && unsafe { qemu_plugin_hwaddr_is_io(hwaddr) } {
-        return;
-    }
-
-    let eff_addr = unsafe {
+    let eff_addr = if state.sys {
+        let hwaddr = unsafe { qemu_plugin_get_hwaddr(info, vaddr) };
         if hwaddr.is_null() {
-            usize::try_from(vaddr).expect("vaddr exceeds usize range")
-        } else {
-            usize::try_from(qemu_plugin_hwaddr_phys_addr(hwaddr))
-                .expect("hwaddr exceeds usize range")
+            return;
         }
+        if unsafe { qemu_plugin_hwaddr_is_io(hwaddr) } {
+            return;
+        }
+        usize::try_from(unsafe { qemu_plugin_hwaddr_phys_addr(hwaddr) })
+            .expect("hwaddr exceeds usize range")
+    } else {
+        usize::try_from(vaddr).expect("vaddr exceeds usize range")
     };
 
     let cache_idx = (vcpu_index as usize) % state.cores;
@@ -352,7 +139,7 @@ extern "C" fn vcpu_mem_access(
 
 #[unsafe(no_mangle)]
 extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) {
-    let state = getState();
+    let state = get_state();
 
     let insn_data =
         unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
@@ -382,7 +169,7 @@ extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) 
 
 #[unsafe(no_mangle)]
 extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
-    let state = getState();
+    let state = get_state();
     let n_insns = unsafe { qemu_plugin_tb_n_insns(tb) };
 
     for i in 0..n_insns {
@@ -588,7 +375,7 @@ use std::sync::atomic::Ordering::Relaxed;
 
 #[unsafe(no_mangle)]
 extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_void) {
-    let state = getState();
+    let state = get_state();
     let mut out = String::new();
 
     writeln!(
@@ -618,9 +405,9 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
     let (mut t_da, mut t_dm, mut t_ia, mut t_im, mut t_la, mut t_lm) = (0, 0, 0, 0, 0, 0);
 
     for i in 0..state.cores {
-        let (da, dm) = state.l1_d_caches[i].lock().unwrap().getStats();
-        let (ia, im) = state.l1_i_caches[i].lock().unwrap().getStats();
-        let (la, lm) = state.l2_u_caches[i].lock().unwrap().getStats();
+        let (da, dm) = state.l1_d_caches[i].lock().unwrap().get_stats();
+        let (ia, im) = state.l1_i_caches[i].lock().unwrap().get_stats();
+        let (la, lm) = state.l2_u_caches[i].lock().unwrap().get_stats();
 
         t_da += da;
         t_dm += dm;
@@ -681,3 +468,5 @@ fn print_insn_table(
         writeln!(out, "{:#x}{sym}, {}, {}", insn.addr, misses, insn.disas).unwrap();
     }
 }
+
+
