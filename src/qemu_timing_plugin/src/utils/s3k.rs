@@ -1,8 +1,8 @@
 use std::sync::{Mutex, OnceLock};
 
 use crate::{
-    GByteArray, g_byte_array_new, g_byte_array_set_size, qemu_plugin_read_register,
-    qemu_plugin_register, utils::plugin_find_register,
+    GByteArray, g_byte_array_new, g_byte_array_set_size, 
+    qemu_plugin_read_register, qemu_plugin_register, utils::plugin_find_register,
 };
 
 use super::{DomainRetriever, SendPtr};
@@ -33,8 +33,8 @@ impl DomainRetriever for S3KDomainRetriever {
     }
 
     fn get_domain_id(&self, vcpu_index: u32) -> Option<usize> {
-        let reg = self.reg_tp.get()?;
-        if reg.0.is_null() {
+        let tp_handle = self.reg_tp.get()?.0;
+        if tp_handle.is_null() {
             return None;
         }
 
@@ -43,10 +43,9 @@ impl DomainRetriever for S3KDomainRetriever {
         let buf_ptr = guard.0;
 
         unsafe {
+            // Read tp
             g_byte_array_set_size(buf_ptr, 0);
-
-            let success = qemu_plugin_read_register(reg.0, buf_ptr);
-            if !success {
+            if !qemu_plugin_read_register(tp_handle, buf_ptr) {
                 return None;
             }
 
@@ -55,31 +54,25 @@ impl DomainRetriever for S3KDomainRetriever {
                 return None;
             }
 
-            let data = std::slice::from_raw_parts((*buf_ptr).data, len);
+            let tp_data = std::slice::from_raw_parts((*buf_ptr).data, len);
+            let tp_val = if len == 4 {
+                let mut arr = [0u8; 4];
+                arr.copy_from_slice(tp_data);
+                u64::from(u32::from_le_bytes(arr))
+            } else if len == 8 {
+                let mut arr = [0u8; 8];
+                arr.copy_from_slice(tp_data);
+                u64::from_le_bytes(arr)
+            } else {
+                return None;
+            };
 
-            if data.iter().any(|&b| b != 0) {
-                eprintln!("tp register size: {len}");
-                eprintln!("raw bytes: {data:x?}");
+            // Have to read from memory of this location to proc_t type and then get PID
+            if tp_val != 0 {
+                println!("tp_val: {tp_val}");
             }
 
-            // Read based on actual register width
-            let value = match len {
-                4 => {
-                    let mut arr = [0u8; 4];
-                    arr.copy_from_slice(data);
-                    u32::from_le_bytes(arr) as usize
-                }
-                8 => {
-                    let mut arr = [0u8; 8];
-                    arr.copy_from_slice(data);
-                    u64::from_le_bytes(arr) as usize
-                }
-                _ => {
-                    // Unexpected register size
-                    return None;
-                }
-            };
-            Some(value)
+            None
         }
     }
 }
