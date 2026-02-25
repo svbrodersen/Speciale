@@ -14,6 +14,9 @@ use std::{
 
 use crate::utils::{ActiveRetriever, DomainRetriever};
 
+use std::fmt::Write;
+use std::sync::atomic::Ordering::Relaxed;
+
 mod cache;
 mod utils;
 
@@ -379,7 +382,7 @@ pub extern "C" fn qemu_plugin_install(
         l1_i_caches: build_caches(&policy, cores, l1_iblksize, l1_iassoc, l1_icachesize),
         l2_u_caches: build_caches(&policy, cores, l2_blksize, l2_assoc, l2_cachesize),
         insn_map: Mutex::new(HashMap::new()),
-        domain: ActiveRetriever::new(cores)
+        domain: ActiveRetriever::new(cores),
     };
 
     STATE
@@ -388,6 +391,7 @@ pub extern "C" fn qemu_plugin_install(
         .unwrap();
 
     unsafe {
+        qemu_plugin_register_vcpu_init_cb(id, Some(vcpu_init_cb));
         qemu_plugin_register_vcpu_tb_trans_cb(id, Some(vcpu_tb_trans));
         qemu_plugin_register_atexit_cb(id, Some(plugin_exit), std::ptr::null_mut());
     }
@@ -395,8 +399,10 @@ pub extern "C" fn qemu_plugin_install(
     0
 }
 
-use std::fmt::Write;
-use std::sync::atomic::Ordering::Relaxed;
+#[unsafe(no_mangle)]
+extern "C" fn vcpu_init_cb(_id: qemu_plugin_id_t, _vcpu_index: u32) {
+    get_state().domain.vcpu_init();
+}
 
 #[unsafe(no_mangle)]
 extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_void) {
@@ -467,7 +473,68 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
         i.l2_misses.load(Relaxed)
     });
 
+    print_cache_timing_violations(&mut out, &mut insns, state.limit_insn);
+
     qemu_print(&out);
+}
+
+fn print_cache_timing_violations(
+    out: &mut String,
+    insns: &mut [&InsnData],
+    limit: usize,
+) {
+    // Sort by number of violations (descending)
+    insns.sort_by_key(|&i| {
+        let len = i.violations.lock().unwrap().len();
+        std::cmp::Reverse(len)
+    });
+
+    writeln!(out, "\nTiming overview").unwrap();
+    writeln!(
+        out,
+        "address, #violations, instruction"
+    ).unwrap();
+
+    for &insn in insns.iter().take(limit) {
+        let violations = insn.violations.lock().unwrap();
+
+        if violations.is_empty() {
+            continue;
+        }
+
+        let sym = if insn.symbol.is_empty() {
+            String::new()
+        } else {
+            format!(" ({})", insn.symbol)
+        };
+
+        writeln!(
+            out,
+            "{:#x}{sym}, {}, {}",
+            insn.addr,
+            violations.len(),
+            insn.disas
+        ).unwrap();
+
+        for vio in violations.iter().take(limit) {
+            let level_str = match vio.level {
+                cache::CacheLevel::L1DCache => "L1D",
+                cache::CacheLevel::L1ICache => "L1I",
+                cache::CacheLevel::L2UCache => "L2",
+                cache::CacheLevel::Unknown => "UNK",
+            };
+
+            writeln!(
+                out,
+                "   [{}] set {:<4} block {:<4}  domain {} -> {}",
+                level_str,
+                vio.set_idx,
+                vio.block_idx,
+                vio.orig,
+                vio.new,
+            ).unwrap();
+        }
+    }
 }
 
 fn print_insn_table(
