@@ -16,3 +16,10 @@ sprintf = "0.4.3"
 [build-dependencies]
 bindgen = "0.72.1"
 pkg-config = "0.3.32"
+
+[features]
+default = []
+
+retriever = []
+s3k = ["retriever"]
+noop = []

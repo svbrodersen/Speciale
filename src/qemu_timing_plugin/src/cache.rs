@@ -2,17 +2,81 @@
 #![allow(non_camel_case_types)]
 #![allow(clippy::upper_case_acronyms)]
 
-
 use queues::{IsQueue, Queue, queue};
 use rand::{
     RngExt, SeedableRng,
     rngs::{StdRng, SysRng},
 };
 
+pub enum CacheLevel {
+    L1DCache,
+    L1ICache,
+    L2UCache,
+    Unknown,
+}
+
+pub struct DomainViolation {
+    pub orig: usize,
+    pub new: usize,
+    pub block_idx: usize,
+    pub set_idx: usize,
+    pub level: CacheLevel,
+}
+
 pub struct CacheBlock {
     tag: usize,
     valid: bool,
     priority: usize,
+    cur_domain: usize,
+}
+
+pub struct LruPolicy {
+    gen_counter: usize,
+    priorities: Vec<usize>,
+}
+
+pub struct FifoPolicy {
+    queue: Queue<usize>,
+}
+
+pub struct RandPolicy {
+    rng: StdRng,
+}
+
+pub trait EvictionPolicy: Send {
+    fn new(assoc: usize) -> Self;
+    fn on_access(&mut self, idx: usize, is_hit: bool);
+    fn choose_victim(&mut self, blocks: &[CacheBlock]) -> usize;
+}
+
+pub struct BaseCacheSet<P: EvictionPolicy> {
+    blocks: Vec<CacheBlock>,
+    policy: P,
+}
+
+fn handle_domain(
+    domain_option: Option<usize>,
+    replace_idx: usize,
+    block: &mut CacheBlock,
+) -> (bool, Option<DomainViolation>) {
+    // Only update domain if available
+    if let Some(domain_id) = domain_option {
+        let prev_domain = block.cur_domain;
+        block.cur_domain = domain_id;
+        if block.valid && (prev_domain != domain_id) {
+            return (
+                false,
+                Some(DomainViolation {
+                    orig: prev_domain,
+                    new: domain_id,
+                    block_idx: replace_idx,
+                    set_idx: 0,
+                    level: CacheLevel::Unknown,
+                }),
+            );
+        }
+    }
+    (false, None)
 }
 
 impl CacheBlock {
@@ -21,145 +85,98 @@ impl CacheBlock {
             tag,
             valid,
             priority: 0,
+            cur_domain: 0,
         }
     }
 }
 
-pub struct LRUCacheSet {
-    blocks: Vec<CacheBlock>,
-    gen_counter: usize,
-}
-
-pub struct FIFOCacheSet {
-    blocks: Vec<CacheBlock>,
-    queue: Queue<usize>,
-}
-
-pub struct RandCacheSet {
-    blocks: Vec<CacheBlock>,
-    rng: StdRng,
-}
-
-impl CacheSet for LRUCacheSet {
+impl<P: EvictionPolicy> BaseCacheSet<P> {
     fn new(assoc: usize) -> Self {
-        let mut blocks = Vec::with_capacity(assoc);
-        for _ in 0..assoc {
-            blocks.push(CacheBlock::new(0, false));
+        let blocks = (0..assoc).map(|_| CacheBlock::new(0, false)).collect();
+        let policy = P::new(assoc);
+        Self { blocks, policy }
+    }
+
+    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>) {
+        if let Some(idx) = self.blocks.iter().position(|b| b.valid && b.tag == tag) {
+            self.policy.on_access(idx, false);
+            return (true, None);
         }
+
+        let replace_idx = self
+            .blocks
+            .iter()
+            .position(|b| !b.valid)
+            .unwrap_or_else(|| self.policy.choose_victim(&self.blocks));
+
+        let block = &mut self.blocks[replace_idx];
+        block.tag = tag;
+        block.valid = true;
+
+        self.policy.on_access(replace_idx, true);
+
+        handle_domain(domain_id, replace_idx, block)
+    }
+}
+
+impl EvictionPolicy for LruPolicy {
+    fn new(assoc: usize) -> Self {
         Self {
-            blocks,
             gen_counter: 0,
+            priorities: (0..assoc).map(|_| 0).collect(),
         }
     }
 
-    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool {
-        if let Some(block) = self.blocks.iter_mut().find(|b| b.valid && b.tag == tag) {
-            block.priority = self.gen_counter;
-            self.gen_counter += 1;
-            return true;
-        }
-
-        let mut replace_idx = 0;
-        let mut min_priority = usize::MAX;
-
-        for (i, block) in self.blocks.iter().enumerate() {
-            if !block.valid {
-                replace_idx = i;
-                break;
-            }
-            if block.priority < min_priority {
-                min_priority = block.priority;
-                replace_idx = i;
-            }
-        }
-
-        let block = &mut self.blocks[replace_idx];
-        block.tag = tag;
-        block.valid = true;
-        block.priority = self.gen_counter;
+    fn on_access(&mut self, idx: usize, _is_hit: bool) {
+        self.priorities[idx] = self.gen_counter;
         self.gen_counter += 1;
+    }
 
-        false
+    fn choose_victim(&mut self, _blocks: &[CacheBlock]) -> usize {
+        self.priorities
+            .iter()
+            .enumerate()
+            // Find minimum priority
+            .min_by_key(|&(_, &p)| p)
+            // Get index
+            .map_or(0, |(i, _)| i)
     }
 }
 
-impl CacheSet for FIFOCacheSet {
-    fn new(assoc: usize) -> Self {
-        let mut blocks = Vec::with_capacity(assoc);
-        for _ in 0..assoc {
-            blocks.push(CacheBlock::new(0, false));
-        }
+impl EvictionPolicy for RandPolicy {
+    fn new(_assoc: usize) -> Self {
         Self {
-            blocks,
-            queue: queue![],
-        }
-    }
-
-    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool {
-        if self.blocks.iter().any(|b| b.valid && b.tag == tag) {
-            return true;
-        }
-
-        let replace_idx: usize;
-
-        let invalid_pos = self.blocks.iter().position(|b| !b.valid);
-        if let Some(pos) = invalid_pos {
-            replace_idx = pos;
-        } else {
-            replace_idx = self.queue.remove().unwrap_or(0);
-        }
-
-        let block = &mut self.blocks[replace_idx];
-        block.tag = tag;
-        block.valid = true;
-
-        let _ = self.queue.add(replace_idx);
-
-        false
-    }
-}
-
-impl CacheSet for RandCacheSet {
-    fn new(assoc: usize) -> Self {
-        let mut blocks = Vec::with_capacity(assoc);
-        for _ in 0..assoc {
-            blocks.push(CacheBlock::new(0, false));
-        }
-        Self {
-            blocks,
             rng: StdRng::try_from_rng(&mut SysRng).unwrap(),
         }
     }
-
-    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool {
-        if self.blocks.iter().any(|b| b.valid && b.tag == tag) {
-            return true;
-        }
-
-        let replace_idx: usize;
-
-        let invalid_pos = self.blocks.iter().position(|b| !b.valid);
-        if let Some(pos) = invalid_pos {
-            replace_idx = pos;
-        } else {
-            replace_idx = self.rng.random_range(0..self.blocks.len());
-        }
-
-        let block = &mut self.blocks[replace_idx];
-        block.tag = tag;
-        block.valid = true;
-
-        false
+    fn on_access(&mut self, _idx: usize, _is_hit: bool) {}
+    fn choose_victim(&mut self, blocks: &[CacheBlock]) -> usize {
+        self.rng.random_range(0..blocks.len())
     }
 }
 
-pub trait CacheSet: Send {
-    fn new(assoc: usize) -> Self;
-    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> bool;
+impl EvictionPolicy for FifoPolicy {
+    fn new(assoc: usize) -> Self {
+        let mut q = queue![];
+        for i in 0..assoc {
+            let _ = q.add(i);
+        }
+        Self {
+           queue: q
+        }
+    }
+    fn on_access(&mut self, idx: usize, is_hit: bool) {
+        if !is_hit {
+            let _ = self.queue.add(idx);
+        }
+    }
+    fn choose_victim(&mut self, _blocks: &[CacheBlock]) -> usize {
+        self.queue.remove().unwrap_or(0)
+    }
 }
 
-pub struct Cache<T: CacheSet> {
-    pub sets: Vec<T>,
+pub struct Cache<P: EvictionPolicy> {
+    pub sets: Vec<BaseCacheSet<P>>,
     pub block_shift: u64,
     pub set_mask: usize,
     pub tag_mask: usize,
@@ -167,7 +184,7 @@ pub struct Cache<T: CacheSet> {
     pub misses: usize,
 }
 
-impl<T: CacheSet> Cache<T> {
+impl<P: EvictionPolicy> Cache<P> {
     fn check_params(blk_size: usize, assoc: usize, cache_size: usize) -> Result<(), String> {
         if !cache_size.is_multiple_of(blk_size) || !cache_size.is_multiple_of(blk_size * assoc) {
             Err("Bad cache parameters".to_string())
@@ -176,17 +193,18 @@ impl<T: CacheSet> Cache<T> {
         }
     }
 
-    pub fn new(blk_size: usize, assoc: usize, cache_size: usize) -> Cache<T> {
-        Cache::<T>::check_params(blk_size, assoc, cache_size).expect("Bad cache params on creation");
+    pub fn new(blk_size: usize, assoc: usize, cache_size: usize) -> Cache<P> {
+        Cache::<P>::check_params(blk_size, assoc, cache_size)
+            .expect("Bad cache params on creation");
         let num_sets = cache_size / (blk_size * assoc);
-        let block_shift = (blk_size as f64).log2() as u64;
+        let block_shift = u64::from(blk_size.ilog2());
         let blk_mask = blk_size - 1;
         let set_mask = (num_sets - 1) << block_shift;
         let tag_mask = !(set_mask | blk_mask);
 
         let mut sets = Vec::with_capacity(num_sets);
         for _ in 0..num_sets {
-            sets.push(T::new(assoc));
+            sets.push(BaseCacheSet::<P>::new(assoc));
         }
 
         Cache {
@@ -206,18 +224,26 @@ impl<T: CacheSet> Cache<T> {
         (addr & self.set_mask) >> self.block_shift
     }
 
-    pub fn access(&mut self, addr: usize, domain_id: Option<usize>) -> bool {
+    pub fn access(
+        &mut self,
+        addr: usize,
+        domain_option: Option<usize>,
+    ) -> (bool, Option<DomainViolation>) {
         let tag = self.extract_tag(addr);
         let set = self.extract_set(addr);
         self.accesses += 1;
 
-        let hit = self.sets[set].access(tag, domain_id);
+        let (hit, domain_violation) = self.sets[set].access(tag, domain_option);
 
         if !hit {
             self.misses += 1;
         }
 
-        hit
+        if let Some(mut violation) = domain_violation {
+            violation.set_idx = set;
+            return (hit, Some(violation));
+        }
+
+        (hit, None)
     }
 }
-

@@ -5,23 +5,25 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-use crate::cache::{Cache, CacheSet, FIFOCacheSet, LRUCacheSet, RandCacheSet};
+use crate::cache::{Cache, DomainViolation, EvictionPolicy, FifoPolicy, LruPolicy, RandPolicy};
 use std::{
     collections::HashMap,
     ffi::CStr,
-    ptr,
     sync::{Mutex, OnceLock, atomic::AtomicUsize},
 };
 
+use crate::utils::{ActiveRetriever, DomainRetriever};
+
 mod cache;
+mod utils;
 
 trait CacheDyn: Send {
-    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> bool;
+    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>);
     fn get_stats(&self) -> (usize, usize);
 }
 
-impl<T: CacheSet + 'static> CacheDyn for Cache<T> {
-    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> bool {
+impl<P: EvictionPolicy + 'static> CacheDyn for Cache<P> {
+    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>) {
         Cache::access(self, addr, domain_id)
     }
 
@@ -30,15 +32,6 @@ impl<T: CacheSet + 'static> CacheDyn for Cache<T> {
     }
 }
 
-struct Cpu {
-    pub reg_tp: *mut qemu_plugin_register,
-    pub cpu_data: Vec<Mutex<*mut GByteArray>>,
-}
-
-// Note the pointer is unsafe, but let qemu handle it
-unsafe impl Send for Cpu {}
-unsafe impl Sync for Cpu {}
-
 struct InsnData {
     addr: usize,
     disas: String,
@@ -46,9 +39,10 @@ struct InsnData {
     l1_imisses: AtomicUsize,
     l1_dmisses: AtomicUsize,
     l2_misses: AtomicUsize,
+    violations: Mutex<Vec<DomainViolation>>,
 }
 
-struct PluginState {
+struct PluginState<T: DomainRetriever> {
     sys: bool,
     cores: usize,
     limit_insn: usize,
@@ -58,7 +52,65 @@ struct PluginState {
 
     l2_u_caches: Vec<Mutex<Box<dyn CacheDyn>>>,
     insn_map: Mutex<HashMap<usize, Box<InsnData>>>,
-    cpu: Cpu,
+    domain: T,
+}
+
+enum AccessType {
+    Data(usize),
+    Instruction,
+}
+
+impl<T: DomainRetriever> PluginState<T> {
+    fn process_cache_access(
+        &self,
+        vcpu_index: u32,
+        insn_data: &InsnData,
+        access_type: &AccessType,
+    ) {
+        let cache_idx = (vcpu_index as usize) % self.cores;
+        let domain_id = self.domain.get_domain_id(vcpu_index);
+
+        // Pattern match to grab the right references based on the access type
+        let (addr, l1_cache, l1_level, l1_miss_counter) = match access_type {
+            AccessType::Data(eff_addr) => (
+                *eff_addr,
+                &self.l1_d_caches[cache_idx],
+                cache::CacheLevel::L1DCache,
+                &insn_data.l1_dmisses,
+            ),
+            AccessType::Instruction => (
+                insn_data.addr,
+                &self.l1_i_caches[cache_idx],
+                cache::CacheLevel::L1ICache,
+                &insn_data.l1_imisses,
+            ),
+        };
+
+        let (l1_hit, l1_violation) = l1_cache.lock().unwrap().access(addr, domain_id);
+
+        if let Some(mut violation) = l1_violation {
+            violation.level = l1_level;
+            insn_data.violations.lock().unwrap().push(violation);
+        }
+
+        if !l1_hit {
+            let l2_cache = &self.l2_u_caches[cache_idx];
+            l1_miss_counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+            let (l2_hit, l2_violation) = l2_cache.lock().unwrap().access(addr, domain_id);
+
+            if let Some(mut violation) = l2_violation {
+                violation.level = cache::CacheLevel::L2UCache;
+                insn_data.violations.lock().unwrap().push(violation);
+            }
+
+            if !l2_hit {
+                insn_data
+                    .l2_misses
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            }
+        }
+    }
 }
 
 fn build_caches(
@@ -71,10 +123,10 @@ fn build_caches(
     (0..cores)
         .map(|_| {
             let cache: Box<dyn CacheDyn> = match policy {
-                "lru" => Box::new(Cache::<LRUCacheSet>::new(blk, assoc, size)),
-                "fifo" => Box::new(Cache::<FIFOCacheSet>::new(blk, assoc, size)),
-                "rand" => Box::new(Cache::<RandCacheSet>::new(blk, assoc, size)),
-                _ => panic!("Unknown policy: {policy}"),
+                "lru" => Box::new(Cache::<LruPolicy>::new(blk, assoc, size)),
+                "fifo" => Box::new(Cache::<FifoPolicy>::new(blk, assoc, size)),
+                "rand" => Box::new(Cache::<RandPolicy>::new(blk, assoc, size)),
+                _ => unreachable!(),
             };
             Mutex::new(cache)
         })
@@ -82,9 +134,9 @@ fn build_caches(
 }
 
 // Allow only one initialization of PluginState
-static STATE: OnceLock<PluginState> = OnceLock::new();
+static STATE: OnceLock<PluginState<ActiveRetriever>> = OnceLock::new();
 
-fn get_state() -> &'static PluginState {
+fn get_state() -> &'static PluginState<ActiveRetriever> {
     STATE.get().expect("QEMU plugin state not initialized")
 }
 
@@ -98,26 +150,6 @@ fn qemu_print(msg: &str) {
 
 #[unsafe(no_mangle)]
 pub static qemu_plugin_version: u32 = QEMU_PLUGIN_VERSION;
-
-fn get_domain_id(state: &PluginState, vcpu_index: u32) -> Option<usize> {
-    if state.cpu.reg_tp.is_null() {
-        return None;
-    }
-    let cache_idx = (vcpu_index as usize) & state.cores;
-    let guard = state.cpu.cpu_data[cache_idx].lock().unwrap();
-    let buf_ptr = *guard;
-
-    unsafe { g_byte_array_set_size(buf_ptr, 0) };
-    let success = unsafe { qemu_plugin_read_register(state.cpu.reg_tp, buf_ptr) };
-    let buf_ref = unsafe { buf_ptr.cast::<u64>().as_ref() };
-    if success {
-        return buf_ref.map(|val_ref| {
-            usize::try_from(*val_ref)
-                .expect("Failed to convert u64 to usize, are you on 64-bit platform?")
-        });
-    }
-    None
-}
 
 #[unsafe(no_mangle)]
 extern "C" fn vcpu_mem_access(
@@ -142,33 +174,10 @@ extern "C" fn vcpu_mem_access(
         usize::try_from(vaddr).expect("vaddr exceeds usize range")
     };
 
-    let cache_idx = (vcpu_index as usize) % state.cores;
-
     let insn_data =
         unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
 
-    let domain_id = get_domain_id(state, vcpu_index);
-
-    let hit = state.l1_d_caches[cache_idx]
-        .lock()
-        .unwrap()
-        .access(eff_addr, domain_id);
-
-    if !hit {
-        insn_data
-            .l1_dmisses
-            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-
-        let l2_hit = state.l2_u_caches[cache_idx]
-            .lock()
-            .unwrap()
-            .access(eff_addr, domain_id);
-        if !l2_hit {
-            insn_data
-                .l2_misses
-                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        }
-    }
+    state.process_cache_access(vcpu_index, insn_data, &AccessType::Data(eff_addr));
 }
 
 #[unsafe(no_mangle)]
@@ -177,30 +186,8 @@ extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) 
 
     let insn_data =
         unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
-    let cache_idx = (vcpu_index as usize) % state.cores;
 
-    let domain_id = get_domain_id(state, vcpu_index);
-
-    let hit = state.l1_i_caches[cache_idx]
-        .lock()
-        .unwrap()
-        .access(insn_data.addr, domain_id);
-
-    if !hit {
-        insn_data
-            .l1_imisses
-            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-
-        let l2_hit = state.l2_u_caches[cache_idx]
-            .lock()
-            .unwrap()
-            .access(insn_data.addr, domain_id);
-        if !l2_hit {
-            insn_data
-                .l2_misses
-                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        }
-    }
+    state.process_cache_access(vcpu_index, insn_data, &AccessType::Instruction);
 }
 
 #[unsafe(no_mangle)]
@@ -244,6 +231,7 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
                 l1_imisses: AtomicUsize::new(0),
                 l1_dmisses: AtomicUsize::new(0),
                 l2_misses: AtomicUsize::new(0),
+                violations: Mutex::new(Vec::new()),
             })
         });
 
@@ -276,25 +264,6 @@ fn cache_config_error(blksize: usize, assoc: usize, cachesize: usize) -> Result<
     } else {
         Ok(())
     }
-}
-
-fn plugin_find_register(name: &str) -> *mut qemu_plugin_register {
-    let regs_ref = unsafe {
-        qemu_plugin_get_registers()
-            .as_ref()
-            .expect("QEMU passed a null registers pointer")
-    };
-    let data = regs_ref.data.cast::<qemu_plugin_reg_descriptor>();
-
-    for i in 0..regs_ref.len {
-        let reg = unsafe { data.add(i as usize) };
-        let reg_ref = unsafe { reg.as_ref().expect("QEMU reg is null pointer") };
-        let reg_name = unsafe { CStr::from_ptr(reg_ref.name).to_str() }.unwrap_or("");
-        if reg_name == name {
-            return reg_ref.handle;
-        }
-    }
-    ptr::null_mut()
 }
 
 /// Install plugin
@@ -402,7 +371,7 @@ pub extern "C" fn qemu_plugin_install(
         return -1;
     }
 
-    let state = PluginState {
+    let state = PluginState::<ActiveRetriever> {
         sys,
         cores,
         limit_insn,
@@ -410,10 +379,7 @@ pub extern "C" fn qemu_plugin_install(
         l1_i_caches: build_caches(&policy, cores, l1_iblksize, l1_iassoc, l1_icachesize),
         l2_u_caches: build_caches(&policy, cores, l2_blksize, l2_assoc, l2_cachesize),
         insn_map: Mutex::new(HashMap::new()),
-        cpu: Mutex::new(Cpu {
-            reg_tp: plugin_find_register("tp"),
-            buf: unsafe { g_byte_array_new() },
-        }),
+        domain: ActiveRetriever::new(cores)
     };
 
     STATE
