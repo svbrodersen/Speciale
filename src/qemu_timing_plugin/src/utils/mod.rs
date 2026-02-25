@@ -15,6 +15,7 @@ pub type ActiveRetriever = noop::NoOpRetriever;
 
 pub trait DomainRetriever: Send + Sync + 'static {
     fn new(cores: usize) -> Self;
+    fn vcpu_init(&self);
     fn get_domain_id(&self, vcpu_index: u32) -> Option<usize>;
 }
 
