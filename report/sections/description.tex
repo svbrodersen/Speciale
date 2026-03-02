@@ -46,29 +46,39 @@ examined the work required for time protection and have provided an
 implementation for the seL4 microkernel showing it is possible to protect
 against with little impedance on performance \cite{MissingOSAbstraction}.
 
+In all cases these solutions use empirical program timings to gather
+information if a channel is present. This project seeks to address this by
+providing a cache emulation layer, which interacts with the QEMU virtual
+machine to find possible timing channels in the cache. This implementation will
+provide a platform, where timing channel mitigations can be tested.
+
 \subsection{Problem statement}
 Despite their importance, timing side channels remain poorly defended in
 mainstream systems. There exists little to no tools to stop these attacks and
-many programs run as if these vulnerabilities do not exist.
+many programs run as if these vulnerabilities do not exist. Determining timing
+channels is no simple task, and as ISA's still lack support for flushing on
+core state, it often requires FPGAs to produce empirical analysis such as those
+seen in \cite{S3K, MissingOSAbstraction}.
 
 The central problem this thesis addresses is: \emph{To what extent can timing
 side-channels be mitigated through a combination of hardware aware software
-design and program transformation?}
+design and what platform is needed to prove timing channel mitigations?}
 
-Specifically, this project investigates whether it is viable to transform
-standard programs into "timing-secure" variants that are resilient to
-observation, and how the responsibility for this security should be distributed
-between the underlying hardware platform and the software running on top of it.
+Specifically, this project will provide a plugin integration to the QEMU
+virtual machine, which similar to valgrinds memory guarantees, guarantees that
+no timing channels are present for a specific cache configuration.
 
-This will be done by surveying existing microkernel implementations - with a
-particular focus on their context-switching mechanisms - and identifying
-concrete examples of how timing channels can arise in practice. Building on
-these observations, the project will evaluate the feasibility of extending
-constant time program transformations, similar to those seen in cryptography,
-to general-purpose software on microkernels. The project aims to examine the
-hardware requirements necessary for such transformations to be efficient and
-what division of responsibility between hardware and software is required to
-enable practical timing-secure execution in microkernel based systems.
+This implementation will be tested using previous "timing" safe microkernels,
+such as the \cite{S3K}, and will further analysis the behaviour of a
+microkernel, which does not take timing channels into account. Further
+development to the unsafe microkernel will show how some of the presented
+mitigations can help cover many of the timing channels that appear in the
+cache.
+
+This project further wants to establish hardware requirements for such
+mitigations to work efficiently and what division of responsibility between
+hardware and software is required to enable practical timing-secure execution
+in microkernel based systems.
 
 \subsection{Project-Specific Learning Objectives}
 \begin{itemize}
@@ -76,13 +86,12 @@ enable practical timing-secure execution in microkernel based systems.
     side-channel leaks across hardware, OS and program layers.
   \item Survey existing side-channel mitigation techniques including but not
     limited to: hardware mechanisms and OS-level strategies.
-  \item Design and implement a proof-of-concept program transformer to explore
-    the practical viability of program transformation as a defense strategy.
-  \item Evaluate the security and performance trade-offs of the implementation.
-    In particular on an established microkernel.
+  \item Design and implement a cache emulation layer capable of finding timing channels in the cache layer.
+  \item Evaluate the efficacy and viability of the implementation by running already established microkernels.
+  \item Modify existing microkernel to provide better timing channel
+    mitigations and evaluate the efficacy along with performance hindrance.
   \item Gather the findings into design recommendations for future operating
     systems, hardware abstractions or tool chains, showing how side channel-secure
     execution could be supported in the future. 
 \end{itemize}
-
 
