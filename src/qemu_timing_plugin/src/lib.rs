@@ -475,6 +475,8 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
 
     print_cache_timing_violations(&mut out, &mut insns, state.limit_insn);
 
+    state.domain.on_exit(&mut out);
+
     qemu_print(&out);
 }
 

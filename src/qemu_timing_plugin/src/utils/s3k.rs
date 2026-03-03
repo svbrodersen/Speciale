@@ -1,7 +1,12 @@
 #![allow(unused_imports)]
 
+use std::fmt::Write;
+
 include!(concat!(env!("OUT_DIR"), "/bindings_s3k.rs"));
-use std::sync::{Mutex, OnceLock};
+use std::{
+    collections::HashSet,
+    sync::{Mutex, OnceLock},
+};
 
 use crate::{
     GByteArray, g_byte_array_new, g_byte_array_set_size,
@@ -16,6 +21,7 @@ pub struct S3KDomainRetriever {
     reg_tp: OnceLock<SendPtr<qemu_plugin_register>>,
     cpu_buffers: Vec<Mutex<SendPtr<GByteArray>>>,
     proc_buf: Mutex<SendPtr<GByteArray>>,
+    unique_domain_tp: Mutex<HashSet<(usize, u64)>>,
 }
 
 impl DomainRetriever for S3KDomainRetriever {
@@ -31,12 +37,21 @@ impl DomainRetriever for S3KDomainRetriever {
             reg_tp: OnceLock::new(),
             cpu_buffers,
             proc_buf: Mutex::new(SendPtr(unsafe { g_byte_array_new() })),
+            unique_domain_tp: Mutex::new(HashSet::new()),
         }
     }
 
     fn vcpu_init(&self) {
         self.reg_tp
             .get_or_init(|| SendPtr(plugin_find_register("tp")));
+    }
+
+    fn on_exit(&self, out: &mut String) {
+        writeln!(
+            out,
+            "Unique_domain_tp: {:?}",
+            self.unique_domain_tp.lock().unwrap()
+        ).unwrap();
     }
 
     fn get_domain_id(&self, vcpu_index: u32) -> Option<usize> {
@@ -67,7 +82,6 @@ impl DomainRetriever for S3KDomainRetriever {
                 return None;
             }
 
-            println!("tp_val: {tp_val}");
             let proc_size = std::mem::size_of::<proc_t>();
 
             let mutex_guard = self.proc_buf.lock().unwrap();
@@ -77,7 +91,7 @@ impl DomainRetriever for S3KDomainRetriever {
             let succ = qemu_plugin_read_memory_vaddr(tp_val, proc_buf, proc_size);
 
             if !succ {
-                g_byte_array_set_size(proc_buf, 0);
+                g_byte_array_set_size(proc_buf, proc_size as u32);
                 let succ_hw = qemu_plugin_read_memory_hwaddr(tp_val, proc_buf, proc_size);
 
                 if succ_hw != qemu_plugin_hwaddr_operation_result_QEMU_PLUGIN_HWADDR_OPERATION_OK {
@@ -88,7 +102,13 @@ impl DomainRetriever for S3KDomainRetriever {
             let proc_ptr = (*buf_ptr).data as *const proc_t;
             let pid = std::ptr::read_unaligned(std::ptr::addr_of!((*proc_ptr).pid));
 
-            usize::try_from(pid).ok()
+            if let Ok(domain_id) = usize::try_from(pid) {
+                let mut set = self.unique_domain_tp.lock().unwrap();
+                set.insert((domain_id, tp_val));
+                Some(domain_id)
+            } else {
+                None
+            }
         }
     }
 }
