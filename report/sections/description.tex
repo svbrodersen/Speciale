@@ -46,34 +46,41 @@ examined the work required for time protection and have provided an
 implementation for the seL4 microkernel showing it is possible to protect
 against with little impedance on performance \cite{MissingOSAbstraction}.
 
-In all cases these solutions use empirical program timings to gather
-information if a channel is present. This project seeks to address this by
-providing a cache emulation layer, which interacts with the QEMU virtual
-machine to find possible timing channels in the cache. This implementation will
-provide a platform, where timing channel mitigations can be tested.
+However, evaluating timing-channel resistance remains difficult. Existing
+approaches often rely on empirical measurements on real hardware, specialized
+platforms such as FPGAs, or manual inspection of execution traces. There is
+currently no widely available, systematic platform for analyzing and reasoning
+about cache-induced timing channels in a controlled and reproducible manner.
+
+This thesis addresses this gap by focusing on the cache layer as a primary
+source of timing leakage and by providing an emulation-based framework for
+analyzing and mitigating such channels.
 
 \subsection{Problem statement}
-Despite their importance, timing side channels remain poorly defended in
-mainstream systems. There exists little to no tools to stop these attacks and
-many programs run as if these vulnerabilities do not exist. Determining timing
-channels is no simple task, and as ISA's still lack support for flushing on
-core state, it often requires FPGAs to produce empirical analysis such as those
-seen in \cite{S3K, MissingOSAbstraction}.
+Despite their importance, timing side channels, particularly cache based
+channels, remain insufficiently defended in mainstream systems. While
+constant time programming techniques can eliminate data dependent control flow
+at the instruction level, they do not prevent leakage caused by shared cache
+state, context switching, or operating system scheduling decisions.
 
 The central problem this thesis addresses is: \emph{To what extent can timing
 side-channels be mitigated through a combination of hardware aware software
 design and what platform is needed to prove timing channel mitigations?}
 
 Specifically, this project will provide a plugin integration to the QEMU
-virtual machine, which similar to valgrinds memory guarantees, guarantees that
-no timing channels are present for a specific cache configuration.
+virtual machine. This implementation models cache behavior for configurable
+cache architectures and enables detection of potential timing channels arising
+from cache contention, eviction patterns, and shared microarchitectural state.
+The goal is to provide a deterministic and reproducible environment in which
+timing-channel behavior can be studied without relying solely on empirical
+hardware measurements.
 
 This implementation will be tested using previous "timing" safe microkernels,
 such as the \cite{S3K}, and will further analysis the behaviour of a
-microkernel, which does not take timing channels into account. Further
-development to the unsafe microkernel will show how some of the presented
-mitigations can help cover many of the timing channels that appear in the
-cache.
+microkernel, which does not take timing channels into account. Further, this
+project aims to augment the "unsafe" microkernel using varies flushing
+strategies, constant time programming and partitioning to evaluate how
+operating system design can reduce cache based timing leakage.
 
 This project further wants to establish hardware requirements for such
 mitigations to work efficiently and what division of responsibility between
