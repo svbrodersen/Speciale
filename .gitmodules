@@ -4,3 +4,6 @@
 [submodule "src/s3k"]
 	path = src/s3k
 	url = https://github.com/svbrodersen/s3k.git
+[submodule "src/sentry-kernel"]
+	path = src/sentry-kernel
+	url = https://github.com/svbrodersen/sentry-kernel.git
