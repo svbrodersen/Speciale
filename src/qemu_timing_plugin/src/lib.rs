@@ -9,7 +9,7 @@ use crate::cache::{Cache, DomainViolation, EvictionPolicy, FifoPolicy, LruPolicy
 use std::{
     collections::HashMap,
     ffi::CStr,
-    sync::{Mutex, OnceLock, atomic::AtomicUsize},
+    sync::{atomic::AtomicUsize, Mutex, OnceLock},
 };
 
 use crate::utils::{ActiveRetriever, DomainRetriever};
@@ -23,6 +23,7 @@ mod utils;
 trait CacheDyn: Send {
     fn access(&mut self, addr: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>);
     fn get_stats(&self) -> (usize, usize);
+    fn clear(&mut self);
 }
 
 impl<P: EvictionPolicy + 'static> CacheDyn for Cache<P> {
@@ -32,6 +33,10 @@ impl<P: EvictionPolicy + 'static> CacheDyn for Cache<P> {
 
     fn get_stats(&self) -> (usize, usize) {
         (self.accesses, self.misses)
+    }
+
+    fn clear(&mut self) {
+        Cache::clear(self)
     }
 }
 
@@ -116,6 +121,15 @@ impl<T: DomainRetriever> PluginState<T> {
             }
         }
     }
+
+    fn flush_l1_caches(&self) {
+        for cache in &self.l1_d_caches {
+            cache.lock().unwrap().clear();
+        }
+        for cache in &self.l1_i_caches {
+            cache.lock().unwrap().clear();
+        }
+    }
 }
 
 fn build_caches(
@@ -186,6 +200,12 @@ extern "C" fn vcpu_mem_access(
 }
 
 #[unsafe(no_mangle)]
+extern "C" fn vcpu_temporal_fence(_vcpu_index: u32, _user_data: *mut std::ffi::c_void) {
+    let state = get_state();
+    state.flush_l1_caches();
+}
+
+#[unsafe(no_mangle)]
 extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) {
     let state = get_state();
 
@@ -207,6 +227,19 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
         } else {
             unsafe {
                 usize::try_from(qemu_plugin_insn_vaddr(insn)).expect("vaddr exceeds range of usize")
+            }
+        };
+
+        // Check for temporal_fence instruction (0x0000000b)
+        // This is a custom instruction or marker used to clear L1 caches
+        let insn_opcode = unsafe {
+            let data_len = qemu_plugin_insn_size(insn);
+            if data_len == 4 {
+                let mut buf = [0u8; 4];
+                qemu_plugin_insn_data(insn, buf.as_mut_ptr() as *mut _, 4);
+                u32::from_le_bytes(buf)
+            } else {
+                0
             }
         };
 
@@ -257,6 +290,19 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
                 qemu_plugin_cb_flags_QEMU_PLUGIN_CB_R_REGS,
                 data_ptr,
             );
+
+            // Check for temporal_fence instruction (magic NOP)
+            // RISC-V: addi x0, x0, 11 = 0x00b00013
+            // This is a NOP (x0 hardwired to 0) but we use it as a fence marker
+            if insn_opcode == 0x00b0_0013 {
+                println!("FENCE (addi x0, x0, 11)");
+                qemu_plugin_register_vcpu_insn_exec_cb(
+                    insn,
+                    Some(vcpu_temporal_fence),
+                    qemu_plugin_cb_flags_QEMU_PLUGIN_CB_NO_REGS,
+                    std::ptr::null_mut(),
+                );
+            }
         };
     }
 }

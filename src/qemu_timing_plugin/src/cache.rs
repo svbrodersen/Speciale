@@ -2,10 +2,10 @@
 #![allow(non_camel_case_types)]
 #![allow(clippy::upper_case_acronyms)]
 
-use queues::{IsQueue, Queue, queue};
+use queues::{queue, IsQueue, Queue};
 use rand::{
-    RngExt, SeedableRng,
     rngs::{StdRng, SysRng},
+    RngExt, SeedableRng,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
@@ -48,6 +48,7 @@ pub trait EvictionPolicy: Send {
     fn new(assoc: usize) -> Self;
     fn on_access(&mut self, idx: usize, is_hit: bool);
     fn choose_victim(&mut self, blocks: &[CacheBlock]) -> usize;
+    fn reset(&mut self, assoc: usize);
 }
 
 pub struct BaseCacheSet<P: EvictionPolicy> {
@@ -128,6 +129,14 @@ impl<P: EvictionPolicy> BaseCacheSet<P> {
             handle_domain(domain_id, replace_idx, block, was_valid),
         )
     }
+
+    pub fn clear(&mut self) {
+        for block in &mut self.blocks {
+            block.valid = false;
+            block.cur_domain = None;
+        }
+        self.policy.reset(self.blocks.len());
+    }
 }
 
 impl EvictionPolicy for LruPolicy {
@@ -152,6 +161,11 @@ impl EvictionPolicy for LruPolicy {
             // Get index
             .map_or(0, |(i, _)| i)
     }
+
+    fn reset(&mut self, assoc: usize) {
+        self.gen_counter = 0;
+        self.priorities = (0..assoc).map(|_| 0).collect();
+    }
 }
 
 impl EvictionPolicy for RandPolicy {
@@ -164,6 +178,8 @@ impl EvictionPolicy for RandPolicy {
     fn choose_victim(&mut self, blocks: &[CacheBlock]) -> usize {
         self.rng.random_range(0..blocks.len())
     }
+
+    fn reset(&mut self, _assoc: usize) {}
 }
 
 impl EvictionPolicy for FifoPolicy {
@@ -181,6 +197,14 @@ impl EvictionPolicy for FifoPolicy {
     }
     fn choose_victim(&mut self, _blocks: &[CacheBlock]) -> usize {
         self.queue.remove().unwrap_or(0)
+    }
+
+    fn reset(&mut self, assoc: usize) {
+        let mut q = queue![];
+        for i in 0..assoc {
+            let _ = q.add(i);
+        }
+        self.queue = q;
     }
 }
 
@@ -254,5 +278,11 @@ impl<P: EvictionPolicy> Cache<P> {
         }
 
         (hit, None)
+    }
+
+    pub fn clear(&mut self) {
+        for set in &mut self.sets {
+            set.clear();
+        }
     }
 }
