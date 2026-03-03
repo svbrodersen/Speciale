@@ -99,7 +99,7 @@ impl DomainRetriever for S3KDomainRetriever {
                 }
             }
 
-            let proc_ptr = (*buf_ptr).data as *const proc_t;
+            let proc_ptr = (*proc_buf).data as *const proc_t;
             let pid = std::ptr::read_unaligned(std::ptr::addr_of!((*proc_ptr).pid));
 
             if let Ok(domain_id) = usize::try_from(pid) {

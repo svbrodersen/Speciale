@@ -49,6 +49,8 @@ struct PluginState<T: DomainRetriever> {
     sys: bool,
     cores: usize,
     limit_insn: usize,
+    timing_limit: usize,
+    timing_detail: usize,
 
     l1_d_caches: Vec<Mutex<Box<dyn CacheDyn>>>,
     l1_i_caches: Vec<Mutex<Box<dyn CacheDyn>>>,
@@ -302,6 +304,8 @@ pub extern "C" fn qemu_plugin_install(
     };
 
     let mut limit_insn: usize = 32;
+    let mut timing_limit: usize = 16;
+    let mut timing_detail: usize = 4;
 
     let mut l1_dassoc: usize = 8;
     let mut l1_dblksize: usize = 64;
@@ -332,6 +336,8 @@ pub extern "C" fn qemu_plugin_install(
             "dassoc" => l1_dassoc = val.parse().unwrap_or(l1_dassoc),
             "dcachesize" => l1_dcachesize = val.parse().unwrap_or(l1_dcachesize),
             "limit" => limit_insn = val.parse().unwrap_or(limit_insn),
+            "timing_limit" => timing_limit = val.parse().unwrap_or(timing_limit),
+            "timing_detail" => timing_detail = val.parse().unwrap_or(timing_detail),
             "cores" => cores = val.parse().unwrap_or(cores),
             "l2cachesize" => {
                 l2_cachesize = val.parse().unwrap_or(l2_cachesize);
@@ -378,6 +384,8 @@ pub extern "C" fn qemu_plugin_install(
         sys,
         cores,
         limit_insn,
+        timing_limit,
+        timing_detail,
         l1_d_caches: build_caches(&policy, cores, l1_dblksize, l1_dassoc, l1_dcachesize),
         l1_i_caches: build_caches(&policy, cores, l1_iblksize, l1_iassoc, l1_icachesize),
         l2_u_caches: build_caches(&policy, cores, l2_blksize, l2_assoc, l2_cachesize),
@@ -473,7 +481,12 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
         i.l2_misses.load(Relaxed)
     });
 
-    print_cache_timing_violations(&mut out, &mut insns, state.limit_insn);
+    print_cache_timing_violations(
+        &mut out,
+        &mut insns,
+        state.timing_limit,
+        state.timing_detail,
+    );
 
     state.domain.on_exit(&mut out);
 
@@ -484,6 +497,7 @@ fn print_cache_timing_violations(
     out: &mut String,
     insns: &mut [&InsnData],
     limit: usize,
+    detail: usize,
 ) {
     // Sort by number of violations (descending)
     insns.sort_by_key(|&i| {
@@ -492,10 +506,7 @@ fn print_cache_timing_violations(
     });
 
     writeln!(out, "\nTiming overview").unwrap();
-    writeln!(
-        out,
-        "address, #violations, instruction"
-    ).unwrap();
+    writeln!(out, "address, #violations, instruction").unwrap();
 
     for &insn in insns.iter().take(limit) {
         let violations = insn.violations.lock().unwrap();
@@ -516,10 +527,20 @@ fn print_cache_timing_violations(
             insn.addr,
             violations.len(),
             insn.disas
-        ).unwrap();
+        )
+        .unwrap();
 
-        for vio in violations.iter().take(limit) {
-            let level_str = match vio.level {
+        // Aggregate violations by (level, orig, new)
+        let mut agg: HashMap<(cache::CacheLevel, usize, usize), (usize, usize)> = HashMap::new();
+        for vio in violations.iter() {
+            let key = (vio.level, vio.orig, vio.new);
+            let entry = agg.entry(key).or_insert((0, vio.set_idx));
+            entry.0 += 1;
+        }
+
+        // Print up to 'detail' aggregated entries
+        for ((level, orig, new), (count, set_idx)) in agg.iter().take(detail) {
+            let level_str = match level {
                 cache::CacheLevel::L1DCache => "L1D",
                 cache::CacheLevel::L1ICache => "L1I",
                 cache::CacheLevel::L2UCache => "L2",
@@ -528,13 +549,10 @@ fn print_cache_timing_violations(
 
             writeln!(
                 out,
-                "   [{}] set {:<4} block {:<4}  domain {} -> {}",
-                level_str,
-                vio.set_idx,
-                vio.block_idx,
-                vio.orig,
-                vio.new,
-            ).unwrap();
+                "   [{}] set {:<4} domain {} -> {}  count: {}",
+                level_str, set_idx, orig, new, count,
+            )
+            .unwrap();
         }
     }
 }

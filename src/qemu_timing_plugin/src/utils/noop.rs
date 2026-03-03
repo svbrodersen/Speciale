@@ -11,4 +11,5 @@ impl DomainRetriever for NoOpRetriever {
     }
 
     fn vcpu_init(&self) {}
+    fn on_exit(&self, _out: &mut String) {}
 }

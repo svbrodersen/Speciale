@@ -8,6 +8,7 @@ use rand::{
     rngs::{StdRng, SysRng},
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
 pub enum CacheLevel {
     L1DCache,
     L1ICache,
@@ -27,7 +28,7 @@ pub struct CacheBlock {
     tag: usize,
     valid: bool,
     priority: usize,
-    cur_domain: usize,
+    cur_domain: Option<usize>,
 }
 
 pub struct LruPolicy {
@@ -58,25 +59,27 @@ fn handle_domain(
     domain_option: Option<usize>,
     replace_idx: usize,
     block: &mut CacheBlock,
-) -> (bool, Option<DomainViolation>) {
+    was_valid: bool,
+) -> Option<DomainViolation> {
     // Only update domain if available
-    if let Some(domain_id) = domain_option {
-        let prev_domain = block.cur_domain;
-        block.cur_domain = domain_id;
-        if block.valid && (prev_domain != domain_id) {
-            return (
-                false,
-                Some(DomainViolation {
+    let prev_domain = block.cur_domain;
+    block.cur_domain = domain_option;
+    match (domain_option, prev_domain) {
+        (Some(domain_id), Some(prev_domain)) => {
+            // Only trigger a violation if the block was previously valid and the domain changed
+            if was_valid && (prev_domain != domain_id) {
+                return Some(DomainViolation {
                     orig: prev_domain,
                     new: domain_id,
                     block_idx: replace_idx,
                     set_idx: 0,
                     level: CacheLevel::Unknown,
-                }),
-            );
+                });
+            }
+            None
         }
+        _ => None,
     }
-    (false, None)
 }
 
 impl CacheBlock {
@@ -85,7 +88,7 @@ impl CacheBlock {
             tag,
             valid,
             priority: 0,
-            cur_domain: 0,
+            cur_domain: None,
         }
     }
 }
@@ -100,7 +103,11 @@ impl<P: EvictionPolicy> BaseCacheSet<P> {
     fn access(&mut self, tag: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>) {
         if let Some(idx) = self.blocks.iter().position(|b| b.valid && b.tag == tag) {
             self.policy.on_access(idx, false);
-            return (true, None);
+
+            let block = &mut self.blocks[idx];
+            let was_valid = block.valid;
+            let violation = handle_domain(domain_id, idx, block, was_valid);
+            return (true, violation);
         }
 
         let replace_idx = self
@@ -110,12 +117,16 @@ impl<P: EvictionPolicy> BaseCacheSet<P> {
             .unwrap_or_else(|| self.policy.choose_victim(&self.blocks));
 
         let block = &mut self.blocks[replace_idx];
+        let was_valid = block.valid;
         block.tag = tag;
         block.valid = true;
 
         self.policy.on_access(replace_idx, true);
 
-        handle_domain(domain_id, replace_idx, block)
+        (
+            false,
+            handle_domain(domain_id, replace_idx, block, was_valid),
+        )
     }
 }
 
@@ -161,9 +172,7 @@ impl EvictionPolicy for FifoPolicy {
         for i in 0..assoc {
             let _ = q.add(i);
         }
-        Self {
-           queue: q
-        }
+        Self { queue: q }
     }
     fn on_access(&mut self, idx: usize, is_hit: bool) {
         if !is_hit {
