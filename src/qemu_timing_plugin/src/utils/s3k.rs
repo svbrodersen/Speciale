@@ -1,8 +1,13 @@
+#![allow(unused_imports)]
+
+include!(concat!(env!("OUT_DIR"), "/bindings_s3k.rs"));
 use std::sync::{Mutex, OnceLock};
 
 use crate::{
-    GByteArray, g_byte_array_new, g_byte_array_set_size, 
-    qemu_plugin_read_register, qemu_plugin_register, utils::plugin_find_register,
+    GByteArray, g_byte_array_new, g_byte_array_set_size,
+    qemu_plugin_hwaddr_operation_result_QEMU_PLUGIN_HWADDR_OPERATION_OK,
+    qemu_plugin_read_memory_hwaddr, qemu_plugin_read_memory_vaddr, qemu_plugin_read_register,
+    qemu_plugin_register, utils::plugin_find_register,
 };
 
 use super::{DomainRetriever, SendPtr};
@@ -10,6 +15,7 @@ use super::{DomainRetriever, SendPtr};
 pub struct S3KDomainRetriever {
     reg_tp: OnceLock<SendPtr<qemu_plugin_register>>,
     cpu_buffers: Vec<Mutex<SendPtr<GByteArray>>>,
+    proc_buf: Mutex<SendPtr<GByteArray>>,
 }
 
 impl DomainRetriever for S3KDomainRetriever {
@@ -24,6 +30,7 @@ impl DomainRetriever for S3KDomainRetriever {
         Self {
             reg_tp: OnceLock::new(),
             cpu_buffers,
+            proc_buf: Mutex::new(SendPtr(unsafe { g_byte_array_new() })),
         }
     }
 
@@ -50,29 +57,38 @@ impl DomainRetriever for S3KDomainRetriever {
             }
 
             let len = (*buf_ptr).len as usize;
-            if len == 0 {
-                return None;
-            }
-
-            let tp_data = std::slice::from_raw_parts((*buf_ptr).data, len);
-            let tp_val = if len == 4 {
-                let mut arr = [0u8; 4];
-                arr.copy_from_slice(tp_data);
-                u64::from(u32::from_le_bytes(arr))
-            } else if len == 8 {
-                let mut arr = [0u8; 8];
-                arr.copy_from_slice(tp_data);
-                u64::from_le_bytes(arr)
-            } else {
-                return None;
+            let tp_val = match len {
+                4 => u64::from(u32::from_le_bytes(*((*buf_ptr).data as *const [u8; 4]))),
+                8 => u64::from_le_bytes(*((*buf_ptr).data as *const [u8; 8])),
+                _ => return None,
             };
 
-            // Have to read from memory of this location to proc_t type and then get PID
-            if tp_val != 0 {
-                println!("tp_val: {tp_val}");
+            if tp_val == 0 {
+                return None;
             }
 
-            None
+            println!("tp_val: {tp_val}");
+            let proc_size = std::mem::size_of::<proc_t>();
+
+            let mutex_guard = self.proc_buf.lock().unwrap();
+            let proc_buf = mutex_guard.0;
+            g_byte_array_set_size(proc_buf, proc_size as u32);
+
+            let succ = qemu_plugin_read_memory_vaddr(tp_val, proc_buf, proc_size);
+
+            if !succ {
+                g_byte_array_set_size(proc_buf, 0);
+                let succ_hw = qemu_plugin_read_memory_hwaddr(tp_val, proc_buf, proc_size);
+
+                if succ_hw != qemu_plugin_hwaddr_operation_result_QEMU_PLUGIN_HWADDR_OPERATION_OK {
+                    return None;
+                }
+            }
+
+            let proc_ptr = (*buf_ptr).data as *const proc_t;
+            let pid = std::ptr::read_unaligned(std::ptr::addr_of!((*proc_ptr).pid));
+
+            usize::try_from(pid).ok()
         }
     }
 }
