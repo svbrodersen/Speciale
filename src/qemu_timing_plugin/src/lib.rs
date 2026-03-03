@@ -3,7 +3,7 @@
 #![allow(clippy::similar_names)]
 #![allow(dead_code)]
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+include!(concat!(env!("OUT_DIR"), "/bindings_qemu.rs"));
 
 use crate::cache::{Cache, DomainViolation, EvictionPolicy, FifoPolicy, LruPolicy, RandPolicy};
 use std::{
