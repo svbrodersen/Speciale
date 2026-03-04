@@ -295,7 +295,6 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
             // RISC-V: addi x0, x0, 11 = 0x00b00013
             // This is a NOP (x0 hardwired to 0) but we use it as a fence marker
             if insn_opcode == 0x00b0_0013 {
-                println!("FENCE (addi x0, x0, 11)");
                 qemu_plugin_register_vcpu_insn_exec_cb(
                     insn,
                     Some(vcpu_temporal_fence),
