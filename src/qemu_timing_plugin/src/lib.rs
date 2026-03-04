@@ -9,7 +9,7 @@ use crate::cache::{Cache, DomainViolation, FifoPolicy, LruPolicy, RandPolicy};
 use std::{
     collections::HashMap,
     ffi::CStr,
-    sync::{atomic::AtomicUsize, Mutex, OnceLock},
+    sync::{Mutex, OnceLock, atomic::AtomicUsize},
 };
 
 use crate::utils::{ActiveRetriever, DomainRetriever};
@@ -27,7 +27,11 @@ enum CacheVariant {
 }
 
 impl CacheVariant {
-    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>) {
+    fn access(
+        &mut self,
+        addr: usize,
+        domain_id: Option<(usize, bool)>,
+    ) -> (bool, Option<DomainViolation>) {
         match self {
             Self::Lru(c) => c.access(addr, domain_id),
             Self::Fifo(c) => c.access(addr, domain_id),
@@ -90,7 +94,7 @@ impl<T: DomainRetriever> PluginState<T> {
         access_type: &AccessType,
     ) {
         let cache_idx = (vcpu_index as usize) % self.cores;
-        let domain_id = self.domain.get_domain_id(vcpu_index);
+        let domain_id = self.domain.get_domain_info(vcpu_index, insn_data.addr);
 
         // Pattern match to grab the right references based on the access type
         let (addr, l1_cache, l1_level, l1_miss_counter) = match access_type {
@@ -234,12 +238,8 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
 
     for i in 0..n_insns {
         let insn = unsafe { qemu_plugin_tb_get_insn(tb, i) };
-        let eff_addr = if state.sys {
-            unsafe { qemu_plugin_insn_haddr(insn) as usize }
-        } else {
-            unsafe {
-                usize::try_from(qemu_plugin_insn_vaddr(insn)).expect("vaddr exceeds range of usize")
-            }
+        let eff_addr = unsafe {
+            usize::try_from(qemu_plugin_insn_vaddr(insn)).expect("vaddr exceeds range of usize")
         };
 
         // Check for temporal_fence instruction (0x0000000b)
@@ -264,7 +264,7 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
         let mut map = state.insn_map.lock().unwrap();
 
         // Use Box to ensure the struct doesn't move in memory when the map resizes.
-        let entry = map.entry(insn as usize).or_insert_with(|| {
+        let entry = map.entry(eff_addr).or_insert_with(|| {
             let disas_ptr = unsafe { qemu_plugin_insn_disas(insn) };
             let symbol_ptr = unsafe { qemu_plugin_insn_symbol(insn) };
 
@@ -281,7 +281,7 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
             };
 
             let symbol = if symbol_ptr.is_null() {
-                String::from("unknown")
+                "Unknown".to_owned()
             } else {
                 unsafe { CStr::from_ptr(symbol_ptr).to_string_lossy().into_owned() }
             };
@@ -562,6 +562,20 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
     qemu_print(&out);
 }
 
+#[derive(Eq, PartialEq, Hash)]
+struct AggKey {
+    level: cache::CacheLevel,
+    orig: usize,
+    orig_is_kernel: bool,
+    new: usize,
+    new_is_kernel: bool,
+}
+
+struct AggValue {
+    count: usize,
+    set_idx: usize,
+}
+
 fn print_cache_timing_violations(
     out: &mut String,
     insns: &mut [&InsnData],
@@ -574,7 +588,11 @@ fn print_cache_timing_violations(
         std::cmp::Reverse(len)
     });
 
-    writeln!(out, "\nTiming overview").unwrap();
+    writeln!(
+        out,
+        "\nTiming overview - * denotes that kernel code brought this cache set in scope"
+    )
+    .unwrap();
     writeln!(out, "address, #violations, instruction").unwrap();
 
     for &insn in insns.iter().take(limit) {
@@ -599,26 +617,49 @@ fn print_cache_timing_violations(
         )
         .unwrap();
 
-        // Aggregate violations by (level, orig, new)
-        let mut agg: HashMap<(cache::CacheLevel, usize, usize), (usize, usize)> = HashMap::new();
+        let mut agg: HashMap<AggKey, AggValue> = HashMap::new();
         for vio in violations.iter() {
-            let key = (vio.level, vio.orig, vio.new);
-            let entry = agg.entry(key).or_insert((0, vio.set_idx));
-            entry.0 += 1;
+            let key = AggKey {
+                level: vio.level,
+                orig: vio.orig,
+                orig_is_kernel: vio.orig_is_kernel,
+                new: vio.new,
+                new_is_kernel: vio.new_is_kernel,
+            };
+            let entry = agg.entry(key).or_insert(AggValue {
+                count: 0,
+                set_idx: vio.set_idx,
+            });
+            entry.count += 1;
         }
 
-        // Print up to 'detail' aggregated entries
-        for ((level, orig, new), (count, set_idx)) in agg.iter().take(detail) {
-            let level_str = match level {
+        let mut agg_vec: Vec<(&AggKey, &AggValue)> = agg.iter().collect();
+        agg_vec.sort_by_key(|&(_, value)| std::cmp::Reverse(value.count));
+
+        for (key, value) in agg_vec.iter().take(detail) {
+            let level_str = match key.level {
                 cache::CacheLevel::L1DCache => "L1D",
                 cache::CacheLevel::L1ICache => "L1I",
                 cache::CacheLevel::L2UCache => "L2",
                 cache::CacheLevel::Unknown => "UNK",
             };
 
+            let orig_str = if key.orig_is_kernel {
+                format!("{}*", key.orig)
+            } else {
+                key.orig.to_string()
+            };
+            let new_str = if key.new_is_kernel {
+                format!("{}*", key.new)
+            } else {
+                key.new.to_string()
+            };
+
             writeln!(
                 out,
-                "   [{level_str}] set {set_idx:<4} domain {orig} -> {new}  count: {count}",
+                "   [{level_str}] set {set_idx:<4} domain {orig_str} -> {new_str}  count: {count}",
+                set_idx = value.set_idx,
+                count = value.count
             )
             .unwrap();
         }

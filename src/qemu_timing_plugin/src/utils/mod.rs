@@ -1,6 +1,4 @@
-use crate::{
-    qemu_plugin_get_registers, qemu_plugin_reg_descriptor, qemu_plugin_register,
-};
+use crate::{qemu_plugin_get_registers, qemu_plugin_reg_descriptor, qemu_plugin_register};
 use std::{ffi::CStr, ptr};
 
 #[cfg(feature = "s3k")]
@@ -17,7 +15,7 @@ pub trait DomainRetriever: Send + Sync + 'static {
     fn new(cores: usize) -> Self;
     fn vcpu_init(&self);
     fn on_exit(&self, out: &mut String);
-    fn get_domain_id(&self, vcpu_index: u32) -> Option<usize>;
+    fn get_domain_info(&self, vcpu_index: u32, pc: usize) -> Option<(usize, bool)>;
 }
 
 fn plugin_find_register(name: &str) -> *mut qemu_plugin_register {
@@ -41,5 +39,3 @@ fn plugin_find_register(name: &str) -> *mut qemu_plugin_register {
 struct SendPtr<T>(*mut T);
 unsafe impl<T> Send for SendPtr<T> {}
 unsafe impl<T> Sync for SendPtr<T> {}
-
-

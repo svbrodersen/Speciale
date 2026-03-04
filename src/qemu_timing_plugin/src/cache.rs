@@ -2,10 +2,10 @@
 #![allow(non_camel_case_types)]
 #![allow(clippy::upper_case_acronyms)]
 
-use queues::{queue, IsQueue, Queue};
+use queues::{IsQueue, Queue, queue};
 use rand::{
-    rngs::{StdRng, SysRng},
     RngExt, SeedableRng,
+    rngs::{StdRng, SysRng},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
@@ -18,7 +18,9 @@ pub enum CacheLevel {
 
 pub struct DomainViolation {
     pub orig: usize,
+    pub orig_is_kernel: bool,
     pub new: usize,
+    pub new_is_kernel: bool,
     pub block_idx: usize,
     pub set_idx: usize,
     pub level: CacheLevel,
@@ -28,7 +30,7 @@ pub struct CacheBlock {
     tag: usize,
     valid: bool,
     priority: usize,
-    cur_domain: Option<usize>,
+    cur_domain: Option<(usize, bool)>,
 }
 
 pub struct LruPolicy {
@@ -57,7 +59,7 @@ pub struct BaseCacheSet<P: EvictionPolicy> {
 }
 
 fn handle_domain(
-    domain_option: Option<usize>,
+    domain_option: Option<(usize, bool)>,
     replace_idx: usize,
     block: &mut CacheBlock,
     was_valid: bool,
@@ -66,12 +68,14 @@ fn handle_domain(
     let prev_domain = block.cur_domain;
     block.cur_domain = domain_option;
     match (domain_option, prev_domain) {
-        (Some(domain_id), Some(prev_domain)) => {
+        (Some((new_domain, new_is_kernel)), Some((prev_domain, prev_is_kernel))) => {
             // Only trigger a violation if the block was previously valid and the domain changed
-            if was_valid && (prev_domain != domain_id) {
+            if was_valid && (prev_domain != new_domain) {
                 return Some(DomainViolation {
                     orig: prev_domain,
-                    new: domain_id,
+                    orig_is_kernel: prev_is_kernel,
+                    new: new_domain,
+                    new_is_kernel: new_is_kernel,
                     block_idx: replace_idx,
                     set_idx: 0,
                     level: CacheLevel::Unknown,
@@ -101,7 +105,11 @@ impl<P: EvictionPolicy> BaseCacheSet<P> {
         Self { blocks, policy }
     }
 
-    fn access(&mut self, tag: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>) {
+    fn access(
+        &mut self,
+        tag: usize,
+        domain_id: Option<(usize, bool)>,
+    ) -> (bool, Option<DomainViolation>) {
         if let Some(idx) = self.blocks.iter().position(|b| b.valid && b.tag == tag) {
             self.policy.on_access(idx, true);
 
@@ -260,7 +268,7 @@ impl<P: EvictionPolicy> Cache<P> {
     pub fn access(
         &mut self,
         addr: usize,
-        domain_option: Option<usize>,
+        domain_option: Option<(usize, bool)>,
     ) -> (bool, Option<DomainViolation>) {
         let tag = self.extract_tag(addr);
         let set = self.extract_set(addr);
