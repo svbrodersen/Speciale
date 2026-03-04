@@ -9,7 +9,10 @@ use crate::cache::{Cache, DomainViolation, FifoPolicy, LruPolicy, RandPolicy};
 use std::{
     collections::HashMap,
     ffi::CStr,
-    sync::{Mutex, OnceLock, atomic::AtomicUsize},
+    sync::{
+        Mutex, OnceLock,
+        atomic::{AtomicBool, AtomicUsize},
+    },
 };
 
 use crate::utils::{ActiveRetriever, DomainRetriever};
@@ -79,6 +82,8 @@ struct PluginState<T: DomainRetriever> {
     l2_u_caches: Vec<Mutex<CacheVariant>>,
     insn_map: Mutex<HashMap<usize, Box<InsnData>>>,
     domain: T,
+    fence_active: Vec<AtomicBool>,
+    fence_domain: Vec<AtomicUsize>,
 }
 
 enum AccessType {
@@ -94,7 +99,21 @@ impl<T: DomainRetriever> PluginState<T> {
         access_type: &AccessType,
     ) {
         let cache_idx = (vcpu_index as usize) % self.cores;
-        let domain_id = self.domain.get_domain_info(vcpu_index, insn_data.addr);
+        let mut domain_id = self.domain.get_domain_info(vcpu_index, insn_data.addr);
+
+        if let Some((dom_id, _)) = domain_id {
+            if self.fence_active[cache_idx].load(Relaxed) {
+                self.fence_domain[cache_idx].store(dom_id, Relaxed);
+                self.fence_active[cache_idx].store(false, Relaxed);
+            }
+
+            let ignored_dom = self.fence_domain[cache_idx].load(Relaxed);
+            if dom_id == ignored_dom {
+                domain_id = None;
+            } else if ignored_dom != usize::MAX {
+                self.fence_domain[cache_idx].store(usize::MAX, Relaxed);
+            }
+        }
 
         // Pattern match to grab the right references based on the access type
         let (addr, l1_cache, l1_level, l1_miss_counter) = match access_type {
@@ -216,9 +235,12 @@ extern "C" fn vcpu_mem_access(
 }
 
 #[unsafe(no_mangle)]
-extern "C" fn vcpu_temporal_fence(_vcpu_index: u32, _user_data: *mut std::ffi::c_void) {
+extern "C" fn vcpu_temporal_fence(vcpu_index: u32, _user_data: *mut std::ffi::c_void) {
     let state = get_state();
+    let cache_idx = (vcpu_index as usize) % state.cores;
     state.flush_l1_caches();
+    state.fence_active[cache_idx].store(true, Relaxed);
+    state.fence_domain[cache_idx].store(usize::MAX, Relaxed);
 }
 
 #[unsafe(no_mangle)]
@@ -460,6 +482,8 @@ pub extern "C" fn qemu_plugin_install(
         l2_u_caches: build_caches(&policy, cores, l2_blksize, l2_assoc, l2_cachesize),
         insn_map: Mutex::new(HashMap::new()),
         domain: ActiveRetriever::new(cores),
+        fence_active: (0..cores).map(|_| AtomicBool::new(false)).collect(),
+        fence_domain: (0..cores).map(|_| AtomicUsize::new(usize::MAX)).collect(),
     };
 
     STATE
