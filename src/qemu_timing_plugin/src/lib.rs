@@ -5,11 +5,11 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings_qemu.rs"));
 
-use crate::cache::{Cache, DomainViolation, EvictionPolicy, FifoPolicy, LruPolicy, RandPolicy};
+use crate::cache::{Cache, DomainViolation, FifoPolicy, LruPolicy, RandPolicy};
 use std::{
     collections::HashMap,
     ffi::CStr,
-    sync::{Mutex, OnceLock, atomic::AtomicUsize},
+    sync::{atomic::AtomicUsize, Mutex, OnceLock},
 };
 
 use crate::utils::{ActiveRetriever, DomainRetriever};
@@ -20,23 +20,35 @@ use std::sync::atomic::Ordering::Relaxed;
 mod cache;
 mod utils;
 
-trait CacheDyn: Send {
-    fn access(&mut self, addr: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>);
-    fn get_stats(&self) -> (usize, usize);
-    fn clear(&mut self);
+enum CacheVariant {
+    Lru(Cache<LruPolicy>),
+    Fifo(Cache<FifoPolicy>),
+    Rand(Cache<RandPolicy>),
 }
 
-impl<P: EvictionPolicy + 'static> CacheDyn for Cache<P> {
+impl CacheVariant {
     fn access(&mut self, addr: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>) {
-        Cache::access(self, addr, domain_id)
+        match self {
+            Self::Lru(c) => c.access(addr, domain_id),
+            Self::Fifo(c) => c.access(addr, domain_id),
+            Self::Rand(c) => c.access(addr, domain_id),
+        }
     }
 
     fn get_stats(&self) -> (usize, usize) {
-        (self.accesses, self.misses)
+        match self {
+            Self::Lru(c) => (c.accesses, c.misses),
+            Self::Fifo(c) => (c.accesses, c.misses),
+            Self::Rand(c) => (c.accesses, c.misses),
+        }
     }
 
     fn clear(&mut self) {
-        Cache::clear(self);
+        match self {
+            Self::Lru(c) => c.clear(),
+            Self::Fifo(c) => c.clear(),
+            Self::Rand(c) => c.clear(),
+        }
     }
 }
 
@@ -57,10 +69,10 @@ struct PluginState<T: DomainRetriever> {
     timing_limit: usize,
     timing_detail: usize,
 
-    l1_d_caches: Vec<Mutex<Box<dyn CacheDyn>>>,
-    l1_i_caches: Vec<Mutex<Box<dyn CacheDyn>>>,
+    l1_d_caches: Vec<Mutex<CacheVariant>>,
+    l1_i_caches: Vec<Mutex<CacheVariant>>,
 
-    l2_u_caches: Vec<Mutex<Box<dyn CacheDyn>>>,
+    l2_u_caches: Vec<Mutex<CacheVariant>>,
     insn_map: Mutex<HashMap<usize, Box<InsnData>>>,
     domain: T,
 }
@@ -138,13 +150,13 @@ fn build_caches(
     blk: usize,
     assoc: usize,
     size: usize,
-) -> Vec<Mutex<Box<dyn CacheDyn>>> {
+) -> Vec<Mutex<CacheVariant>> {
     (0..cores)
         .map(|_| {
-            let cache: Box<dyn CacheDyn> = match policy {
-                "lru" => Box::new(Cache::<LruPolicy>::new(blk, assoc, size)),
-                "fifo" => Box::new(Cache::<FifoPolicy>::new(blk, assoc, size)),
-                "rand" => Box::new(Cache::<RandPolicy>::new(blk, assoc, size)),
+            let cache = match policy {
+                "lru" => CacheVariant::Lru(Cache::<LruPolicy>::new(blk, assoc, size)),
+                "fifo" => CacheVariant::Fifo(Cache::<FifoPolicy>::new(blk, assoc, size)),
+                "rand" => CacheVariant::Rand(Cache::<RandPolicy>::new(blk, assoc, size)),
                 _ => unreachable!(),
             };
             Mutex::new(cache)
