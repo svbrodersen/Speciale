@@ -1,1 +1,0 @@
-../../extern/fr-repo/receiver.c
