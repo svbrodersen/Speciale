@@ -103,7 +103,7 @@ impl<P: EvictionPolicy> BaseCacheSet<P> {
 
     fn access(&mut self, tag: usize, domain_id: Option<usize>) -> (bool, Option<DomainViolation>) {
         if let Some(idx) = self.blocks.iter().position(|b| b.valid && b.tag == tag) {
-            self.policy.on_access(idx, false);
+            self.policy.on_access(idx, true);
 
             let block = &mut self.blocks[idx];
             let was_valid = block.valid;
@@ -122,7 +122,7 @@ impl<P: EvictionPolicy> BaseCacheSet<P> {
         block.tag = tag;
         block.valid = true;
 
-        self.policy.on_access(replace_idx, true);
+        self.policy.on_access(replace_idx, false);
 
         (
             false,
