@@ -9,7 +9,7 @@ use crate::cache::{Cache, DomainViolation, EvictionPolicy, FifoPolicy, LruPolicy
 use std::{
     collections::HashMap,
     ffi::CStr,
-    sync::{atomic::AtomicUsize, Mutex, OnceLock},
+    sync::{Mutex, OnceLock, atomic::AtomicUsize},
 };
 
 use crate::utils::{ActiveRetriever, DomainRetriever};
@@ -36,7 +36,7 @@ impl<P: EvictionPolicy + 'static> CacheDyn for Cache<P> {
     }
 
     fn clear(&mut self) {
-        Cache::clear(self)
+        Cache::clear(self);
     }
 }
 
@@ -234,12 +234,18 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
         // This is a custom instruction or marker used to clear L1 caches
         let insn_opcode = unsafe {
             let data_len = qemu_plugin_insn_size(insn);
-            if data_len == 4 {
-                let mut buf = [0u8; 4];
-                qemu_plugin_insn_data(insn, buf.as_mut_ptr() as *mut _, 4);
-                u32::from_le_bytes(buf)
-            } else {
-                0
+            match data_len {
+                4 => {
+                    let mut buf = [0u8; 4];
+                    qemu_plugin_insn_data(insn, buf.as_mut_ptr() as *mut _, 4);
+                    u64::from(u32::from_le_bytes(buf))
+                }
+                8 => {
+                    let mut buf = [0u8; 8];
+                    qemu_plugin_insn_data(insn, buf.as_mut_ptr() as *mut _, 8);
+                    u64::from_le_bytes(buf)
+                }
+                _ => 0,
             }
         };
 
@@ -253,7 +259,13 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
             let disas = if disas_ptr.is_null() {
                 String::from("unknown")
             } else {
-                unsafe { CStr::from_ptr(disas_ptr).to_string_lossy().into_owned() }
+                unsafe {
+                    CStr::from_ptr(disas_ptr)
+                        .to_string_lossy()
+                        .split_whitespace()
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                }
             };
 
             let symbol = if symbol_ptr.is_null() {
@@ -563,12 +575,12 @@ fn print_cache_timing_violations(
         let sym = if insn.symbol.is_empty() {
             String::new()
         } else {
-            format!(" ({})", insn.symbol)
+            insn.symbol.clone()
         };
 
         writeln!(
             out,
-            "{:#x}{sym}, {}, {}",
+            "{:#x} ({sym}), {}, {}",
             insn.addr,
             violations.len(),
             insn.disas
@@ -594,8 +606,7 @@ fn print_cache_timing_violations(
 
             writeln!(
                 out,
-                "   [{}] set {:<4} domain {} -> {}  count: {}",
-                level_str, set_idx, orig, new, count,
+                "   [{level_str}] set {set_idx:<4} domain {orig} -> {new}  count: {count}",
             )
             .unwrap();
         }
@@ -617,11 +628,11 @@ fn print_insn_table(
         let sym = if insn.symbol.is_empty() {
             String::new()
         } else {
-            format!(" ({})", insn.symbol)
+            insn.symbol.clone()
         };
 
         let misses = count_fn(insn);
 
-        writeln!(out, "{:#x}{sym}, {}, {}", insn.addr, misses, insn.disas).unwrap();
+        writeln!(out, "{:#x} ({sym}), {}, {}", insn.addr, misses, insn.disas).unwrap();
     }
 }

@@ -46,12 +46,12 @@ impl DomainRetriever for S3KDomainRetriever {
             .get_or_init(|| SendPtr(plugin_find_register("tp")));
     }
 
-    fn on_exit(&self, out: &mut String) {
-        writeln!(
-            out,
-            "Unique_domain_tp: {:?}",
-            self.unique_domain_tp.lock().unwrap()
-        ).unwrap();
+    fn on_exit(&self, _out: &mut String) {
+        // writeln!(
+        //     out,
+        //     "Unique_domain_tp: {:?}",
+        //     self.unique_domain_tp.lock().unwrap()
+        // ).unwrap();
     }
 
     fn get_domain_id(&self, vcpu_index: u32) -> Option<usize> {
