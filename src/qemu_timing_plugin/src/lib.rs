@@ -10,8 +10,8 @@ use std::{
     collections::HashMap,
     ffi::CStr,
     sync::{
-        Mutex, OnceLock,
         atomic::{AtomicBool, AtomicUsize},
+        Mutex, OnceLock,
     },
 };
 
@@ -20,7 +20,7 @@ use crate::utils::{ActiveRetriever, DomainRetriever};
 use std::fmt::Write;
 use std::sync::atomic::Ordering::Relaxed;
 
-mod cache;
+pub mod cache;
 mod utils;
 
 enum CacheVariant {

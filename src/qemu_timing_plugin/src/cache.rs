@@ -46,6 +46,14 @@ pub struct RandPolicy {
     rng: StdRng,
 }
 
+impl RandPolicy {
+    pub fn new_with_seed(seed: u64) -> Self {
+        Self {
+            rng: StdRng::seed_from_u64(seed),
+        }
+    }
+}
+
 pub trait EvictionPolicy: Send {
     fn new(assoc: usize) -> Self;
     fn on_access(&mut self, idx: usize, is_hit: bool);
@@ -64,18 +72,16 @@ fn handle_domain(
     block: &mut CacheBlock,
     was_valid: bool,
 ) -> Option<DomainViolation> {
-    // Only update domain if available
     let prev_domain = block.cur_domain;
     block.cur_domain = domain_option;
     match (domain_option, prev_domain) {
         (Some((new_domain, new_is_kernel)), Some((prev_domain, prev_is_kernel))) => {
-            // Only trigger a violation if the block was previously valid and the domain changed
             if was_valid && (prev_domain != new_domain) {
                 return Some(DomainViolation {
                     orig: prev_domain,
                     orig_is_kernel: prev_is_kernel,
                     new: new_domain,
-                    new_is_kernel: new_is_kernel,
+                    new_is_kernel,
                     block_idx: replace_idx,
                     set_idx: 0,
                     level: CacheLevel::Unknown,
@@ -88,6 +94,7 @@ fn handle_domain(
 }
 
 impl CacheBlock {
+    #[must_use]
     pub fn new(tag: usize, valid: bool) -> Self {
         Self {
             tag,
@@ -164,9 +171,7 @@ impl EvictionPolicy for LruPolicy {
         self.priorities
             .iter()
             .enumerate()
-            // Find minimum priority
             .min_by_key(|&(_, &p)| p)
-            // Get index
             .map_or(0, |(i, _)| i)
     }
 
@@ -191,12 +196,8 @@ impl EvictionPolicy for RandPolicy {
 }
 
 impl EvictionPolicy for FifoPolicy {
-    fn new(assoc: usize) -> Self {
-        let mut q = queue![];
-        for i in 0..assoc {
-            let _ = q.add(i);
-        }
-        Self { queue: q }
+    fn new(_assoc: usize) -> Self {
+        Self { queue: queue![] }
     }
     fn on_access(&mut self, idx: usize, is_hit: bool) {
         if !is_hit {
@@ -207,12 +208,8 @@ impl EvictionPolicy for FifoPolicy {
         self.queue.remove().unwrap_or(0)
     }
 
-    fn reset(&mut self, assoc: usize) {
-        let mut q = queue![];
-        for i in 0..assoc {
-            let _ = q.add(i);
-        }
-        self.queue = q;
+    fn reset(&mut self, _assoc: usize) {
+        self.queue = queue![];
     }
 }
 
@@ -292,5 +289,105 @@ impl<P: EvictionPolicy> Cache<P> {
         for set in &mut self.sets {
             set.clear();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cache_config_valid() -> Result<(), String> {
+        Cache::<LruPolicy>::check_params(64, 8, 16384)?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_cache_config_invalid_params() {
+        let cases = vec![
+            (64, 8, 10000, "Size not multiple of block size"),
+            (64, 8, 16000, "Size not multiple of assoc * block size"),
+        ];
+
+        for (blk, assoc, size, msg) in cases {
+            assert!(
+                Cache::<LruPolicy>::check_params(blk, assoc, size).is_err(),
+                "Expected error for: {msg}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_cache_hit_miss_logic() {
+        let mut cache: Cache<LruPolicy> = Cache::new(64, 8, 16384);
+        let addr = 0x1000;
+
+        // Initial miss
+        let (hit, _) = cache.access(addr, None);
+        assert!(!hit, "Initial access to {addr:#x} should be a miss");
+        assert_eq!(cache.misses, 1);
+        assert_eq!(cache.accesses, 1);
+
+        // Subsequent hit
+        let (hit, _) = cache.access(addr, None);
+        assert!(hit, "Subsequent access to {addr:#x} should be a hit");
+        assert_eq!(cache.misses, 1);
+        assert_eq!(cache.accesses, 2);
+    }
+
+    #[test]
+    fn test_cache_clear_resets_state() {
+        let mut cache: Cache<LruPolicy> = Cache::new(64, 8, 16384);
+        cache.access(0x1000, None);
+        
+        assert_eq!(cache.accesses, 1);
+        assert_eq!(cache.misses, 1);
+
+        cache.clear();
+
+        // Stats (accesses/misses) are currently preserved by clear() based on implementation,
+        // but the cache content should be empty.
+        let (hit, _) = cache.access(0x1000, None);
+        assert!(!hit, "Access after clear should be a miss");
+    }
+
+    #[test]
+    fn test_tag_and_set_extraction() {
+        let cache: Cache<LruPolicy> = Cache::new(64, 2, 256);
+        // 64 byte blocks -> 6 bits for offset
+        // 256 bytes total, 2-way assoc -> 2 sets -> 1 bit for set
+        // tag is everything else
+        
+        let addr = 0x1000; // ...0001 0000 0000_0000
+        let set = cache.extract_set(addr);
+        let tag = cache.extract_tag(addr);
+
+        assert_eq!(set, 0, "Addr {addr:#x} should be in set 0");
+        assert!(tag > 0, "Tag should be non-zero for {addr:#x}");
+        
+        let addr_set1 = 0x1000 + 64;
+        assert_eq!(cache.extract_set(addr_set1), 1, "Addr {addr_set1:#x} should be in set 1");
+    }
+
+    #[test]
+    fn test_lru_policy_internal() {
+        let mut cache: Cache<LruPolicy> = Cache::new(64, 2, 128);
+        // Set 0 has 2 blocks.
+        
+        cache.access(0x1000, None); // Miss, fill block 0
+        cache.access(0x2000, None); // Miss, fill block 1
+        
+        // Both blocks full. LRU is block 0.
+        // Access block 0 to make it MRU.
+        cache.access(0x1000, None); // Hit, block 0 is now MRU
+        
+        // Access block 2 (addr 0x3000). Should evict block 1 (addr 0x2000).
+        cache.access(0x3000, None); 
+        
+        let (hit_0, _) = cache.access(0x1000, None);
+        let (hit_1, _) = cache.access(0x2000, None);
+        
+        assert!(hit_0, "Address 0x1000 should still be in cache");
+        assert!(!hit_1, "Address 0x2000 should have been evicted by LRU");
     }
 }
