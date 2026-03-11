@@ -32,7 +32,7 @@ pub struct S3KDomainRetriever {
 }
 
 impl DomainRetriever for S3KDomainRetriever {
-    fn new(cores: usize) -> Self {
+    fn new(cores: usize, _: &str) -> Self {
         let mut vcpu_states = Vec::with_capacity(cores);
 
         for _ in 0..cores {
@@ -62,12 +62,12 @@ impl DomainRetriever for S3KDomainRetriever {
 
     fn on_exit(&self, _out: &mut String) {}
 
-    fn get_domain_info(&self, vcpu_index: u32, pc: usize) -> Option<(usize, bool)> {
+    fn get_domain_info(&self, vcpu_index: u32, addr: usize) -> Option<(usize, bool)> {
         let cache_idx = (vcpu_index as usize) % self.vcpu_states.len();
         let mut guard = self.vcpu_states[cache_idx].lock().unwrap();
         let buf_ptr = guard.buf.0;
 
-        let is_kernel = !(0x8000_0000..0x9000_0000).contains(&pc);
+        let is_kernel = self.is_spm_address(addr);
 
         let read_reg = |handle: *mut qemu_plugin_register| -> Option<u64> {
             if handle.is_null() {
@@ -162,4 +162,22 @@ impl DomainRetriever for S3KDomainRetriever {
         // If neither `tp` nor `mscratch` points to a valid proc_t, we just fall back to the last known domain
         guard.last_domain_id.map(|id| (id, is_kernel))
     }
+
+    /// Check if an address is in a scratchpad memory (SPM) region.
+    /// For S3K, the kernel resides in SPM which bypasses L2 cache.
+    /// QEMU: Kernel at 0x90000000-0x90010000 (64KB)
+    fn is_spm_address(&self, addr: usize) -> bool {
+        // QEMU virt platform kernel region
+        const QEMU_KERNEL_START: usize = 0x9000_0000;
+        const QEMU_KERNEL_END: usize = 0x9001_0000;
+
+        (QEMU_KERNEL_START..QEMU_KERNEL_END).contains(&addr)
+    }
+}
+
+// Check for temporal_fence instruction (magic NOP)
+// RISC-V: addi x0, x0, 11 = 0x00b00013
+// This is a NOP (x0 hardwired to 0) but we use it as a fence marker
+pub fn is_temporal_fence(insn_opcode: u64) -> bool {
+    insn_opcode == 0x00b0_0013
 }

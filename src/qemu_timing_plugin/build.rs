@@ -31,7 +31,6 @@ fn main() {
         .write_to_file(out_path.join("bindings_qemu.rs"))
         .expect("Couldn't write QEMU bindings!");
 
-
     // S3k bindings
     let max_pid = std::env::var("MAX_PID").unwrap_or_else(|_| num_cpus::get().to_string());
     let mut builder_s3k = bindgen::builder()
@@ -47,4 +46,25 @@ fn main() {
     bindings_s3k
         .write_to_file(out_path.join("bindings_s3k.rs"))
         .expect("Couldn't write S3K bindings!");
+
+    // FreeRTOS bindings
+    let builder_free_rtos = bindgen::builder()
+        .header("wrapper_FreeRTOS.h")
+        .clang_arg("-D__riscv_xlen=32")
+        .clang_arg("--target=riscv32-unknown-none-elf") 
+        .layout_tests(false) 
+        .size_t_is_usize(false) // Don't use host's usize for size_t
+        // Optionally, tell Clang it is cross-compiling for 32-bit RISC-V
+        // This helps resolve other built-in macros FreeRTOS might expect
+        // Your existing includes
+        .clang_arg("-I../FreeRTOS/FreeRTOS/Source/include/")
+        .clang_arg("-I../FreeRTOS/FreeRTOS/Demo/RISC-V_RV32_QEMU_VIRT_GCC_timing/")
+        .clang_arg("-I../FreeRTOS/FreeRTOS/Source/portable/GCC/RISC-V/")
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));
+
+    builder_free_rtos
+        .generate()
+        .expect("Unable to generate FreeRTOS bindings")
+        .write_to_file(out_path.join("bindings_FreeRTOS.rs"))
+        .expect("Couldn't write FreeRTOS bindings");
 }

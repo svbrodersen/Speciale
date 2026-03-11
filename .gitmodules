@@ -7,3 +7,6 @@
 [submodule "src/sentry-kernel"]
 	path = src/sentry-kernel
 	url = https://github.com/svbrodersen/sentry-kernel.git
+[submodule "src/FreeRTOS"]
+	path = src/FreeRTOS
+	url = https://github.com/svbrodersen/FreeRTOS.git
