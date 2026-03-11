@@ -4,18 +4,38 @@ use std::{ffi::CStr, ptr};
 #[cfg(feature = "s3k")]
 mod s3k;
 #[cfg(feature = "s3k")]
+pub use self::s3k::is_temporal_fence;
+#[cfg(feature = "s3k")]
 pub use self::s3k::S3KDomainRetriever as ActiveRetriever;
+
+#[cfg(feature = "FreeRTOS")]
+mod FreeRTOS;
+#[cfg(feature = "FreeRTOS")]
+pub use self::FreeRTOS::is_temporal_fence;
+#[cfg(feature = "FreeRTOS")]
+pub use self::FreeRTOS::FreeRTOSDomainRetriever as ActiveRetriever;
 
 #[cfg(not(feature = "retriever"))]
 mod noop;
 #[cfg(not(feature = "retriever"))]
 pub type ActiveRetriever = noop::NoOpRetriever;
+#[cfg(not(feature = "retriever"))]
+pub fn is_temporal_fence(_: u64) -> bool {
+    false
+}
 
 pub trait DomainRetriever: Send + Sync + 'static {
-    fn new(cores: usize) -> Self;
+    fn new(cores: usize, elf_file: &str) -> Self;
     fn vcpu_init(&self);
     fn on_exit(&self, out: &mut String);
     fn get_domain_info(&self, vcpu_index: u32, pc: usize) -> Option<(usize, bool)>;
+
+    /// Check if an address is in a scratchpad memory (SPM) region.
+    /// SPM regions bypass L2 cache - data is stored only in L1.
+    /// Default implementation returns false (no SPM regions).
+    fn is_spm_address(&self, _addr: usize) -> bool {
+        false
+    }
 }
 
 fn plugin_find_register(name: &str) -> *mut qemu_plugin_register {
@@ -36,6 +56,7 @@ fn plugin_find_register(name: &str) -> *mut qemu_plugin_register {
     }
     ptr::null_mut()
 }
+
 struct SendPtr<T>(*mut T);
 unsafe impl<T> Send for SendPtr<T> {}
 unsafe impl<T> Sync for SendPtr<T> {}

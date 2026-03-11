@@ -15,7 +15,7 @@ use std::{
     },
 };
 
-use crate::utils::{ActiveRetriever, DomainRetriever};
+use crate::utils::{is_temporal_fence, ActiveRetriever, DomainRetriever};
 
 use std::fmt::Write;
 use std::sync::atomic::Ordering::Relaxed;
@@ -139,20 +139,25 @@ impl<T: DomainRetriever> PluginState<T> {
         }
 
         if !l1_hit {
-            let l2_cache = &self.l2_u_caches[cache_idx];
             l1_miss_counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
-            let (l2_hit, l2_violation) = l2_cache.lock().unwrap().access(addr, domain_id);
+            // Check if this is an SPM (scratchpad memory) address
+            // SPM bypasses L2 cache - data is stored only in L1
+            if !self.domain.is_spm_address(addr) {
+                // Regular memory access - check and fill L2
+                let l2_cache = &self.l2_u_caches[cache_idx];
+                let (l2_hit, l2_violation) = l2_cache.lock().unwrap().access(addr, domain_id);
 
-            if let Some(mut violation) = l2_violation {
-                violation.level = cache::CacheLevel::L2UCache;
-                insn_data.violations.lock().unwrap().push(violation);
-            }
+                if let Some(mut violation) = l2_violation {
+                    violation.level = cache::CacheLevel::L2UCache;
+                    insn_data.violations.lock().unwrap().push(violation);
+                }
 
-            if !l2_hit {
-                insn_data
-                    .l2_misses
-                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                if !l2_hit {
+                    insn_data
+                        .l2_misses
+                        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                }
             }
         }
     }
@@ -264,8 +269,6 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
             usize::try_from(qemu_plugin_insn_vaddr(insn)).expect("vaddr exceeds range of usize")
         };
 
-        // Check for temporal_fence instruction (0x0000000b)
-        // This is a custom instruction or marker used to clear L1 caches
         let insn_opcode = unsafe {
             let data_len = qemu_plugin_insn_size(insn);
             match data_len {
@@ -337,10 +340,7 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
                 data_ptr,
             );
 
-            // Check for temporal_fence instruction (magic NOP)
-            // RISC-V: addi x0, x0, 11 = 0x00b00013
-            // This is a NOP (x0 hardwired to 0) but we use it as a fence marker
-            if insn_opcode == 0x00b0_0013 {
+            if is_temporal_fence(insn_opcode) {
                 qemu_plugin_register_vcpu_insn_exec_cb(
                     insn,
                     Some(vcpu_temporal_fence),
@@ -394,7 +394,7 @@ pub extern "C" fn qemu_plugin_install(
         1
     };
 
-    let mut limit_insn: usize = 32;
+    let mut limit_insn: usize = 8;
     let mut timing_limit: usize = 16;
     let mut timing_detail: usize = 4;
 
@@ -409,6 +409,7 @@ pub extern "C" fn qemu_plugin_install(
     let mut l2_assoc: usize = 16;
     let mut l2_blksize: usize = 64;
     let mut l2_cachesize: usize = l2_assoc * l2_blksize * 2048;
+    let mut elf_file: String = String::new();
 
     let mut policy = String::from("lru");
 
@@ -446,6 +447,7 @@ pub extern "C" fn qemu_plugin_install(
                     return -1;
                 }
             },
+            "elffile" => elf_file = val.to_string(),
             _ => {
                 eprintln!("option parsing failed: {arg_str}");
                 return -1;
@@ -481,7 +483,7 @@ pub extern "C" fn qemu_plugin_install(
         l1_i_caches: build_caches(&policy, cores, l1_iblksize, l1_iassoc, l1_icachesize),
         l2_u_caches: build_caches(&policy, cores, l2_blksize, l2_assoc, l2_cachesize),
         insn_map: Mutex::new(HashMap::new()),
-        domain: ActiveRetriever::new(cores),
+        domain: ActiveRetriever::new(cores, elf_file.as_str()),
         fence_active: (0..cores).map(|_| AtomicBool::new(false)).collect(),
         fence_domain: (0..cores).map(|_| AtomicUsize::new(usize::MAX)).collect(),
     };
