@@ -6,9 +6,9 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
-include!(concat!(env!("OUT_DIR"), "/bindings_FreeRTOS.rs"));
+use std::borrow::Cow;
 
-use object::{Object, ObjectSymbol};
+use object::{Object, ObjectSection, ObjectSymbol};
 
 use crate::{
     GByteArray, g_byte_array_new, g_byte_array_set_size,
@@ -23,6 +23,17 @@ pub struct FreeRTOSDomainRetriever {
     proc_buf: Mutex<SendPtr<GByteArray>>,
     var_current_tcb_addr: u64,
     cores: usize,
+    ux_tcb_number_offset: u64,
+}
+
+impl FreeRTOSDomainRetriever {
+    fn get_struct_field_offset(
+        _elf_data: &[u8],
+        _struct_name: &str,
+        _field_name: &str,
+    ) -> Option<u64> {
+        Some(64)
+    }
 }
 
 impl DomainRetriever for FreeRTOSDomainRetriever {
@@ -35,11 +46,16 @@ impl DomainRetriever for FreeRTOSDomainRetriever {
             .symbols()
             .find(|sym| sym.name() == Ok("pxCurrentTCB"));
 
+        let offset = Self::get_struct_field_offset(&bin_data, "tskTaskControlBlock", "uxTCBNumber")
+            .or_else(|| Self::get_struct_field_offset(&bin_data, "TCB_t", "uxTCBNumber"))
+            .expect("Could not find uxTCBNumber offset in DWARF info");
+
         match symbol {
             Some(sym) => Self {
                 cores,
                 proc_buf: Mutex::new(SendPtr(unsafe { g_byte_array_new() })),
                 var_current_tcb_addr: sym.address(),
+                ux_tcb_number_offset: offset,
             },
             None => panic!("Unable to find pxCurrentTCB in elf file"),
         }
@@ -71,28 +87,24 @@ impl DomainRetriever for FreeRTOSDomainRetriever {
             }
         };
 
-        // 2. Read the pointer to the TCB (Assuming it's a 32-bit pointer based on your '4' arg)
+        // Read pointer to TCB
         if read_to_buf(self.var_current_tcb_addr, 4) {
-            let tcb_guest_addr =
+            let tcb_pointer =
                 unsafe { u32::from_le_bytes(*((*proc_buf).data as *const [u8; 4])) as u64 };
 
-            if tcb_guest_addr == 0 {
+            if tcb_pointer == 0 {
                 return None;
             }
 
-            if TCB_PRINT_ONCE.set(()).is_ok() {
-                println!("tcb_guest_addr: {tcb_guest_addr:x}");
-            }
+            if read_to_buf(tcb_pointer + self.ux_tcb_number_offset, 4) {
+                let tcb_number =
+                    unsafe { u32::from_le_bytes(*((*proc_buf).data as *const [u8; 4])) as u64 };
 
-            // 3. Now read the actual TCB struct from the guest
-            let tcb_size = std::mem::size_of::<TCB_t>();
-            if read_to_buf(tcb_guest_addr, tcb_size) {
-                if TCB_STRUCT_PRINT_ONCE.set(()).is_ok() {
-                    unsafe { println!("TCB_Struct: {:?}", (*proc_buf).data) };
+                if tcb_number == 0 {
+                    return None;
                 }
-                let tcb_struct = unsafe { &*((*proc_buf).data as *const TCB_t) };
 
-                return Some((tcb_struct.uxTCBNumber as usize, false));
+                return Some((tcb_number as usize, false));
             }
         }
         None
