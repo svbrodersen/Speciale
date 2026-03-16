@@ -65,7 +65,7 @@ state, context switching, or operating system scheduling decisions.
 
 The central problem this thesis addresses is: \emph{To what extent can timing
 side-channels be mitigated through a combination of hardware aware software
-design and what platform is needed to prove timing channel mitigations?}
+design and what hardware support is required?}
 
 Specifically, this project will provide a plugin integration to the QEMU
 virtual machine. This implementation models cache behavior for configurable
@@ -75,13 +75,15 @@ The goal is to provide a deterministic and reproducible environment in which
 timing-channel behavior can be studied without relying solely on empirical
 hardware measurements.
 
-% TODO: Make it more clear that I wish to augment the sentry code and make this more safe against cache channel attacks.
 This implementation will be tested using previous "timing" safe microkernels,
-such as the \cite{S3K}, and will further analysis the behaviour of a
-microkernel, which does not take timing channels into account. Further, this
-project aims to augment the "unsafe" microkernel using varies flushing
-strategies, constant time programming and partitioning to evaluate how
-operating system design can reduce cache based timing leakage.
+such as the \cite{S3K}, to show that it is effective in show cache based timing
+channels. Further, this will then be used as the development basis to implement
+timing protection in a non-timing safe kernel. Specifically this will be done
+by looking into deterministic context switching, targeted flushing of the
+microarchitectural state and constant-time system calls. These implementations
+will then be evaluated in regards to the possible cache timing channels using
+the aforementioned plugin and showcase whether it is feasible to implement
+timing protection in a more standard kernel.
 
 This project further wants to establish hardware requirements for such
 mitigations to work efficiently and what division of responsibility between
@@ -94,8 +96,10 @@ in microkernel based systems.
     side-channel leaks across hardware, OS and program layers.
   \item Survey existing side-channel mitigation techniques including but not
     limited to: hardware mechanisms and OS-level strategies.
-  \item Design and implement a cache emulation layer capable of finding timing channels in the cache layer.
-  \item Evaluate the efficacy and viability of the implementation by running already established microkernels.
+  \item Design and implement a cache emulation layer capable of finding timing
+    channels in the cache layer.
+  \item Evaluate the efficacy and viability of the implementation by running
+    already established microkernels.
   \item Modify existing microkernel to provide better timing channel
     mitigations and evaluate the efficacy along with performance hindrance.
   \item Gather the findings into design recommendations for future operating
