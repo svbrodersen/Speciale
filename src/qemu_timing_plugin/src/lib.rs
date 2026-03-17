@@ -10,12 +10,12 @@ use std::{
     collections::HashMap,
     ffi::CStr,
     sync::{
-        atomic::{AtomicBool, AtomicUsize},
         Mutex, OnceLock,
+        atomic::{AtomicBool, AtomicUsize},
     },
 };
 
-use crate::utils::{is_temporal_fence, ActiveRetriever, DomainRetriever};
+use crate::utils::{ActiveRetriever, DomainRetriever, is_temporal_fence};
 
 use std::fmt::Write;
 use std::sync::atomic::Ordering::Relaxed;
@@ -75,6 +75,7 @@ struct PluginState<T: DomainRetriever> {
     limit_insn: usize,
     timing_limit: usize,
     timing_detail: usize,
+    use_l2: bool,
 
     l1_d_caches: Vec<Mutex<CacheVariant>>,
     l1_i_caches: Vec<Mutex<CacheVariant>>,
@@ -143,7 +144,7 @@ impl<T: DomainRetriever> PluginState<T> {
 
             // Check if this is an SPM (scratchpad memory) address
             // SPM bypasses L2 cache - data is stored only in L1
-            if !self.domain.is_spm_address(addr) {
+            if !self.domain.is_spm_address(addr) && self.use_l2 {
                 // Regular memory access - check and fill L2
                 let l2_cache = &self.l2_u_caches[cache_idx];
                 let (l2_hit, l2_violation) = l2_cache.lock().unwrap().access(addr, domain_id);
@@ -412,6 +413,7 @@ pub extern "C" fn qemu_plugin_install(
     let mut elf_file: String = String::new();
 
     let mut policy = String::from("lru");
+    let mut use_l2 = false;
 
     let args = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
     for &arg_ptr in args {
@@ -448,6 +450,7 @@ pub extern "C" fn qemu_plugin_install(
                 }
             },
             "elffile" => elf_file = val.to_string(),
+            "use_l2" => use_l2 = val.parse().unwrap_or(use_l2),
             _ => {
                 eprintln!("option parsing failed: {arg_str}");
                 return -1;
@@ -476,6 +479,7 @@ pub extern "C" fn qemu_plugin_install(
     let state = PluginState::<ActiveRetriever> {
         sys,
         cores,
+        use_l2,
         limit_insn,
         timing_limit,
         timing_detail,
@@ -512,10 +516,17 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
     let state = get_state();
     let mut out = String::new();
 
-    writeln!(
-        &mut out,
-        "core #,  data accesses, data misses, dmiss rate, insn accesses, insn misses, imiss rate, l2 accesses, l2 misses, l2 miss rate"
-    ).unwrap();
+    if state.use_l2 {
+        writeln!(
+            &mut out,
+            "core #,  data accesses, data misses, dmiss rate, insn accesses, insn misses, imiss rate, l2 accesses, l2 misses, l2 miss rate"
+        ).unwrap();
+    } else {
+        writeln!(
+            &mut out,
+            "core #,  data accesses, data misses, dmiss rate, insn accesses, insn misses, imiss rate"
+        ).unwrap();
+    }
 
     let calc_rate = |misses: usize, acc: usize| -> f64 {
         if acc > 0 {
@@ -530,10 +541,17 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
         let i_rate = calc_rate(i_miss, i_acc);
         let l2_rate = calc_rate(l2_miss, l2_acc);
 
-        writeln!(
-            &mut out,
-            "{label:<8} {d_acc:<14} {d_miss:<12} {d_rate:>9.4}%  {i_acc:<14} {i_miss:<12} {i_rate:>9.4}%  {l2_acc:<12} {l2_miss:<11} {l2_rate:>10.4}%"
-        ).unwrap();
+        if state.use_l2 {
+            writeln!(
+                &mut out,
+                "{label:<8} {d_acc:<14} {d_miss:<12} {d_rate:>9.4}%  {i_acc:<14} {i_miss:<12} {i_rate:>9.4}%  {l2_acc:<12} {l2_miss:<11} {l2_rate:>10.4}%"
+            ).unwrap()
+        } else {
+            writeln!(
+                &mut out,
+                "{label:<8} {d_acc:<14} {d_miss:<12} {d_rate:>9.4}%  {i_acc:<14} {i_miss:<12} {i_rate:>9.4}%"
+            ).unwrap()
+        }
     };
 
     let (mut t_da, mut t_dm, mut t_ia, mut t_im, mut t_la, mut t_lm) = (0, 0, 0, 0, 0, 0);
@@ -572,9 +590,11 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
         state.limit_insn,
         |i| i.l1_imisses.load(Relaxed),
     );
-    print_insn_table(&mut out, "L2 misses", &mut insns, state.limit_insn, |i| {
-        i.l2_misses.load(Relaxed)
-    });
+    if state.use_l2 {
+        print_insn_table(&mut out, "L2 misses", &mut insns, state.limit_insn, |i| {
+            i.l2_misses.load(Relaxed)
+        });
+    }
 
     print_cache_timing_violations(
         &mut out,
