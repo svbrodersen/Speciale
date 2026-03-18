@@ -73,10 +73,6 @@ impl DomainRetriever for FreeRTOSDomainRetriever {
         let mutex_guard = self.proc_buf.lock().unwrap();
         let proc_buf = mutex_guard.0;
 
-        if TCB.set(()).is_ok() {
-            println!("pxCurrentTCB: {:x?}", self.var_current_tcb_addr);
-        }
-
         let read_to_buf = |guest_addr: u64, size: usize| -> bool {
             unsafe {
                 if proc_buf.is_null() {

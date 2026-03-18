@@ -61,6 +61,12 @@ struct TransitionMetrics {
     l2_data: Option<Vec<u64>>,
 }
 
+fn get_combined_metric(insn_count: u64, l1_i_miss: u64, l1_d_miss: u64, l2_miss: u64) -> u64 {
+    let state = get_state();
+    let l2_penalty = l2_miss * state.l2_penalty;
+    insn_count + ((l1_i_miss + l1_d_miss) * state.l1_penalty) + l2_penalty
+}
+
 impl TransitionMetrics {
     fn new(from_domain: usize, to_domain: usize, track_l2: bool) -> Self {
         Self {
@@ -111,19 +117,19 @@ impl TransitionMetrics {
     fn mean_and_variance(&self) -> Option<(f64, f64)> {
         self.check_initialized()?;
 
-        let state = get_state();
-
         let n = self.insns_data.len() as f64;
 
         let combined: Vec<u64> = (0..(n as usize))
             .map(|i| {
-                let l2_penalty = match &self.l2_data {
-                    Some(l2) => l2[i] * state.l2_penalty,
-                    None => 0,
-                };
-                self.insns_data[i]
-                    + ((self.l1_d_data[i] + self.l1_i_data[i]) * state.l1_penalty)
-                    + l2_penalty
+                get_combined_metric(
+                    self.insns_data[i],
+                    self.l1_i_data[i],
+                    self.l1_d_data[i],
+                    self.l2_data
+                        .as_ref()
+                        .and_then(|v| v.get(i).copied())
+                        .unwrap_or(0),
+                )
             })
             .collect();
 
@@ -659,15 +665,15 @@ pub extern "C" fn qemu_plugin_install(
     let mut timing_limit: usize = 16;
     let mut timing_detail: usize = 4;
 
-    let mut l1_dassoc: usize = 8;
+    let mut l1_dassoc: usize = 4;
     let mut l1_dblksize: usize = 64;
     let mut l1_dcachesize: usize = l1_dblksize * l1_dassoc * 32;
 
-    let mut l1_iassoc: usize = 8;
+    let mut l1_iassoc: usize = 4;
     let mut l1_iblksize: usize = 64;
     let mut l1_icachesize: usize = l1_iblksize * l1_iassoc * 32;
 
-    let mut l2_assoc: usize = 16;
+    let mut l2_assoc: usize = 8;
     let mut l2_blksize: usize = 64;
     let mut l2_cachesize: usize = l2_assoc * l2_blksize * 2048;
     let mut elf_file: String = String::new();
@@ -990,7 +996,6 @@ fn print_interrupt_timing_report(out: &mut String, state: &PluginState<ActiveRet
             )
             .unwrap();
 
-            // Print sample details (mean, min, max)
             if metrics.check_initialized().is_some() {
                 let (i_mean, i_min, i_max) = get_mean_min_max(&metrics.insns_data);
                 let (l1_d_mean, l1_d_min, l1_d_max) = get_mean_min_max(&metrics.l1_d_data);
@@ -1013,6 +1018,7 @@ fn print_interrupt_timing_report(out: &mut String, state: &PluginState<ActiveRet
                     l1_i_mean, l1_i_min, l1_i_max
                 )
                 .unwrap();
+                let wcet;
                 if let Some(ref l2_data) = metrics.l2_data {
                     let (l2_mean, l2_min, l2_max) = get_mean_min_max(l2_data);
                     writeln!(
@@ -1021,7 +1027,12 @@ fn print_interrupt_timing_report(out: &mut String, state: &PluginState<ActiveRet
                         l2_mean, l2_min, l2_max
                     )
                     .unwrap();
+                    wcet = get_combined_metric(i_max, l1_i_max, l1_d_max, l2_max);
+                } else {
+                    wcet = get_combined_metric(i_max, l1_i_max, l1_d_max, 0);
                 }
+                writeln!(out, "Approx WCET: {wcet}").unwrap();
+
                 // New line
                 writeln!(out, "",).unwrap();
             }
