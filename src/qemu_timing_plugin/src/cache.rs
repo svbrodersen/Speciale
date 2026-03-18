@@ -339,7 +339,7 @@ mod tests {
     fn test_cache_clear_resets_state() {
         let mut cache: Cache<LruPolicy> = Cache::new(64, 8, 16384);
         cache.access(0x1000, None);
-        
+
         assert_eq!(cache.accesses, 1);
         assert_eq!(cache.misses, 1);
 
@@ -357,36 +357,40 @@ mod tests {
         // 64 byte blocks -> 6 bits for offset
         // 256 bytes total, 2-way assoc -> 2 sets -> 1 bit for set
         // tag is everything else
-        
+
         let addr = 0x1000; // ...0001 0000 0000_0000
         let set = cache.extract_set(addr);
         let tag = cache.extract_tag(addr);
 
         assert_eq!(set, 0, "Addr {addr:#x} should be in set 0");
         assert!(tag > 0, "Tag should be non-zero for {addr:#x}");
-        
+
         let addr_set1 = 0x1000 + 64;
-        assert_eq!(cache.extract_set(addr_set1), 1, "Addr {addr_set1:#x} should be in set 1");
+        assert_eq!(
+            cache.extract_set(addr_set1),
+            1,
+            "Addr {addr_set1:#x} should be in set 1"
+        );
     }
 
     #[test]
     fn test_lru_policy_internal() {
         let mut cache: Cache<LruPolicy> = Cache::new(64, 2, 128);
         // Set 0 has 2 blocks.
-        
+
         cache.access(0x1000, None); // Miss, fill block 0
         cache.access(0x2000, None); // Miss, fill block 1
-        
+
         // Both blocks full. LRU is block 0.
         // Access block 0 to make it MRU.
         cache.access(0x1000, None); // Hit, block 0 is now MRU
-        
+
         // Access block 2 (addr 0x3000). Should evict block 1 (addr 0x2000).
-        cache.access(0x3000, None); 
-        
+        cache.access(0x3000, None);
+
         let (hit_0, _) = cache.access(0x1000, None);
         let (hit_1, _) = cache.access(0x2000, None);
-        
+
         assert!(hit_0, "Address 0x1000 should still be in cache");
         assert!(!hit_1, "Address 0x2000 should have been evicted by LRU");
     }

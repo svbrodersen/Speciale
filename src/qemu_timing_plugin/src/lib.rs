@@ -15,10 +15,166 @@ use std::{
     },
 };
 
-use crate::utils::{ActiveRetriever, DomainRetriever, is_temporal_fence};
+use crate::utils::{ActiveRetriever, DomainRetriever, is_mret, is_temporal_fence};
 
 use std::fmt::Write;
 use std::sync::atomic::Ordering::Relaxed;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum InterruptState {
+    Idle,
+    InterruptEntered,
+    ContextSwitched {
+        from_domain: usize,
+        to_domain: usize,
+    },
+}
+
+#[derive(Debug, Clone)]
+struct TimingSnapshot {
+    instruction_count: u64,
+    l1_d_misses: u64,
+    l1_i_misses: u64,
+    l2_misses: Option<u64>,
+}
+
+impl TimingSnapshot {
+    fn new() -> Self {
+        Self {
+            instruction_count: 0,
+            l1_d_misses: 0,
+            l1_i_misses: 0,
+            l2_misses: None,
+        }
+    }
+}
+
+/// Accumulated timing metrics for a transition
+#[derive(Debug)]
+struct TransitionMetrics {
+    from_domain: usize,
+    to_domain: usize,
+
+    insns_data: Vec<u64>,
+    l1_d_data: Vec<u64>,
+    l1_i_data: Vec<u64>,
+    l2_data: Option<Vec<u64>>,
+}
+
+impl TransitionMetrics {
+    fn new(from_domain: usize, to_domain: usize, track_l2: bool) -> Self {
+        Self {
+            from_domain,
+            to_domain,
+            insns_data: Vec::new(),
+            l1_d_data: Vec::new(),
+            l1_i_data: Vec::new(),
+            l2_data: if track_l2 { Some(Vec::new()) } else { None },
+        }
+    }
+
+    fn add_sample(
+        &mut self,
+        insns_delta: u64,
+        l1_d_delta: u64,
+        l1_i_delta: u64,
+        l2_delta: Option<u64>,
+    ) {
+        self.insns_data.push(insns_delta);
+        self.l1_d_data.push(l1_d_delta);
+        self.l1_i_data.push(l1_i_delta);
+        if let Some(l2_data) = &mut self.l2_data {
+            l2_data.push(l2_delta.unwrap_or(0));
+        }
+    }
+
+    fn check_initialized(&self) -> Option<()> {
+        if self.insns_data.is_empty() {
+            return None;
+        }
+
+        let l2_ok = match &self.l2_data {
+            Some(l2) => self.insns_data.len() == l2.len(),
+            None => true,
+        };
+
+        if self.insns_data.len() != self.l1_d_data.len()
+            || self.insns_data.len() != self.l1_i_data.len()
+            || !l2_ok
+        {
+            return None;
+        }
+
+        Some(())
+    }
+
+    fn mean_and_variance(&self) -> Option<(f64, f64)> {
+        self.check_initialized()?;
+
+        let state = get_state();
+
+        let n = self.insns_data.len() as f64;
+
+        let combined: Vec<u64> = (0..(n as usize))
+            .map(|i| {
+                let l2_penalty = match &self.l2_data {
+                    Some(l2) => l2[i] * state.l2_penalty,
+                    None => 0,
+                };
+                self.insns_data[i]
+                    + ((self.l1_d_data[i] + self.l1_i_data[i]) * state.l1_penalty)
+                    + l2_penalty
+            })
+            .collect();
+
+        let mean = combined.iter().map(|&x| x as f64).sum::<f64>() / (n as f64);
+        let variance = combined
+            .iter()
+            .map(|&x| {
+                let diff = x as f64 - mean;
+                diff * diff
+            })
+            .sum::<f64>()
+            / n;
+
+        Some((mean, variance))
+    }
+
+    fn relative_variance(&self) -> Option<f64> {
+        let (mean, variance) = self.mean_and_variance()?;
+        Some((variance.sqrt()) / mean)
+    }
+}
+
+/// Per-VCPU state for interrupt timing tracking
+struct VcpuInterruptState {
+    state: InterruptState,
+    interrupt_start: TimingSnapshot,
+    current_insn_count: u64,
+    current_l1_d_misses: u64,
+    current_l1_i_misses: u64,
+    current_l2_misses: Option<u64>,
+    last_domain: Option<usize>,
+}
+
+impl VcpuInterruptState {
+    fn new(track_l2: bool) -> Self {
+        Self {
+            state: InterruptState::Idle,
+            interrupt_start: TimingSnapshot::new(),
+            current_insn_count: 0,
+            current_l1_d_misses: 0,
+            current_l1_i_misses: 0,
+            current_l2_misses: if track_l2 { Some(0) } else { None },
+            last_domain: None,
+        }
+    }
+
+    fn reset(&mut self) {
+        self.state = InterruptState::Idle;
+        self.interrupt_start = TimingSnapshot::new();
+    }
+}
 
 pub mod cache;
 mod utils;
@@ -75,16 +231,22 @@ struct PluginState<T: DomainRetriever> {
     limit_insn: usize,
     timing_limit: usize,
     timing_detail: usize,
-    use_l2: bool,
+
+    l1_penalty: u64,
+    l2_penalty: u64,
+    timing_threshold: f64,
 
     l1_d_caches: Vec<Mutex<CacheVariant>>,
     l1_i_caches: Vec<Mutex<CacheVariant>>,
 
-    l2_u_caches: Vec<Mutex<CacheVariant>>,
+    l2_u_caches: Option<Vec<Mutex<CacheVariant>>>,
     insn_map: Mutex<HashMap<usize, Box<InsnData>>>,
     domain: T,
     fence_active: Vec<AtomicBool>,
     fence_domain: Vec<AtomicUsize>,
+
+    interrupt_states: Vec<Mutex<VcpuInterruptState>>,
+    transition_metrics: Mutex<HashMap<(usize, usize), TransitionMetrics>>,
 }
 
 enum AccessType {
@@ -101,6 +263,7 @@ impl<T: DomainRetriever> PluginState<T> {
     ) {
         let cache_idx = (vcpu_index as usize) % self.cores;
         let mut domain_id = self.domain.get_domain_info(vcpu_index, insn_data.addr);
+        let state = get_state();
 
         if let Some((dom_id, _)) = domain_id {
             if self.fence_active[cache_idx].load(Relaxed) {
@@ -142,22 +305,43 @@ impl<T: DomainRetriever> PluginState<T> {
         if !l1_hit {
             l1_miss_counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
-            // Check if this is an SPM (scratchpad memory) address
-            // SPM bypasses L2 cache - data is stored only in L1
-            if !self.domain.is_spm_address(addr) && self.use_l2 {
-                // Regular memory access - check and fill L2
-                let l2_cache = &self.l2_u_caches[cache_idx];
-                let (l2_hit, l2_violation) = l2_cache.lock().unwrap().access(addr, domain_id);
-
-                if let Some(mut violation) = l2_violation {
-                    violation.level = cache::CacheLevel::L2UCache;
-                    insn_data.violations.lock().unwrap().push(violation);
+            {
+                let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
+                if vcpu_state.state != InterruptState::Idle {
+                    match access_type {
+                        AccessType::Data(_) => {
+                            vcpu_state.current_l1_d_misses += 1;
+                        }
+                        AccessType::Instruction => {
+                            vcpu_state.current_l1_i_misses += 1;
+                        }
+                    }
                 }
+            }
 
-                if !l2_hit {
-                    insn_data
-                        .l2_misses
-                        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            // Check L2 cache if enabled and not SPM address
+            if let Some(ref l2_caches) = self.l2_u_caches {
+                if !self.domain.is_spm_address(addr) {
+                    let l2_cache = &l2_caches[cache_idx];
+                    let (l2_hit, l2_violation) = l2_cache.lock().unwrap().access(addr, domain_id);
+
+                    if let Some(mut violation) = l2_violation {
+                        violation.level = cache::CacheLevel::L2UCache;
+                        insn_data.violations.lock().unwrap().push(violation);
+                    }
+
+                    if !l2_hit {
+                        insn_data
+                            .l2_misses
+                            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+                        let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
+                        if vcpu_state.state != InterruptState::Idle {
+                            if let Some(ref mut l2_misses) = vcpu_state.current_l2_misses {
+                                *l2_misses += 1;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -257,6 +441,29 @@ extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) 
         unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
 
     state.process_cache_access(vcpu_index, insn_data, &AccessType::Instruction);
+
+    // Track instruction count during interrupt handling and detect context switches
+    let cache_idx = (vcpu_index as usize) % state.cores;
+    let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
+
+    if vcpu_state.state != InterruptState::Idle {
+        vcpu_state.current_insn_count += 1;
+
+        if let Some((current_domain, _)) = state.domain.get_domain_info(vcpu_index, insn_data.addr)
+        {
+            if let Some(last_domain) = vcpu_state.last_domain {
+                if last_domain != current_domain
+                    && vcpu_state.state == InterruptState::InterruptEntered
+                {
+                    vcpu_state.state = InterruptState::ContextSwitched {
+                        from_domain: last_domain,
+                        to_domain: current_domain,
+                    };
+                }
+            }
+            vcpu_state.last_domain = Some(current_domain);
+        }
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -349,7 +556,60 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
                     std::ptr::null_mut(),
                 );
             }
+
+            if is_mret(insn_opcode) {
+                qemu_plugin_register_vcpu_insn_exec_cb(
+                    insn,
+                    Some(vcpu_mret_exec),
+                    qemu_plugin_cb_flags_QEMU_PLUGIN_CB_R_REGS,
+                    data_ptr,
+                );
+            }
         };
+    }
+}
+
+/// mret instruction execution callback - handles interrupt return
+#[unsafe(no_mangle)]
+extern "C" fn vcpu_mret_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) {
+    let state = get_state();
+    let mut transition_metrics = state.transition_metrics.lock().unwrap();
+    let cache_idx = (vcpu_index as usize) % state.cores;
+    let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
+
+    // Only process if we were in a context switch state
+    if let InterruptState::ContextSwitched {
+        from_domain,
+        to_domain,
+    } = vcpu_state.state
+    {
+        let insn_delta =
+            vcpu_state.current_insn_count - vcpu_state.interrupt_start.instruction_count;
+        let l1_d_delta = vcpu_state.current_l1_d_misses - vcpu_state.interrupt_start.l1_d_misses;
+        let l1_i_delta = vcpu_state.current_l1_i_misses - vcpu_state.interrupt_start.l1_i_misses;
+        let l2_delta = match (
+            vcpu_state.current_l2_misses,
+            vcpu_state.interrupt_start.l2_misses,
+        ) {
+            (Some(current), Some(start)) => Some(current - start),
+            _ => None,
+        };
+
+        // Calculate combined metric
+        let key = (from_domain, to_domain);
+        let track_l2 = state.l2_u_caches.is_some();
+        let metrics = transition_metrics
+            .entry(key)
+            .or_insert_with(|| TransitionMetrics::new(from_domain, to_domain, track_l2));
+        metrics.add_sample(insn_delta, l1_d_delta, l1_i_delta, l2_delta);
+
+        vcpu_state.reset();
+    }
+
+    let insn_data =
+        unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
+    if let Some((domain, _)) = state.domain.get_domain_info(vcpu_index, insn_data.addr) {
+        vcpu_state.last_domain = Some(domain);
     }
 }
 
@@ -415,6 +675,11 @@ pub extern "C" fn qemu_plugin_install(
     let mut policy = String::from("lru");
     let mut use_l2 = false;
 
+    // Timing channel detection configuration
+    let mut l1_penalty: u64 = 10;
+    let mut l2_penalty: u64 = 100;
+    let mut timing_threshold: f64 = 0.05;
+
     let args = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
     for &arg_ptr in args {
         let arg_str = unsafe { CStr::from_ptr(arg_ptr) }.to_string_lossy();
@@ -450,7 +715,10 @@ pub extern "C" fn qemu_plugin_install(
                 }
             },
             "elffile" => elf_file = val.to_string(),
-            "use_l2" => use_l2 = val.parse().unwrap_or(use_l2),
+            "use_l2" => use_l2 = val.parse().unwrap_or(false),
+            "l1_penalty" => l1_penalty = val.parse().unwrap_or(l1_penalty),
+            "l2_penalty" => l2_penalty = val.parse().unwrap_or(l2_penalty),
+            "timing_threshold" => timing_threshold = val.parse().unwrap_or(timing_threshold),
             _ => {
                 eprintln!("option parsing failed: {arg_str}");
                 return -1;
@@ -470,26 +738,45 @@ pub extern "C" fn qemu_plugin_install(
         return -1;
     }
 
-    if let Err(err) = cache_config_error(l2_blksize, l2_assoc, l2_cachesize) {
-        eprintln!("L2 cache cannot be constructed from given parameters");
-        eprintln!("{err}");
-        return -1;
+    if use_l2 {
+        if let Err(err) = cache_config_error(l2_blksize, l2_assoc, l2_cachesize) {
+            eprintln!("L2 cache cannot be constructed from given parameters");
+            eprintln!("{err}");
+            return -1;
+        }
     }
 
     let state = PluginState::<ActiveRetriever> {
         sys,
         cores,
-        use_l2,
+
         limit_insn,
         timing_limit,
         timing_detail,
+        l1_penalty,
+        l2_penalty,
+        timing_threshold,
         l1_d_caches: build_caches(&policy, cores, l1_dblksize, l1_dassoc, l1_dcachesize),
         l1_i_caches: build_caches(&policy, cores, l1_iblksize, l1_iassoc, l1_icachesize),
-        l2_u_caches: build_caches(&policy, cores, l2_blksize, l2_assoc, l2_cachesize),
+        l2_u_caches: if use_l2 {
+            Some(build_caches(
+                &policy,
+                cores,
+                l2_blksize,
+                l2_assoc,
+                l2_cachesize,
+            ))
+        } else {
+            None
+        },
         insn_map: Mutex::new(HashMap::new()),
         domain: ActiveRetriever::new(cores, elf_file.as_str()),
         fence_active: (0..cores).map(|_| AtomicBool::new(false)).collect(),
         fence_domain: (0..cores).map(|_| AtomicUsize::new(usize::MAX)).collect(),
+        interrupt_states: (0..cores)
+            .map(|_| Mutex::new(VcpuInterruptState::new(use_l2)))
+            .collect(),
+        transition_metrics: Mutex::new(HashMap::new()),
     };
 
     STATE
@@ -501,6 +788,11 @@ pub extern "C" fn qemu_plugin_install(
         qemu_plugin_register_vcpu_init_cb(id, Some(vcpu_init_cb));
         qemu_plugin_register_vcpu_tb_trans_cb(id, Some(vcpu_tb_trans));
         qemu_plugin_register_atexit_cb(id, Some(plugin_exit), std::ptr::null_mut());
+        qemu_plugin_register_vcpu_discon_cb(
+            id,
+            qemu_plugin_discon_type_QEMU_PLUGIN_DISCON_INTERRUPT,
+            Some(vcpu_discon_cb),
+        );
     }
 
     0
@@ -511,12 +803,35 @@ extern "C" fn vcpu_init_cb(_id: qemu_plugin_id_t, _vcpu_index: u32) {
     get_state().domain.vcpu_init();
 }
 
+/// Interrupt discontinuity callback - called when an interrupt is taken
+#[unsafe(no_mangle)]
+extern "C" fn vcpu_discon_cb(
+    _id: qemu_plugin_id_t,
+    vcpu_index: u32,
+    _type: qemu_plugin_discon_type,
+    _from_pc: u64,
+    _to_pc: u64,
+) {
+    let state = get_state();
+    let cache_idx = (vcpu_index as usize) % state.cores;
+    let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
+
+    // Record snapshot at interrupt entry atomically under lock
+    vcpu_state.interrupt_start = TimingSnapshot {
+        instruction_count: vcpu_state.current_insn_count,
+        l1_d_misses: vcpu_state.current_l1_d_misses,
+        l1_i_misses: vcpu_state.current_l1_i_misses,
+        l2_misses: vcpu_state.current_l2_misses,
+    };
+    vcpu_state.state = InterruptState::InterruptEntered;
+}
+
 #[unsafe(no_mangle)]
 extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_void) {
     let state = get_state();
     let mut out = String::new();
 
-    if state.use_l2 {
+    if state.l2_u_caches.is_some() {
         writeln!(
             &mut out,
             "core #,  data accesses, data misses, dmiss rate, insn accesses, insn misses, imiss rate, l2 accesses, l2 misses, l2 miss rate"
@@ -541,7 +856,7 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
         let i_rate = calc_rate(i_miss, i_acc);
         let l2_rate = calc_rate(l2_miss, l2_acc);
 
-        if state.use_l2 {
+        if state.l2_u_caches.is_some() {
             writeln!(
                 &mut out,
                 "{label:<8} {d_acc:<14} {d_miss:<12} {d_rate:>9.4}%  {i_acc:<14} {i_miss:<12} {i_rate:>9.4}%  {l2_acc:<12} {l2_miss:<11} {l2_rate:>10.4}%"
@@ -559,7 +874,12 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
     for i in 0..state.cores {
         let (da, dm) = state.l1_d_caches[i].lock().unwrap().get_stats();
         let (ia, im) = state.l1_i_caches[i].lock().unwrap().get_stats();
-        let (la, lm) = state.l2_u_caches[i].lock().unwrap().get_stats();
+
+        let (la, lm) = if let Some(ref l2_caches) = state.l2_u_caches {
+            l2_caches[i].lock().unwrap().get_stats()
+        } else {
+            (0, 0)
+        };
 
         t_da += da;
         t_dm += dm;
@@ -590,7 +910,7 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
         state.limit_insn,
         |i| i.l1_imisses.load(Relaxed),
     );
-    if state.use_l2 {
+    if state.l2_u_caches.is_some() {
         print_insn_table(&mut out, "L2 misses", &mut insns, state.limit_insn, |i| {
             i.l2_misses.load(Relaxed)
         });
@@ -603,9 +923,110 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
         state.timing_detail,
     );
 
+    print_interrupt_timing_report(&mut out, state);
+
     state.domain.on_exit(&mut out);
 
     qemu_print(&out);
+}
+
+fn print_interrupt_timing_report(out: &mut String, state: &PluginState<ActiveRetriever>) {
+    let transition_metrics = state.transition_metrics.lock().unwrap();
+
+    if transition_metrics.is_empty() {
+        return;
+    }
+
+    writeln!(out, "\n=== Interrupt Timing Channel Detection Report ===").unwrap();
+    writeln!(
+        out,
+        "Threshold: {:.2}% variance\n",
+        state.timing_threshold * 100.0
+    )
+    .unwrap();
+
+    let mut violations: Vec<&TransitionMetrics> = Vec::new();
+
+    fn get_mean_min_max(data: &Vec<u64>) -> (f64, u64, u64) {
+        let n = data.len() as f64;
+        let mean = data.iter().map(|&x| x as f64).sum::<f64>() / n;
+        let min = data.iter().copied().min().unwrap_or(0);
+        let max = data.iter().copied().max().unwrap_or(0);
+        (mean, min, max)
+    }
+
+    for metrics in transition_metrics.values() {
+        if let Some(relative_var) = metrics.relative_variance() {
+            if relative_var > state.timing_threshold {
+                violations.push(metrics);
+            }
+        }
+    }
+
+    // Sort by variance (descending)
+    violations.sort_by(|a, b| {
+        b.relative_variance()
+            .partial_cmp(&a.relative_variance())
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    // Report violations
+    if !violations.is_empty() {
+        writeln!(
+            out,
+            "VIOLATIONS DETECTED (timing variance exceeds threshold):"
+        )
+        .unwrap();
+
+        for metrics in &violations {
+            let rel_var = metrics.relative_variance().unwrap_or(0.0);
+            writeln!(
+                out,
+                "Domain: {} -> {}, Samples: {}, Variance: {:.2}%",
+                metrics.from_domain,
+                metrics.to_domain,
+                metrics.insns_data.len(),
+                rel_var * 100.0
+            )
+            .unwrap();
+
+            // Print sample details (mean, min, max)
+            if metrics.check_initialized().is_some() {
+                let (i_mean, i_min, i_max) = get_mean_min_max(&metrics.insns_data);
+                let (l1_d_mean, l1_d_min, l1_d_max) = get_mean_min_max(&metrics.l1_d_data);
+                let (l1_i_mean, l1_i_min, l1_i_max) = get_mean_min_max(&metrics.l1_i_data);
+                writeln!(
+                    out,
+                    "Instruction count - Mean: {:.0}, Min: {}, Max: {}",
+                    i_mean, i_min, i_max
+                )
+                .unwrap();
+                writeln!(
+                    out,
+                    "L1 data miss count - Mean: {:.0}, Min: {}, Max: {}",
+                    l1_d_mean, l1_d_min, l1_d_max
+                )
+                .unwrap();
+                writeln!(
+                    out,
+                    "L1 instruction miss count - Mean: {:.0}, Min: {}, Max: {}",
+                    l1_i_mean, l1_i_min, l1_i_max
+                )
+                .unwrap();
+                if let Some(ref l2_data) = metrics.l2_data {
+                    let (l2_mean, l2_min, l2_max) = get_mean_min_max(l2_data);
+                    writeln!(
+                        out,
+                        "L2 miss count - Mean: {:.0}, Min: {}, Max: {}",
+                        l2_mean, l2_min, l2_max
+                    )
+                    .unwrap();
+                }
+                // New line
+                writeln!(out, "",).unwrap();
+            }
+        }
+    }
 }
 
 #[derive(Eq, PartialEq, Hash)]
@@ -636,7 +1057,7 @@ fn print_cache_timing_violations(
 
     writeln!(
         out,
-        "\nTiming overview - * denotes that kernel code brought this cache set in scope"
+        "\nCache eviction overview - * denotes that kernel code brought this cache set in scope"
     )
     .unwrap();
     writeln!(out, "address, #violations, instruction").unwrap();
