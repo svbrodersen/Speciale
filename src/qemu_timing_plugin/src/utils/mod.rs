@@ -4,16 +4,20 @@ use std::{ffi::CStr, ptr};
 #[cfg(feature = "s3k")]
 mod s3k;
 #[cfg(feature = "s3k")]
-pub use self::s3k::is_temporal_fence;
-#[cfg(feature = "s3k")]
 pub use self::s3k::S3KDomainRetriever as ActiveRetriever;
+#[cfg(feature = "s3k")]
+pub use self::s3k::is_mret;
+#[cfg(feature = "s3k")]
+pub use self::s3k::is_temporal_fence;
 
 #[cfg(feature = "FreeRTOS")]
 mod FreeRTOS;
 #[cfg(feature = "FreeRTOS")]
-pub use self::FreeRTOS::is_temporal_fence;
-#[cfg(feature = "FreeRTOS")]
 pub use self::FreeRTOS::FreeRTOSDomainRetriever as ActiveRetriever;
+#[cfg(feature = "FreeRTOS")]
+pub use self::FreeRTOS::is_mret;
+#[cfg(feature = "FreeRTOS")]
+pub use self::FreeRTOS::is_temporal_fence;
 
 #[cfg(not(feature = "retriever"))]
 mod noop;
@@ -21,6 +25,10 @@ mod noop;
 pub type ActiveRetriever = noop::NoOpRetriever;
 #[cfg(not(feature = "retriever"))]
 pub fn is_temporal_fence(_: u64) -> bool {
+    false
+}
+#[cfg(not(feature = "retriever"))]
+pub fn is_mret(_: u64) -> bool {
     false
 }
 

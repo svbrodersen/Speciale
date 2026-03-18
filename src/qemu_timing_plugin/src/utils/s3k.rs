@@ -153,7 +153,7 @@ impl DomainRetriever for S3KDomainRetriever {
                 guard.last_tp = tp_val;
                 guard.last_domain_id = domain_id;
                 return domain_id.map(|id| (id, is_kernel));
-            } 
+            }
             // We tried to read from this pointer and it wasn't a valid proc_t (memory access failed or pid invalid)
             // Cache the failure so we don't repeatedly fail on user TP
             self.tp_to_domain.lock().unwrap().insert(tp_val, None);
@@ -180,4 +180,10 @@ impl DomainRetriever for S3KDomainRetriever {
 // This is a NOP (x0 hardwired to 0) but we use it as a fence marker
 pub fn is_temporal_fence(insn_opcode: u64) -> bool {
     insn_opcode == 0x00b0_0013
+}
+
+/// Check for mret instruction (RISC-V machine mode return)
+/// mret opcode: 0x30200073
+pub fn is_mret(insn_opcode: u64) -> bool {
+    insn_opcode == 0x3020_0073
 }

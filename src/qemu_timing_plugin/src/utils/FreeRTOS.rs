@@ -123,3 +123,9 @@ impl DomainRetriever for FreeRTOSDomainRetriever {
 pub fn is_temporal_fence(insn_opcode: u64) -> bool {
     insn_opcode == 0x00b0_0013
 }
+
+/// Check for mret instruction (RISC-V machine mode return)
+/// mret opcode: 0x30200073
+pub fn is_mret(insn_opcode: u64) -> bool {
+    insn_opcode == 0x3020_0073
+}
