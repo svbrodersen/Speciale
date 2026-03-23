@@ -15,7 +15,7 @@ use std::{
     },
 };
 
-use crate::utils::{ActiveRetriever, DomainRetriever, is_mret, is_temporal_fence};
+use crate::utils::{ActiveRetriever, DomainRetriever, is_timing_end, is_timing_start, is_temporal_fence};
 
 use std::fmt::Write;
 use std::sync::atomic::Ordering::Relaxed;
@@ -153,7 +153,7 @@ impl TransitionMetrics {
 }
 
 /// Per-VCPU state for interrupt timing tracking
-struct VcpuInterruptState {
+struct VcpuTimingState {
     state: InterruptState,
     interrupt_start: TimingSnapshot,
     current_insn_count: u64,
@@ -163,7 +163,7 @@ struct VcpuInterruptState {
     last_domain: Option<usize>,
 }
 
-impl VcpuInterruptState {
+impl VcpuTimingState {
     fn new(track_l2: bool) -> Self {
         Self {
             state: InterruptState::Idle,
@@ -251,7 +251,7 @@ struct PluginState<T: DomainRetriever> {
     fence_active: Vec<AtomicBool>,
     fence_domain: Vec<AtomicUsize>,
 
-    interrupt_states: Vec<Mutex<VcpuInterruptState>>,
+    interrupt_states: Vec<Mutex<VcpuTimingState>>,
     transition_metrics: Mutex<HashMap<(usize, usize), TransitionMetrics>>,
 }
 
@@ -563,10 +563,19 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
                 );
             }
 
-            if is_mret(insn_opcode) {
+            if is_timing_start(insn_opcode) {
                 qemu_plugin_register_vcpu_insn_exec_cb(
                     insn,
-                    Some(vcpu_mret_exec),
+                    Some(vcpu_start_timing),
+                    qemu_plugin_cb_flags_QEMU_PLUGIN_CB_R_REGS,
+                    data_ptr,
+                );
+            }
+
+            if is_timing_end(insn_opcode) {
+                qemu_plugin_register_vcpu_insn_exec_cb(
+                    insn,
+                    Some(vcpu_stop_timing),
                     qemu_plugin_cb_flags_QEMU_PLUGIN_CB_R_REGS,
                     data_ptr,
                 );
@@ -577,7 +586,7 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
 
 /// mret instruction execution callback - handles interrupt return
 #[unsafe(no_mangle)]
-extern "C" fn vcpu_mret_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) {
+extern "C" fn vcpu_stop_timing(vcpu_index: u32, user_data: *mut std::ffi::c_void) {
     let state = get_state();
     let mut transition_metrics = state.transition_metrics.lock().unwrap();
     let cache_idx = (vcpu_index as usize) % state.cores;
@@ -684,7 +693,7 @@ pub extern "C" fn qemu_plugin_install(
     // Timing channel detection configuration
     let mut l1_penalty: u64 = 10;
     let mut l2_penalty: u64 = 100;
-    let mut timing_threshold: f64 = 0.05;
+    let mut timing_threshold: f64 = 0.01;
 
     let args = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
     for &arg_ptr in args {
@@ -780,7 +789,7 @@ pub extern "C" fn qemu_plugin_install(
         fence_active: (0..cores).map(|_| AtomicBool::new(false)).collect(),
         fence_domain: (0..cores).map(|_| AtomicUsize::new(usize::MAX)).collect(),
         interrupt_states: (0..cores)
-            .map(|_| Mutex::new(VcpuInterruptState::new(use_l2)))
+            .map(|_| Mutex::new(VcpuTimingState::new(use_l2)))
             .collect(),
         transition_metrics: Mutex::new(HashMap::new()),
     };
@@ -794,11 +803,6 @@ pub extern "C" fn qemu_plugin_install(
         qemu_plugin_register_vcpu_init_cb(id, Some(vcpu_init_cb));
         qemu_plugin_register_vcpu_tb_trans_cb(id, Some(vcpu_tb_trans));
         qemu_plugin_register_atexit_cb(id, Some(plugin_exit), std::ptr::null_mut());
-        qemu_plugin_register_vcpu_discon_cb(
-            id,
-            qemu_plugin_discon_type_QEMU_PLUGIN_DISCON_INTERRUPT,
-            Some(vcpu_discon_cb),
-        );
     }
 
     0
@@ -811,13 +815,7 @@ extern "C" fn vcpu_init_cb(_id: qemu_plugin_id_t, _vcpu_index: u32) {
 
 /// Interrupt discontinuity callback - called when an interrupt is taken
 #[unsafe(no_mangle)]
-extern "C" fn vcpu_discon_cb(
-    _id: qemu_plugin_id_t,
-    vcpu_index: u32,
-    _type: qemu_plugin_discon_type,
-    _from_pc: u64,
-    _to_pc: u64,
-) {
+extern "C" fn vcpu_start_timing(vcpu_index: u32, _user_data: *mut std::ffi::c_void) {
     let state = get_state();
     let cache_idx = (vcpu_index as usize) % state.cores;
     let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
