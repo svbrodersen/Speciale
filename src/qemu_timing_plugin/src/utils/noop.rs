@@ -13,3 +13,15 @@ impl DomainRetriever for NoOpRetriever {
     fn vcpu_init(&self) {}
     fn on_exit(&self, _out: &mut String) {}
 }
+
+pub fn is_timing_start(_insn_opcode: u64) -> bool {
+    false
+}
+
+pub fn is_temporal_fence(_insn_opcode: u64) -> bool {
+    false
+}
+
+pub fn is_timing_end(_insn_opcode: u64) -> bool {
+    false
+}

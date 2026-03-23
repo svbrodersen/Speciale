@@ -182,8 +182,14 @@ pub fn is_temporal_fence(insn_opcode: u64) -> bool {
     insn_opcode == 0x00b0_0013
 }
 
-/// Check for mret instruction (RISC-V machine mode return)
-/// mret opcode: 0x30200073
-pub fn is_mret(insn_opcode: u64) -> bool {
-    insn_opcode == 0x3020_0073
+// Check for is_timing start instruction (magic NOP)
+// RISC-V: addi x0, x0, 12 = 0x00c00013
+pub fn is_timing_start(insn_opcode: u64) -> bool {
+    insn_opcode == 0x00c0_0013
+}
+
+// Check for is_timing start instruction (magic NOP)
+// RISC-V: addi x0, x0, 13 = 0x00c00013
+pub fn is_timing_end(insn_opcode: u64) -> bool {
+    insn_opcode == 0x00d0_0013
 }
