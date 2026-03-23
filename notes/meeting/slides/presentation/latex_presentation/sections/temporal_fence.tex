@@ -1,0 +1,20 @@
+\section{Temporal Fence Instruction}
+
+\begin{frame}{Temporal Fence Instruction}
+	\begin{block}{Operation}
+		Flushes core-local microarchitectural state:
+		\begin{itemize}
+      \item Writes back dirty cache state
+      \item Clear on-core SRAM and microarchitectural flip-flops
+      \item padding completion to a worst-case execution time 
+		\end{itemize}
+
+    Later extended to fence.t.s for out-of-order execution CPUs with software support.
+	\end{block}
+
+  \begin{itemize}
+  \item Found to have minimal overhead on context switch
+  \item On average context switch are 1\% slower
+  \item Find no notable hardware cost, adds 1 instruction
+  \end{itemize}
+\end{frame}

@@ -1,0 +1,32 @@
+\documentclass{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\title{Eliminating Timing Channels in the Kernel}
+\author{}
+\institute{}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}{Table of content}
+	\tableofcontents
+\end{frame}
+
+\input{sections/background}
+\input{sections/time_protection}
+\input{sections/temporal_fence}
+\input{sections/s3k}
+\input{sections/qemu_plugin}
+\input{sections/freertos}
+
+\end{document}

@@ -12,19 +12,19 @@ security domains that would make execution speed in one domain dependent on the
 activities of another.
 
 Partitioning comes in two forms:
+- **Spatial partitioning**: Separate memory and resources between domains, such that it is not shared.
 - **Temporal partitioning**: Resetting a state to a known default, e.g. flushing.
-- **Spatial partitioning**: Separate resources between domains, such that it is not shared.
-
 
 :: right ::
 
 ## Requirements for Time Protection
 
-* Flush on-core state on domain switch.
-* Partition the OS
-* Deterministic data sharing
-* Flush deterministically
-* Partition interrupts
+* Flush on-core state on domain switch in a deterministic manner.
+* Partition the OS, e.g. syscalls.
+  - Spatially, kernel data separated from user data.
+  - Temporally, set shared OS state to a known default when finishing syscalls.
+  - Interrupts must also follow same criteria.
+* Deterministic data sharing, e.g. for message sending.
 
 ## Implementation
 

@@ -7,11 +7,11 @@
 Timing channels exploit the physical execution of software. An attack can
 observe execution time and infer sensitive information about another domain.
 
-Timing channels violate intended isolation boundaries and shown to be potent in
-the Spectre and Meltdown attacks.
+Timing channels violate intended isolation boundaries and have been shown to be
+potent in the Spectre and Meltdown attacks.
 
 Constant time programming by the user does not guarantee security, as the
-kernel can inadvertently still leak information.
+kernel can inadvertently still leak information during syscalls and context switching.
 
 :: right ::
 

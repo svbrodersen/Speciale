@@ -1,0 +1,39 @@
+\section{Background}
+
+\begin{frame}{Background}
+	\begin{block}{Timing Channels}
+		\begin{itemize}
+			\item Exploit physical execution of software
+			\item Observe execution time to infer sensitive information
+			\item Violate isolation boundaries
+			\item Spectre and Meltdown attacks demonstrate potency
+		\end{itemize}
+	\end{block}
+
+	\begin{alertblock}{User-Space Limitations}
+		Constant time programming by users does not guarantee security
+
+		Kernel can still leak information during syscalls and context switches
+	\end{alertblock}
+\end{frame}
+
+\begin{frame}{Channel Types}
+    \begin{block}{Side Channels}
+      \begin{itemize}
+        \item Unintended information channels
+        \item Leak information inadvertently
+        \item Occur during normal execution
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Covert Channels}
+    \begin{itemize}
+      \item Collaborative communication through unintended channels
+      \item Sender (Trojan) + Receiver (Spy)
+      \item Sender accesses high security data
+      \item Restricted direct communication
+      \end{itemize}
+    \end{block}
+\end{frame}
+
+

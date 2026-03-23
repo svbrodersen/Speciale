@@ -1,0 +1,28 @@
+\section{The Missing OS Abstraction: S3K}
+
+\begin{frame}{S3K: Attributes}
+  \framesubtitle{Partitioning Kernel with Capability  Controlled Temporal and Spatial Partitioning}
+	\begin{itemize}
+  \item Guarantees deterministic process dispatch
+  \item Temporal partitioning through constant time system calls
+  \item Protection against timing attacks in the kernel, and timing security for L1
+    cache usage
+  \item \textbf{No protection} in higher level caches
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{S3K: Implementation}
+  \framesubtitle{Partitioning Kernel with Capability  Controlled Temporal and Spatial Partitioning}
+	\begin{itemize}
+  \item Make use of temporal fence instruction at domain switch
+  \item Resides entirely within small scratchpad memory (SPM), hardware requirement
+  \begin{itemize}
+    \item Only backed by L1 cache, flushed on domain switch
+  \end{itemize}
+	\textbf{System Call Design:}
+	\begin{itemize}
+		\item Control flow decisions depend only on permitted data
+		\item Memory access restricted to observable data
+	\end{itemize}
+	\end{itemize}
+\end{frame}

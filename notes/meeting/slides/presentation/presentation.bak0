@@ -1,0 +1,283 @@
+\documentclass{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\title{Eliminating Timing Channels in the Kernel}
+\author{}
+\institute{}
+\date{\today}
+
+\begin{document}
+
+% Title slide
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Overview slide
+\begin{frame}{Overview}
+    \tableofcontents
+\end{frame}
+
+\section{Background}
+
+\begin{frame}{Background}
+    \begin{block}{Timing Channels}
+        \begin{itemize}
+            \item Exploit physical execution of software
+            \item Observe execution time to infer sensitive information
+            \item Violate isolation boundaries
+            \item Spectre and Meltdown attacks demonstrate potency
+        \end{itemize}
+    \end{block}
+    
+    \begin{alertblock}{User-Space Limitations}
+        Constant time programming by users does not guarantee security
+        
+        Kernel can still leak information during syscalls and context switches
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Channel Types}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{block}{Side Channels}
+                \begin{itemize}
+                    \item Unintended information channels
+                    \item Leak information inadvertently
+                    \item Occur during normal execution
+                \end{itemize}
+            \end{block}
+        \end{column}
+        
+        \begin{column}{0.5\textwidth}
+            \begin{block}{Covert Channels}
+                \begin{itemize}
+                    \item Collaborative communication
+                    \item Sender (Trojan) + Receiver (Spy)
+                    \item Sender accesses high security data
+                    \item Restricted direct communication
+                \end{itemize}
+            \end{block}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\section{Time Protection}
+
+\begin{frame}{Time Protection: Concept}
+    \begin{block}{Definition}
+        OS mechanisms preventing interference between security domains that make execution speed dependent on other domains' activities
+    \end{block}
+    
+    \vspace{0.5cm}
+    
+    \begin{block}{Two Forms of Partitioning}
+        \begin{itemize}
+            \item \textbf{Spatial Partitioning}: Separate memory and resources (no sharing)
+            \item \textbf{Temporal Partitioning}: Reset state to known defaults (flushing)
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Time Protection: Requirements}
+    \begin{itemize}
+        \item Flush on-core state on domain switch (deterministic)
+        \item Partition the OS (syscalls):
+        \begin{itemize}
+            \item Spatially: kernel data separated from user data
+            \item Temporally: reset shared OS state after syscalls
+            \item Interrupts must follow same criteria
+        \end{itemize}
+        \item Deterministic data sharing (e.g., message passing)
+    \end{itemize}
+\end{frame}
+
+\section{The Missing OS Abstraction: seL4}
+
+\begin{frame}{seL4 Approach}
+    \begin{block}{Goal}
+        Close all possible covert channels
+        
+        Argument: closing covert channels closes timing channels
+    \end{block}
+    
+    \vspace{0.3cm}
+    
+    \textbf{Implementation Techniques:}
+    \begin{itemize}
+        \item Kernel cloning: OS code cloned into each domain
+        \item Deterministic context switching with flushing
+        \item Cache coloring for spatial isolation
+    \end{itemize}
+\end{frame}
+
+\section{S3K Kernel}
+
+\begin{frame}{S3K: Overview}
+    \begin{block}{System Description}
+        Real-time operating system for embedded RISC-V systems
+        
+        Provides capability-based multicore partitioning
+    \end{block}
+    
+    \textbf{Key Attributes:}
+    \begin{itemize}
+        \item Deterministic process dispatch
+        \item Temporal partitioning via constant-time syscalls
+        \item Protection against timing attacks in kernel
+        \item Timing security for L1 cache
+        \item \textcolor{red}{No protection} in higher-level caches
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{S3K: Time Protection Mechanisms}
+    \begin{block}{Temporal Fence}
+        \begin{itemize}
+            \item Flushes core-local microarchitectitectural state
+            \item Executed at context switches
+        \end{itemize}
+    \end{block}
+    
+    \vspace{0.3cm}
+    
+    \textbf{Memory Architecture:}
+    \begin{itemize}
+        \item Resides entirely in scratchpad memory (SPM)
+        \item Backed by core-local L1 cache
+        \item Enables efficient kernel footprint flushing on domain switch
+        \item Avoids reliance on larger caches
+    \end{itemize}
+    
+    \vspace{0.3cm}
+    
+    \textbf{System Call Design:}
+    \begin{itemize}
+        \item Control flow decisions depend only on permitted data
+        \item Memory access restricted to observable data
+    \end{itemize}
+\end{frame}
+
+\section{Temporal Fence Instruction}
+
+\begin{frame}{Temporal Fence Instruction}
+    \begin{block}{RISC-V Implementation}
+        \begin{itemize}
+            \item Encoded as \texttt{addi x0, x0, 11}
+            \item Binary: \texttt{0x00b00013}
+            \item No-op instruction with specific immediate value
+        \end{itemize}
+    \end{block}
+    
+    \vspace{0.5cm}
+    
+    \begin{block}{Operation}
+        Flushes core-local microarchitectural state:
+        \begin{itemize}
+            \item Pipeline state
+            \item Branch predictor
+            \item Cache state (L1)
+            \item Other timing-affected hardware resources
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\section{QEMU TCG Plugin}
+
+\begin{frame}{QEMU TCG Plugin: Overview}
+    \begin{block}{QEMU}
+        \begin{itemize}
+            \item Cross-platform full system emulation
+            \item Run kernels on arbitrary host machines
+            \item Tiny Code Generator (TCG) translates guest to host instructions
+        \end{itemize}
+    \end{block}
+    
+    \vspace{0.3cm}
+    
+    \begin{block}{TCG Plugin Support}
+        \begin{itemize}
+            \item Register hooks for TCG API
+            \item Monitor memory access and instruction translation
+            \item Enables dynamic analysis without hardware
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{QEMU TCG Plugin: Capabilities}
+    \begin{block}{Cache Emulation}
+        \begin{itemize}
+            \item Hooks on memory access and instruction translation
+            \item Tracks data hits/misses
+            \item Tracks instruction hits/misses
+            \item Simulates cache state evolution
+        \end{itemize}
+    \end{block}
+    
+    \vspace{0.3cm}
+    
+    \begin{block}{Timing Detection}
+        \begin{itemize}
+            \item Extension interface for domain identification
+            \item Detects cross-domain evictions
+            \item Identifies timing channel vulnerabilities
+            \item Supports temporal fence instruction emulation
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\section{FreeRTOS}
+
+\begin{frame}{FreeRTOS: Overview}
+    \begin{block}{System Description}
+        Industry-standard real-time operating system
+        
+        Highly configurable, runs on 40+ MCU architectures
+    \end{block}
+    
+    \vspace{0.3cm}
+    
+    \textbf{Current Limitations:}
+    \begin{itemize}
+        \item No consideration of timing channels
+        \item Memory protection only via MPU (ARM only)
+        \item No temporal isolation mechanisms
+    \end{itemize}
+    
+    \vspace{0.3cm}
+    
+    \textbf{Domain Model:}
+    \begin{itemize}
+        \item Single core: \texttt{pxCurrentTCB} global variable
+        \item Each Task Control Block (TCB) has unique ID
+        \item ID used for domain identification in plugin
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{FreeRTOS: Research Questions}
+    \begin{block}{Ongoing Work}
+        \begin{itemize}
+            \item[$\square$] Deterministic domain switching with flushing
+            \item[$\square$] Deterministic timer interrupts
+            \item[$\square$] Deterministic data sharing via Queues
+            \item[$\square$] OS partitioning
+        \end{itemize}
+    \end{block}
+    
+    \vspace{0.5cm}
+    
+    \textbf{Key Questions:}
+    \begin{enumerate}
+        \item Can timing protection be implemented with minimal overhead?
+        \item What hardware support is required?
+        \item What aspects are infeasible to protect?
+        \item What remains unprotected?
+    \end{enumerate}
+\end{frame}
+
+\end{document}

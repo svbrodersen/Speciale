@@ -1,0 +1,47 @@
+\section{QEMU TCG Plugin}
+
+\begin{frame}{QEMU TCG Plugin: Overview}
+	\begin{block}{QEMU}
+		\begin{itemize}
+			\item Cross-platform full system emulation
+			\item Run kernels on arbitrary host machines
+			\item Tiny Code Generator (TCG) translates guest to host instructions
+		\end{itemize}
+	\end{block}
+
+	\vspace{0.3cm}
+
+	\begin{block}{TCG Plugin Support}
+		\begin{itemize}
+			\item Register hooks for TCG API
+			\item Monitor memory access and instruction translation
+			\item Enables dynamic analysis without hardware
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+\begin{frame}{QEMU TCG Plugin: Capabilities}
+	\begin{block}{Cache Emulation}
+		\begin{itemize}
+			\item Hooks on memory access and instruction translation
+			\item Tracks data hits/misses
+			\item Tracks instruction hits/misses
+			\item Simulates cache state evolution
+		\end{itemize}
+	\end{block}
+
+	\vspace{0.3cm}
+
+	\begin{block}{Timing Detection}
+		\begin{itemize}
+			\item Extension interface for domain identification
+			\item Detects cross-domain evictions
+			\item Identifies possible timing channel vulnerabilities
+			\item Supports temporal fence instruction emulation
+        \begin{itemize}
+          \item Encoded as \texttt{addi x0, x0, 11}
+          \item No-op instruction with specific immediate value
+        \end{itemize}
+		\end{itemize}
+	\end{block}
+\end{frame}
