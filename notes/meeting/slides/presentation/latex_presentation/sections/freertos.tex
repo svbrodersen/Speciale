@@ -1,0 +1,48 @@
+\section{FreeRTOS}
+
+\begin{frame}{FreeRTOS: Overview}
+	\begin{block}{System Description}
+		Industry-standard real-time operating system
+
+		Highly configurable, runs on 40+ MCU architectures
+	\end{block}
+
+	\vspace{0.3cm}
+
+	\textbf{Current Limitations:}
+	\begin{itemize}
+		\item No consideration of timing channels
+		\item Memory protection only via MPU (ARM only)
+		\item No isolation mechanisms
+	\end{itemize}
+
+	\vspace{0.3cm}
+
+	\textbf{Domain Model:}
+	\begin{itemize}
+		\item Single core: \texttt{pxCurrentTCB} global variable
+		\item Each Task Control Block (TCB) has unique ID
+		\item ID used for domain identification in plugin
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{FreeRTOS: Current work}
+	\begin{block}{Ongoing Work}
+		\begin{itemize}
+			\item[$\square$] Deterministic domain switching with flushing
+			\item[$\square$] Deterministic timer interrupts
+			\item[$\square$] Deterministic data sharing via Queues
+			\item[$\square$] What else needs partitioning for timing security?
+		\end{itemize}
+	\end{block}
+
+	\vspace{0.5cm}
+
+	\textbf{Key Questions:}
+	\begin{enumerate}
+		\item Can timing protection be implemented with minimal overhead?
+		\item What hardware support is required?
+		\item What aspects are infeasible to protect?
+		\item What remains unprotected?
+	\end{enumerate}
+\end{frame}

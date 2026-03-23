@@ -1,0 +1,45 @@
+\begin{frame}{Time Protection: Concept}
+  \framesubtitle{Time protection: the missing OS abstraction}
+	\begin{block}{Definition}
+    OS mechanisms preventing interference between security domains that make
+    execution speed dependent on other domains' activities.
+	\end{block}
+
+	\vspace{0.5cm}
+
+	\begin{block}{Two Forms of Partitioning}
+		\begin{itemize}
+			\item \textbf{Spatial Partitioning}: Separate memory and resources (no sharing)
+			\item \textbf{Temporal Partitioning}: Reset state to known defaults (flushing)
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Time Protection: Requirements}
+  \framesubtitle{Time protection: the missing OS abstraction}
+	\begin{itemize}
+		\item Flush on-core state on domain switch deterministically
+		\item Partition the OS:
+		      \begin{itemize}
+			      \item Spatially: kernel data separated from user data
+			      \item Temporally: reset shared state to known default
+			      \item Interrupts: handled deterministically in regards to domains
+		      \end{itemize}
+		\item Deterministic data sharing for intended channels
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Time Protection: Implementation}
+  \framesubtitle{Time protection: the missing OS abstraction}
+	\begin{block}{Goal}
+		Close all possible covert channels
+
+		Argument: closing covert channels closes side channels
+	\end{block}
+	\begin{itemize}
+		\item Touch all l1 cache lines on domain switch
+    \item Cache coloring of the l2 cache
+    \item Kernel clone implementation, relying on sel4 separation capabilities
+    \item Minimize shared kernel state, and guarantee determinism here
+	\end{itemize}
+\end{frame}

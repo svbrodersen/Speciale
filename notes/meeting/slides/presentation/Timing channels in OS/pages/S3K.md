@@ -8,7 +8,7 @@ for embedded RISC-V systems.
 ## Attributes
 
 - Guarantees deterministic process dispatch.
-- Predictable constant time system calls.
+- Temporal partitioning through constant time system calls.
 - Protection against timing attacks in the kernel, and timing security for L1
   cache usage.
 -- **No protection** in higher level caches.
