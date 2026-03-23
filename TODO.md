@@ -5,9 +5,25 @@
    information about covert channel and other background material.
 - [x] Fix FreeRTOS demo, with plugin.
 
+## Slides
+- [x] Create an overview of what is to come in the slides.
+- [x] Cut down on the sentence length, bullet points instead.
+- [x] Use single column, two pages instead for separations.
+- [x] Articles as reference, title should be Background.
+- [x] Temporal fence instruction slide
+- [x] Move to latex.
+
 ## FreeRTOS
 - [ ] Adding deterministic domain switch with flushing. 
 - [ ] Deterministic timer interrupts.
 - [ ] Deterministic data sharing through Queues.
-- [ ] Partitioning the OS.
+- [ ] Partitioning the OS, different system calls.
 
+## Gem5
+
+- [ ] How far along is RISC-V.
+- [ ] Look into it
+
+## QEMU
+
+- [ ] How accurate is the cycle?
