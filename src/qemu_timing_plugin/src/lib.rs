@@ -693,7 +693,7 @@ pub extern "C" fn qemu_plugin_install(
     // Timing channel detection configuration
     let mut l1_penalty: u64 = 10;
     let mut l2_penalty: u64 = 100;
-    let mut timing_threshold: f64 = 0.01;
+    let mut timing_threshold: f64 = 0.02;
 
     let args = unsafe { std::slice::from_raw_parts(argv, argc as usize) };
     for &arg_ptr in args {
