@@ -1,3 +1,4 @@
+\subsection{sel4}
 \begin{frame}{Time Protection: Concept}
   \framesubtitle{Time protection: the missing OS abstraction}
 	\begin{block}{Definition}
@@ -22,7 +23,7 @@
 		\item Flush on-core state on domain switch deterministically
 		\item Partition the OS:
 		      \begin{itemize}
-			      \item Spatially: kernel data separated from user data
+			      \item Spatially: clone kernel into each domain
 			      \item Temporally: reset shared state to known default
 			      \item Interrupts: handled deterministically in regards to domains
 		      \end{itemize}
