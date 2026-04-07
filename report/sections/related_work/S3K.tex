@@ -6,7 +6,7 @@ separation of memory, where as temporal indicates that the failure of one
 component should not affect the schedulability of another.}, time protection
 and dynamic resource reconfiguration. Further, S3K's scheduler guarantees
 deterministic process dispatch, free from microarchitectural interference.
-\cite{S3K}
+\cite{karlsson2025}
 
 It does via. 3 main attributes
 \begin{itemize}
@@ -26,7 +26,7 @@ operating systems or applications, with the kernel acting as a bare-metal
 hypervisor. The number of processes is statically defined at compile time.
 Processes use \emph{monitor capabilities} and capability revocation to manage
 other processes, reclaim resourceses, and repurpose existing processes for new
-tasks. \cite{S3K}
+tasks. \cite{karlsson2025}
 
 \paragraph{Capabilities:}
 Every S3K capability operation has a bounded worst-case execution time (WCET)
@@ -38,7 +38,7 @@ memory in a statically allocated capability table (ctable).
 S3K's scheduler is a partition scheduler, which divides time into \emph{major
 frames}, which are further partitioned into \emph{minor frames}. S3K treats
 minor frames as first-class capabilities, which enables dynamic reconfiguration
-of computing resources while maintaining process isolation. \cite{S3K}
+of computing resources while maintaining process isolation. \cite{karlsson2025}
 
 A major frame is divided into a fixed number of time slots, each with equal
 duration. A single time slot represents the smallest scheduling unit. A time
@@ -71,7 +71,7 @@ S3K only protects a process's in-kernel state from side-channels. It does not
 protect a process's user-level state. Each process is responsible for
 protecting their own user-level execution from side-channels in higher level
 caches. This is different than what is provided within
-\cite{MissingOSAbstraction}, where cache-coloring guarantees that processes in
+\cite{ge2019}, where cache-coloring guarantees that processes in
 different domains do not access the same parts of the cache, and thus prevents
 side channels even in larger cases.
 

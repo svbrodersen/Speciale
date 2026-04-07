@@ -1,0 +1,50 @@
+\begin{tikzpicture}[font=\ttfamily]
+
+    % Style for general text nodes
+    \tikzset{lbl/.style={inner sep=1pt, align=center}}
+
+    % Define vertical coordinates for rows and labels
+    \def\barheight{0.6} % Height of each bar
+    \def\vtopprio{1.5}   % Vertical center of the top bar row
+    \def\vsecprio{\vtopprio - \barheight} % Vertical center of the CM' bar row
+    \def\ytimeline{\vsecprio - \barheight} % Vertical position of the minor frames timeline
+
+    % Define standard tick positions
+    \def\timeslice{0.8}
+
+    % --- Bar Rows (drawn inside outlines) ---
+
+    % Row 1: Top prioo
+    \draw (0, \vtopprio-\barheight/2) rectangle (\timeslice, \vtopprio+\barheight/2) 
+      node[lbl, midway]{A};
+    \draw (\timeslice, \vtopprio-\barheight/2) rectangle (\timeslice*2, \vtopprio+\barheight/2)
+      node[lbl, midway]{B};
+    \draw (\timeslice*2, \vtopprio-\barheight/2) rectangle (\timeslice*4, \vtopprio+\barheight/2) 
+      node[lbl, midway]{Idle};
+
+    % Row 2: Second prio
+    \draw (\timeslice * 4, \vsecprio-\barheight/2) rectangle (\timeslice * 5, \vsecprio+\barheight/2)
+      node[lbl, midway]{C};
+    \draw (\timeslice * 5, \vsecprio-\barheight/2) rectangle (\timeslice*6, \vsecprio+\barheight/2)
+      node[lbl, midway]{D};
+    \draw (\timeslice*6, \vsecprio-\barheight/2) rectangle (\timeslice*8, \vsecprio+\barheight/2)
+      node[lbl, midway]{Idle};
+
+    % --- Left Vertical Label ---
+    \node[lbl, rotate=90] at (-2.0, {\vsecprio}) {Priorities};
+    \node[lbl] at (-0.7, {\vtopprio}) {High:};
+    \node[lbl] at (-0.7, {\vsecprio}) {Low:};
+
+    % Main timeline axis
+    \draw[thick] (0, \ytimeline) -- (8*\timeslice, \ytimeline);
+
+    % Intermediate ticks (not all but to give structure)
+    \foreach \x in {0, ..., 8} {
+         \draw (\x*\timeslice, \ytimeline-0.05) -- (\x*\timeslice, \ytimeline+0.05);
+    }
+
+    % Central label below the timeline
+    \node[lbl] at ( { 4 * \timeslice }, \ytimeline-0.5 ) {Time Slices};
+
+\end{tikzpicture}
+

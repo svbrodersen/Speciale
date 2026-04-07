@@ -1,0 +1,135 @@
+\section{Scheduling}\label{sec:Scheduling} % (fold)
+
+\subsection{The FreeRTOS scheduler}\label{sub:sched_free} % (fold)
+FreeRTOS provides different scheduling algorithms based on configurations and
+number of cores available on the system. By default on a single core FreeRTOS
+makes use of a fixed-priority preemptive scheduling policy, with round-robin
+time-slicing of equal priority tasks. \cite{FreeRTOSschedulingsinglecore2026}
+
+As such, FreeRTOS always attempts to schedule the highest priority task and
+possibly starves lower priority tasks. Items of the same priority run until a
+tick interrupt at which point the time slice is up. This type of scheduling
+inherently includes timing side-channels as the higher priority tasks inhibit
+lower priority tasks from running. \cite{kadloor2016, chen2019} This could be
+used as a covert channel, where the higher priority task could signal either a
+0 or 1 by simply going to sleep and the lower priority task measures its own
+execution time.
+
+Therefore, for FreeRTOS to provide timing protection the scheduler must see
+modifications.
+
+\subsection{Closing Scheduling Based Timing Channels}
+
+There are a few approaches to closing the different side channels each with
+their own pros and cons. A general attribute among all of them is, that
+starvation must not be possible, and as such the current approach to priority
+based scheduling is infeasible. 
+
+\paragraph{Removing time:} One approach to solve a lot of the timing channels
+would be to disallow tasks to read the current time. This in theory would
+remove the scheduling based timing channel, but this solution would most likely
+attributed quite a significant decrease in the possibilities of tasks, as any
+action, which could leak time information to the tasks would need to be
+prohibited. As such, this approach was not considered further.
+
+\begin{figure}
+  \begin{center}
+    \include{figures/priority_sched}
+  \end{center}
+  \caption{Time protection within same priority}\label{fig:prio_sched}
+\end{figure}
+
+\paragraph{Protection within priority:} If the goal is to keep a sense of
+priority based scheduling, then it should be possible to guarantee timing
+protection for tasks of same priority or tasks of different priorities. Say for
+example, we for each priority have a known array which constitutes the time
+slices for the given priority. When the scheduler attempts to schedule a task,
+then it prioritizes the higher priority array if a task is ready within, and
+uses time slice based scheduling within the priority. An example of this can be
+seen visualized in Figure~\ref{fig:prio_sched}, where tasks A and B are within
+the same priority. Here, if we assume that A and B are runnable, then they
+would be scheduled before the lower priority C and D. This would allow C and D
+to gather information about the run ability of the entire High priority noting
+that either A or B was runnable if C or D are delayed. However, within the same
+domain tasks A and B can not gather information about each other. Say for
+example A gets to run, then it does not know whether task B is runnable or not,
+as we are always running the entire time slice given defined by the
+aforementioned array.
+
+This approach would by no means close all timing channels, as mentioned cross
+priorities could still leak timing information. Other constraints with this
+approach is, that we are limiting the number of possible tasks for given
+priorities. In the previous example 4 time slices were provided within the High
+and Low priorities, and we would not be able to fill more than these 4 time
+slices as we would then change the total time slice when running a specific
+priority and thus a task within the given priority could gather information
+about the total number of time slices. Another issue would be, that we can't
+simply give up CPU time. When a given tasks wishes to sleep for a short
+duration, we must replace the time slice with idle time, which significantly
+reduces overall CPU utilization. Once a task is completely finished it is
+possible to then take back the time slice, but the new task that would be
+scheduled in this slot would then gather the information that the previous task
+finished its execution. 
+
+\begin{figure}
+  \begin{center}
+    \begin{subfigure}[b]{0.45\textwidth}
+      \include{figures/static_domain_sched}
+      \caption{Static domain scheduler}
+    \label{fig:static_domain_sched}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+      \include{figures/dynamic_domain_sched}
+    \caption{Dynamic domain scheduler}
+    \label{fig:dynamic_domain_sched}
+    \end{subfigure}
+  \end{center}
+  \caption{Domain scheduling}
+\end{figure}
+
+\paragraph{Domain scheduling:}
+Another approach is the one seen in \cite{ge2019}, which is the domain level
+scheduler. The general idea is quite similar to the approach seen before, but
+the idea of priorities have are removed entirely and instead we focus on
+domains. Each domain can have multiple tasks within, where we do not care about
+timing channels and only between different domains do we care about timing
+protection. In Figure~\ref{fig:static_domain_sched} an illustration of this
+scheduler can be seen. The idea is, that at compile time, we know the different
+domains and attribute to each some amount of time slices (in the example that
+would be 4 for both domain 1 and 2). The domain scheduler then takes care of
+scheduling the domain, and guarantees timing protection only between the
+different domains. This approach is still inhibited by the need to know the
+total number of time slices at compile time, and further it also needs the
+number of time slices for each domain at compile time. However, where this
+benefits over the previous approach is, that within each domain there is a lot
+more freedom to do as pleased. For example, one could imagine having a regular
+round robin scheduler within a domain, which then allows more CPU utilization
+within this specific domain and less unused resources.  
+
+An extension of this approach would be the on seen in
+Figure~\ref{fig:dynamic_domain_sched}, which closely follows the capability
+based scheduler in \cite{karlsson2025}. The idea is, that within a specific
+domain, we can give up some of the attributed time to create a new subdomain.
+This would mean that there is timing protection between subdomain 1 and the
+rest of domain 1\footnote{Other than creation and finishing assuming a domain
+  is allowed to give back the time slices upon finishing, which would leak
+timing information}. In theory it should be possible to give up these time
+slices back to the domain level scheduler, which would then treat this as a new
+domain. Whether or not some timing channels persists after creation remains to
+be seen.
+
+This approach seems by far the most flexible and most robust in terms of real
+world applications. As such, this thesis attempts to implement this domain
+scheduler within the FreeRTOS kernel.
+
+It is important to note, that this approach does not remove all timing
+channels. Each domain uses a round robin scheduler, which as mentioned
+previously is susceptible to timing channels. The idea is instead, that we
+allow such channels in tasks where it is not relevant for protection and
+throughput is valued higher. Instead, when we explicitly want a safe execution
+environment we can create a domain for this, which is then protected after
+initialization.
+
+% subsection The FreeRTOS scheduler (end)
+
+% section Scheduling (end)

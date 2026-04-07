@@ -3,7 +3,9 @@
 
 \usepackage{amsmath}
 \usepackage{url}
+\usepackage{tikz}
 \usepackage{amssymb}
+\usepackage{subcaption}
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{hyperref}
@@ -13,6 +15,8 @@
 \usepackage{microtype}
 \usepackage{algorithm,algorithmicx,algpseudocode}
 \usepackage[style=ieee, backend=biber]{biblatex}
+
+\usetikzlibrary{shapes, positioning, decorations.pathreplacing}
 
 \addbibresource{refs.bib}
 
@@ -32,9 +36,15 @@
 \input{sections/introduction}
 \input{sections/background}
 
-\section{Related work}
-\input{sections/related_work/OS_abstraction}
-\input{sections/related_work/S3K}
+\section{Related Work}\label{sec:Related Work} % (fold)
+\input{./sections/related_work/OS_abstraction.tex}
+\input{./sections/related_work/temporal_fence.tex}
+\input{./sections/related_work/S3K.tex}
+\input{./sections/related_work/FreeRTOS.tex}
+% section Related Work (end)
+
+
+\input{sections/scheduling}
 
 {
 \emergencystretch=1em

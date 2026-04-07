@@ -24,10 +24,10 @@ stop, such that we might do an equally long computation in both of the branches
 of the if statement. However, this still comes with some precautions, because
 even though the original program might seem sensibly constant time, some
 compilers might try to optimise the code, which could introduce new
-side-channel attacks \cite{schneiderBreakingBadHow2025}.
+side-channel attacks \cite{schneider2025}.
 
 Further, more complex examples of side channels includes those specified within
-\cite{spectre}, where speculative execution can be used to leak information
+\cite{kocher2019}, where speculative execution can be used to leak information
 about an otherwise safe algorithm. An example from the paper is the following:
 
 \begin{algorithm}
@@ -53,11 +53,11 @@ Prime+Probe to reveal which part of array2 was loaded into the cache. With
 this, it can gather the index of the loaded item, and can figure out what was
 read from array1[x], which could be some arbitrary secret that was obtained by
 the out of bounds indexing. A more detailed explanation along with a
-proof-of-concept is provided in \cite{spectre}, but this small example shows
+proof-of-concept is provided in \cite{kocher2019}, but this small example shows
 how seemingly safe code, might still leak secret information. 
 
 A multitude of possible attacks making use of these side-channels are presented
-in \cite{osvikCacheAttacksCountermeasures2006, PrimeAndProbe}.
+in \cite{osvik2006, liu2015}.
 
 \subsection{Covert channels}
 While side-channels are passive and exploit unintended leakage, covert channels
@@ -72,7 +72,7 @@ channels:} which modify some stored object, e.g. a file or some metadata;
 \textbf{Timing channels:} which change the time of different observable events
 for the receiver. For this thesis storage channels are not referenced, as
 kernels such as sel4 have already proven the absence of them
-\cite{murraySeL4GeneralPurpose2013}.
+\cite{murray2013}.
 
 Covert timing channels work through the same mechanisms as the aforementioned
 side channel, but pose as a worst case, where the sender can make use of any
@@ -81,7 +81,7 @@ to the visible gadgets that might exist in a vulnerable program, but the
 information might also be conveyed through repeated use of non-constant time
 system calls, the receiver could then measure the cache misses on the cache
 sets which is know to be touched by the system calls such as done in the
-evaluation of \cite{MissingOSAbstraction}.
+evaluation of \cite{ge2019}.
 
 \subsection{Isolation}
 Throughout many timing channel mitigations isolation is a common factor. There
@@ -92,21 +92,21 @@ most commonly used for DRAM memory, where the OS kernel rely on hardware like
 the memory management units (MMUs) or memory protection units (MPUs). The MMU
 translates virtual memory addresses into physical addresses in main memory. It
 also generally provides memory protection by implementing access control rules
-and regulations stopping illegal usage of particular memory locations
-\cite{WhatMemoryManagement}. Another notable examples of spatial isolation is
-cache coloring, which I will come back to later.
+and regulations stopping illegal usage of particular memory locations. Another
+notable examples of spatial isolation is cache coloring, which I will come back
+to later.
 
 The latter isolation type, namely temporal isolation, must ensure that the
 service received from shared resources by the software in one domain cannot be
 affected by the software in another domain
-\cite{AvionicsArchitecturesMechanisms}. An example, which would require such
+\cite{rushby1999}. An example, which would require such
 isolation is any shared part of the OS between different domains. Calling
 shared OS code should not have any measurable timing affect for another domain
 calling the same OS code. 
 
 To achieve temporal isolation one must clean any microarchitectural state
 affect by shared calls. This is where an instruction such as \texttt{fence.t}
-\cite{fencet} would clear this state. That is, when spatial isolation is not
+\cite{wistoff2023} would clear this state. That is, when spatial isolation is not
 possible, then one must implement temporal isolation by flushing any dirty
 state before switching domains to ensure complete isolation. 
 
