@@ -24,13 +24,13 @@ such as private keys, memory-access patterns, scheduling decisions, or resource
 contention. Timing channels violate intended isolation boundaries at the
 process, VM, or network level, allowing seemingly independent programs to leak
 information indirectly. Such attacks have already been shown to be detrimental
-and as such it is not something that can be left untouched \cite{spectre,
-meltdown}.
+and as such it is not something that can be left untouched \cite{kocher2019,
+lipp2018}.
 
 A variety of countermeasures have been proposed to address these issues. In
 cryptography domain specific languages such as FaCT provide transformations of
 potentially timing sensitive high level code to low level constant time code
-\cite{cauligiFaCTDSLTimingsensitive2019}. This ensures that in an isolated
+\cite{cauligi2019}. This ensures that in an isolated
 environment the low level code will not leak information about its secrets
 through timing side channels. However, practical systems rarely operate in such
 controlled environments: operating systems provide no guarantees regarding
@@ -41,10 +41,10 @@ occur.
 Previous work has been done to attempt to prevent such leaks. For instance
 hardware specific extensions have been implemented which provide mechanisms for
 clearing vulnerable micro architectural state and guaranteeing a
-history independent context switch latency \cite{fencet}. Other work has
+history independent context switch latency \cite{wistoff2023, wistoff2025}. Other work has
 examined the work required for time protection and have provided an
 implementation for the seL4 microkernel showing it is possible to protect
-against with little impedance on performance \cite{MissingOSAbstraction}.
+against with little impedance on performance \cite{ge2019}.
 
 However, evaluating timing-channel resistance remains difficult. Existing
 approaches often rely on empirical measurements on real hardware, specialized
@@ -76,7 +76,7 @@ timing-channel behavior can be studied without relying solely on empirical
 hardware measurements.
 
 This implementation will be tested using previous "timing" safe microkernels,
-such as the \cite{S3K}, to show that it is effective in show cache based timing
+such as the \cite{karlsson2025}, to show that it is effective in show cache based timing
 channels. Further, this will then be used as the development basis to implement
 timing protection in a non-timing safe kernel. Specifically this will be done
 by looking into deterministic context switching, targeted flushing of the
