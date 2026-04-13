@@ -1,6 +1,6 @@
 \section{Scheduling}\label{sec:Scheduling} % (fold)
 
-\subsection{The FreeRTOS scheduler}\label{sub:sched_free} % (fold)
+\subsection{The FreeRTOS scheduler} % (fold)
 FreeRTOS provides different scheduling algorithms based on configurations and
 number of cores available on the system. By default on a single core FreeRTOS
 makes use of a fixed-priority preemptive scheduling policy, with round-robin
@@ -131,5 +131,107 @@ environment we can create a domain for this, which is then protected after
 initialization.
 
 % subsection The FreeRTOS scheduler (end)
+
+\subsection{Implementation}
+
+\subsubsection{Extending the api}
+
+To implement the domain level scheduler we have first incorporate the idea into
+the existing FreeRTOS framework. With FreeRTOS MPU, we are able to create
+unprivileged tasks which have restricted access to syscalls and provide them
+with a memory space that is partitioned. For this, the general FreeRTOS api is
+extended with a multitude of new functions most importantly for this project is
+the \texttt{xTaskCreateRestricted}.\cite{MemoryProtectionUnit2026} The idea
+behind the domain scheduling fits with the purpose of memory protection, and as
+such it seems the obvious choice for modification to extend it with the domain
+functionality. The signature of the aforementioned function is provided in the
+listing below:
+
+\begin{lstlisting}[language={c}, caption={xTaskCreateRestricted function signature}, label={lst:create_restricted}]
+typedef struct xMEMORY_REGION
+{
+    void * pvBaseAddress;
+    uint32_t ulLengthInBytes;
+    uint32_t ulParameters;
+} MemoryRegion_t;
+
+typedef struct xTASK_PARAMETERS
+{
+    TaskFunction_t pvTaskCode;
+    const char * pcName;
+    configSTACK_DEPTH_TYPE usStackDepth;
+    void * pvParameters;
+    UBaseType_t uxPriority;
+    StackType_t * puxStackBuffer;
+    MemoryRegion_t xRegions[ portNUM_CONFIGURABLE_REGIONS ];
+    #if ( 
+      ( portUSING_MPU_WRAPPERS == 1 ) && 
+      ( configSUPPORT_STATIC_ALLOCATION == 1 ) 
+    )
+        StaticTask_t * const pxTaskBuffer;
+    #endif
+} TaskParameters_t;
+
+BaseType_t xTaskCreateRestricted( 
+  const TaskParameters_t * const pxTaskDefinition, 
+  TaskHandle_t * pxCreatedTask 
+) PRIVILEGED_FUNCTION;
+\end{lstlisting}
+
+That is, we can create a task which has access to a number of memory regions
+defined by the region start address (pvBaseAdddress), the region size in bytes
+(ulLengthInBytes) and the access permissions for the region (ulParameters). The
+function parameter uxPriority is also of importance. By default this function
+creates tasks running in user mode, which restricts access to specific system
+calls and any task created running in privileged mode is able to access the
+entire RAM. By default, tasks running in user mode are able to create other
+tasks running in user mode, and this is the desired behaviour for domain
+scheduling.
+
+The idea is to extend this function signature as follows:
+
+\begin{lstlisting}[language={c}, caption={Extended parameters and signature}, label={lst:extended_create_restricted}]
+...
+
+typedef struct xDOMAIN_PARAMETERS
+{
+  uint32_t ulSliceOffset;
+  uint32_t ulSliceLength;
+} DomainParameters_t;
+
+typedef struct xTASK_PARAMETERS
+{
+    TaskFunction_t pvTaskCode;
+    const char * pcName;
+    configSTACK_DEPTH_TYPE usStackDepth;
+    void * pvParameters;
+    UBaseType_t uxPriority;
+    StackType_t * puxStackBuffer;
+    MemoryRegion_t xRegions[ portNUM_CONFIGURABLE_REGIONS ];
+    #if ( ( portUSING_MPU_WRAPPERS == 1 ) && ( configSUPPORT_STATIC_ALLOCATION == 1 ) )
+        StaticTask_t * const pxTaskBuffer;
+    #endif
+    #if ( configENABLED_DOMAINS == 1 )
+        DomainParameters_t * xDomainParameters; 
+    #endif
+} TaskParameters_t;
+
+BaseType_t xTaskCreateRestricted( 
+  const TaskParameters_t * const pxTaskDefinition, 
+  TaskHandle_t * pxCreatedTask 
+) PRIVILEGED_FUNCTION;
+\end{lstlisting}
+
+A task with the capability to create a new restricted task would then have to
+provide an offset into it's own time slice and the length of the new domain
+that will be created for the task. If there is passed no xDomainParameters this
+will be treated as creating a task within the same domain with the priority
+based scheduler.
+
+This should be all that is required to change for the external api.
+
+\subsubsection{Augmenting the scheduler}
+
+
 
 % section Scheduling (end)
