@@ -19,11 +19,10 @@
 - [ ] Deterministic data sharing through Queues.
 - [ ] Partitioning the OS, different system calls.
 
-## Gem5
-
-- [ ] How far along is RISC-V.
-- [ ] Look into it
-
 ## QEMU
 
 - [ ] How accurate is the cycle?
+
+## User level constant time related work
+- [ ] Evaluate user level constant time implementations. Why this is insufficient and why it is still needed even in a "safe" OS?
+- [ ] Tools for showing timing channel. dudect, why the plugin is needed for OS evaluation.
