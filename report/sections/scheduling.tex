@@ -195,22 +195,13 @@ The idea is to extend this function signature as follows:
 
 typedef struct xDOMAIN_PARAMETERS
 {
-  uint32_t ulSliceOffset;
+  uint32_t ulSliceIndex;
   uint32_t ulSliceLength;
 } DomainParameters_t;
 
 typedef struct xTASK_PARAMETERS
 {
-    TaskFunction_t pvTaskCode;
-    const char * pcName;
-    configSTACK_DEPTH_TYPE usStackDepth;
-    void * pvParameters;
-    UBaseType_t uxPriority;
-    StackType_t * puxStackBuffer;
-    MemoryRegion_t xRegions[ portNUM_CONFIGURABLE_REGIONS ];
-    #if ( ( portUSING_MPU_WRAPPERS == 1 ) && ( configSUPPORT_STATIC_ALLOCATION == 1 ) )
-        StaticTask_t * const pxTaskBuffer;
-    #endif
+  ...
     #if ( configENABLED_DOMAINS == 1 )
         DomainParameters_t * xDomainParameters; 
     #endif
@@ -223,15 +214,369 @@ BaseType_t xTaskCreateRestricted(
 \end{lstlisting}
 
 A task with the capability to create a new restricted task would then have to
-provide an offset into it's own time slice and the length of the new domain
-that will be created for the task. If there is passed no xDomainParameters this
-will be treated as creating a task within the same domain with the priority
-based scheduler.
+provide the index in the global time slice array, along with the length of the
+new domain that will be created. If no xDomainParameters is passed to the
+function (i.e. the pointer is NULL) this will be treated as creating a task
+within the same domain, and will be handled by the per domain priority based
+scheduler.
 
-This should be all that is required to change for the external api.
+With this, no more of the external api has to be changed.
 
-\subsubsection{Augmenting the scheduler}
+\subsubsection{New configuration flags}
+To enable the functionality of domain level scheduling, a few new compile flags
+needs to be introduces.
 
+\paragraph{configENABLE\_DOMAINS} A binary flag to indicate whether or not to
+use the domain level scheduler alongside the default priority based scheduler.
+
+\paragraph{configNUM\_TIME\_SLICES} The total number of time slices for the
+domain scheduler to take into account. As mentioned before this flag also
+constitutes the maximum number of possible domains, such that any domain
+scheduling decisions can be done in constant time.
+
+\paragraph{connfigNUM\_TICKS\_PER\_SLICE} The number of timer interrupt ticks to
+constitute a single time slice. Say that the ticks is defined as
+\texttt{\#define configTICK\_RATE\_HZ ((TickType\_t) 1000)} with \texttt{\#define
+configNUM\_TICKS\_PER\_SLICE (5)}, this would mean that a single time slice is
+equal to $\text{TIME\_SLICE} = \frac{1s}{1000} \cdot 5 = 5ms$.
+
+\subsubsection{Domain switching}
+
+To keep with the fundamentals of FreeRTOS the idea is to keep the functionality
+of the priority based scheduler within FreeRTOS but internally in a domain.
+That is, within a specific domain the same priority based scheduler is
+available. This in turn means that if no new domains are created, then the
+functionality of the scheduler should be nearly unchanged\footnote{There will
+be some overhead with the implementation of course.}.
+
+FreeRTOS makes use of a single static file \texttt{tasks.c} for the development
+of the priority based scheduler. In this thesis I am only focused on the single
+core implementation and while work on the multicore version would be
+interesting, that is left for future work.
+
+In the MPU version of FreeRTOS when a machine timer interrupt occurs it is
+handled in the following manner:
+
+\begin{lstlisting}[language={[RISC-V]Assembler}, caption={FreeRTOS mtimer interrupt handler}, label={lst:interrupt}]
+freertos_risc_v_mtimer_interrupt_handler:
+    portcontextSAVE_INTERRUPT_CONTEXT
+    portUPDATE_MTIMER_COMPARE_REGISTER
+    call xTaskIncrementTick
+    beqz a0, exit_without_context_switch 
+    call vTaskSwitchContext
+\end{lstlisting}
+
+It increments a global tick, and switches the task content. However, FreeRTOS
+only increments the global \texttt{xTickCount} if the priority based scheduler
+is running and not suspended for critical handling. This means, we have to
+introduce our own proxy for Ticks, as the per domain \texttt{xTickCount} would
+leak information about other scheduler states and possibly delay the domain
+switching. For our purposes we can hook into the pre-existing
+\texttt{xTaskIncrementTick} function, but add tracking for our own tick. 
+as check for a domain switch.
+
+\begin{lstlisting}[language={c}, caption={Custom hook for xTaskIncrementTick}, label={lst:inc_tick}]
+/* Static variable to contain the current Domain Tick */
+
+PRIVILEGED_DATA static size_t pxCurrentDomainIndex = 0;
+PRIVILEGED_DATA static volatile TickType_t xEffectiveTick = ( TickType_t ) configINITIAL_TICK_COUNT;
+PRIVILEGED_DATA static volatile TickType_t xDomainTick = ( TickType_t ) 0;
+
+BaseType_t xTaskIncrementTick( void ) {
+...
+const TickType_t xConstTickCount = xEffectiveTick + ( TickType_t ) 1;
+
+/* Increment the effective tick. This is different than xTickCount,
+ * which does not increment if the scheduler is in a critical section.
+ * The Domain scheduler does not care about critical section */
+xEffectiveTick  = xConstTickCount;
+
+/* Update the Domain tick in regards to the effective tick */
+xDomainTick = (xEffectiveTick / configNUM_TICKS_PER_SLICE) % configNUM_TIME_SLICES;
+
+/* Time slot expired or wraparound */
+if( xDomainTick >= pxCurrentDomainIndex + xDomains[pxCurrentDomainIndex].uxLength
+    || xDomainTick < pxCurrentDomainIndex )
+{
+    /* Save current task to logical domain info */
+    xDomainInfo[xDomains[pxCurrentDomainIndex].uxDomainID].pxPreviousTCB = pxCurrentTCB;
+
+    xSwitchRequired = pdTRUE;
+
+    /* Flush on domain switch */
+    temporal_fence_t();
+
+    /* Contiguous partition: next block starts exactly here */
+    pxCurrentDomainIndex += xDomains[pxCurrentDomainIndex].uxLength;
+    if( pxCurrentDomainIndex >= configNUM_TIME_SLICES )
+    {
+        pxCurrentDomainIndex = 0;
+    }
+
+    /* Restore previous task from logical domain info */
+    TCB_t * previous_tcb = \ 
+      xDomainInfo[xDomains[pxCurrentDomainIndex].uxDomainID].pxPreviousTCB;
+    /* First time, use idle task */
+    if (previous_tcb == NULL) {
+        pxCurrentTCB = xIdleTaskHandles[ 0 ];
+    } else {
+        pxCurrentTCB = previous_tcb;
+    }
+}
+...
+}
+\end{lstlisting}
+
+As such, whenever there is a machine timer tick, we calculate in constant time
+the time slice (xDomainTick) and check if we should do a domain switch. If we
+find that we should schedule a new domain, then we switch the data to the new
+domain and perform a temporal flush to clear the microarchitectural state. The
+flush happens in such a manner, that any data accessed in regards to the new
+domain is non-interfering with the previous domain. Once we have decided that a
+switch should occur, only data that is within the incoming domain is retrieved
+following the flush, this means that the new domains execution will not be
+based on the microarchitectural state of the previous domain.
+
+Note this comes with some constraints. Most notably we are defining a time
+slice in relation to the machine timer interrupt timing, which is configurable
+in FreeRTOS through the \texttt{configTICK\_RATE\_HZ}. To make this more
+flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} as to not limit the domain
+level scheduler with respect to the inter domain priority based scheduler.
+
+\subsubsection{Creating domains}
+To keep track of the different domains new global constants are defined:
+\begin{lstlisting}[language={c}, caption={Domains definitions}, label={lst:domain_def}]
+typedef struct DomainBlock {
+  UBaseType_t uxDomainID; /* This time slices domain ID */
+  size_t uxLength; /* Length of this domain */
+} DomainBlock_t;
+
+/* Timeline over configNUM_TIME_SLICES, indexed by the start of a block */
+PRIVILEGED_DATA static DomainBlock_t xDomains[configNUM_TIME_SLICES] = {
+    [0] = {.uxDomainID = 0, .uxLength = configNUM_TIME_SLICES}
+};
+
+typedef struct DomainListItem {
+    size_t uxBlockStart;
+    struct DomainListItem* next;
+} DomainListItem_t;
+
+PRIVILEGED_DATA static DomainListItem_t xDomainItemPool[configNUM_TIME_SLICES] = {
+    [0] = {.uxBlockStart = 0, .next = NULL}
+};
+
+typedef struct DomainInfo {
+    TCB_t * volatile pxPreviousTCB;
+    DomainListItem_t * pxFirstBlock;  /* Singly-linked list of this domain's owned blocks */
+} DomainInfo_t;
+
+/* Timeline over Domain information indexed by the Domain ID */
+PRIVILEGED_DATA static DomainInfo_t xDomainInfo[configNUM_TIME_SLICES] = {
+    [0] = {.pxPreviousTCB = NULL, .pxFirstBlock = &xDomainItemPool[0]}
+};
+
+static DomainListItem_t * pxAllocateBlockItem( void )
+{
+    if( uxNextFreeDomainItem >= configNUM_TIME_SLICES )
+    {
+        return NULL;
+    }
+    return &( xDomainItemPool[ uxNextFreeDomainItem++ ] );
+}
+\end{lstlisting}
+
+The \texttt{xDomains} array contains the timeline of the Domains. It contains a single
+entry for every time slice that is possible. This allows for constant indexing
+as it has a fixed size. One might be able to introduce a vector based approach
+instead, but this would mean that allocation of a new domain would leak a small
+amount of information about the total number of domains when the vector has to
+expand, this is something that for now was not considered further.
+
+The \texttt{xDomainPool} contains a pool of compile time allocated
+\texttt{DomainListItem\_t}. 
+
+The \texttt{xDomainInfo} array is indexable by the DomainID, and contains
+information about the previously running task for restoration upon a reentry of
+the domain, and a single linked list of owned blocks of time slices by the
+current domain. This information is used to check at domain creation if the
+current domain owns the time slice it is attempting to allocate. Further, it is
+created in this manner, such that the creation of a domain entirely depends on
+the owned time slices of the domain itself, and does not leak information about
+the total number of domains within the system, which would be leaked, if we
+simply loop over the \texttt{xDomains} array using the lengths. So while
+information about the total number of domains owned by this current domain
+could be leaked by attempting to create a new domain, other domains information
+should not be leaked. 
+
+With this in place, it allows the creation of new domains as follows:
+\begin{lstlisting}[language={c}, caption={Function for creating domains}, label={lst:create_domain}]
+static BaseType_t prvCreateDomain(
+    DomainParameters_t * pxParams,
+    UBaseType_t * puxNewDomainSlot)
+{
+    size_t start = pxParams->ulSliceIndex;
+    size_t length = pxParams->ulSliceLength;
+
+    if (length == 0)
+    {
+        return pdFAIL;
+    }
+
+    taskENTER_CRITICAL();
+
+    UBaseType_t uxCurrentDomainID =
+        xDomains[pxCurrentDomainIndex].uxDomainID;
+
+    DomainInfo_t * pxInfo =
+        &xDomainInfo[uxCurrentDomainID];
+
+    DomainListItem_t * pxBlock =
+        prvFindContainingBlock(pxInfo, start, length);
+
+    if (pxBlock == NULL)
+    {
+        taskEXIT_CRITICAL();
+        return pdFAIL;
+    }
+
+    size_t blockStart = pxBlock->uxBlockStart;
+    size_t blockEnd =
+        blockStart + xDomains[blockStart].uxLength;
+
+    /* reject overlap with current tick */
+    if (start <= xDomainTick &&
+        xDomainTick < start + length)
+    {
+        taskEXIT_CRITICAL();
+        return pdFAIL;
+    }
+
+    DomainListItem_t * pxChild = NULL;
+
+    if (prvSplitBlock( pxBlock,
+            blockStart,
+            blockEnd,
+            start,
+            length,
+            uxCurrentDomainID,
+            &pxChild) != pdTRUE)
+    {
+        taskEXIT_CRITICAL();
+        return pdFAIL;
+    }
+
+    UBaseType_t uxChildDomainID = uxNextDomainID++;
+
+    xDomains[start].uxDomainID = uxChildDomainID;
+    xDomains[start].uxLength = length;
+
+    xDomainInfo[uxChildDomainID].pxPreviousTCB = NULL;
+    xDomainInfo[uxChildDomainID].pxFirstBlock = pxChild;
+
+    *puxNewDomainSlot = start;
+
+    taskEXIT_CRITICAL();
+    return pdTRUE;
+}
+\end{lstlisting}
+
+First, we find the containing block of the given new domain, which is to be
+created. Then, we make sure it does not overwrite the current domain tick, as
+this could cause issues with the current task. We handle splitting the block if
+needed via. the helper prvSplitBlock, and at last we update the necessary
+global items.
+
+\subsubsection{Per domain scheduling}
+For the domain level scheduler to work with inter domain priority based
+schedulers, we need to add another dimension to all of the items. That is, all
+variables that previously were a constant would have to be an array with length
+equal to the number of time slices and same extension for previous arrays. All
+accesses to these constants/arrays would have to follow a similar
+transformation, where the currently scheduled domain would choose the correct
+values for the priority based scheduler to function correctly. A few examples
+of these transformations are shown below:
+\begin{lstlisting}[language={c}, caption={Transforming the priority based scheduler}, label={lst:prio_sched}]
+/* Non-domain scheduler implementation*/
+PRIVILEGED_DATA static volatile BaseType_t xSchedulerRunning = pdFALSE;
+PRIVILEGED_DATA static volatile TickType_t xPendedTicks = ( TickType_t ) 0U;
+
+/* Domain scheduler equivalent */
+PRIVILEGED_DATA static volatile BaseType_t xSchedulerRunning[configNUM_TIME_SLICES] = { pdFALSE };
+PRIVILEGED_DATA static volatile TickType_t xPendedTicks[configNUM_TIME_SLICES] = {( TickType_t ) 0U};
+\end{lstlisting}
+
+Note, that while the first element is initialized here, the initialization of
+the full items are moved to a separate function, as all of the schedulers would
+have to be initialized in the same fashion as the default scheduler.
+
+With this, the general foundation of the domain level scheduler is functional,
+and the standard \texttt{mpu\_blinky.c} example works given all tasks run
+within the same domain.
+
+\subsubsection{Cross domain communication}
+As it stands, the FreeRTOS api has next to no information about the different
+domains, meaning that items such as the Queue used for message transferring
+between domains is not available. Generally this is a good thing, as by default
+there is domain isolation, as any internal handling within tasks.c makes use of
+the current domain. This restriction is quite strict, and one might assume that
+cross-domain communication should be possible. In FreeRTOS communication
+happens through Queues. The general workflow for Queue communication in the MPU
+version of FreeRTOS is as follows:
+
+\begin{itemize}
+  \item Create Queue kernel object in a priority task.
+  \item Grant access to the Queue object to any user level tasks, that should communicate through the Queue.
+  \item One task sends messages through \texttt{xQueueSend}.
+  \item Another task receives messages through \texttt{xQueueReceive}.
+\end{itemize}
+
+For the cross domain communication the workflow should be the same, but it is
+the internal handling that has to change. Currently the internal handling of
+the \texttt{xQueueSend} is:
+\begin{itemize}
+  \item Check there is room in the queue for the message.
+  \item Check if there is a task waiting to receive on the Queue.
+    \begin{itemize}
+      \item If yes, move the task to the ready list.
+      \item If no, do nothing.
+    \end{itemize}
+\end{itemize}
+
+This is generally also fine, except that when moving a task to the ready list,
+the task might be outside the domain that is currently running. When the Queue
+moves a task to the ready list, it does so through the function
+\texttt{xTaskRemoveFromEventList}. This function takes a linked list of tasks,
+namely the tasks waiting on the queue, removes the first tasks from the list
+and moves the given task into the ready list if the scheduler is suspended and
+otherwise moves it to the \texttt{xPendingReadyList} to wait for the next
+scheduler suspension before moving into the true ready list. If the new task
+was found to have a higher priority, then notify that there should be a context
+switch.
+
+This is where we have to make changes to allow for cross-domain communication.
+First, each task needs some way of tracking the domain it resides within, which
+is easily done by extending the \texttt{TCB\_t} struct with an extra field:
+\begin{lstlisting}[language={c}]
+typedef struct tskTaskControlBlock
+{
+    ...
+    #if ( configENABLE_DOMAINS == 1 )
+        UBaseType_t uxDomainID;
+    #endif
+} tskTCB;
+
+typedef tskTCB TCB_t;
+\end{lstlisting}
+
+The Queue can now reference this DomainID when modifying the
+priority-schedulers and as such adds the tasks to the correct arrays.
+
+Given this communication, we can now create the \texttt{mpu\_blinky.c} example
+with different domains communicating. It is important to note here, that there
+of course is introduced some timing leakage between these two domains, as they
+can time the response time of different messages. Here it is up to the
+individual domains to respond in a deterministic manner as to not leak any
+secret information.
 
 
 % section Scheduling (end)
