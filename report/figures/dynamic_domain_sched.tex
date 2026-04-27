@@ -12,24 +12,28 @@
     \def\timeslice{0.8}
 
     % --- Bar Rows (drawn inside outlines) ---
+    \path[draw, decorate, decoration=brace] (0, \vtopprio + 1.5) -- (\timeslice * 8, \vtopprio + 1.5) node[lbl, midway, above, yshift=0.3em]{Domain 0};
 
+    % First domain
+    \path[draw, decorate, decoration=brace] (0, \vtopprio + 1) -- (\timeslice * 4, \vtopprio + 1) node[lbl, midway, above, yshift=0.3em]{Domain 1};
+    \draw (\timeslice*2, \vtopprio-\barheight/2) rectangle (\timeslice*4, \vtopprio+\barheight/2) 
+      node[lbl, midway]{RR};
 
-    % Top most domain
-    \path[draw, decorate, decoration=brace] (0, \vtopprio + 1) -- (\timeslice * 8, \vtopprio + 1) node[lbl, midway, above, yshift=0.3em]{Domain 1};
-    \draw (0, \vtopprio-\barheight/2) rectangle (\timeslice*4, \vtopprio+\barheight/2) 
-      node[lbl, midway]{Round robin};
+    \path[draw, decorate, decoration=brace] (0, \vtopprio + 0.5) -- (\timeslice * 2, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 3};
+    \draw (0, \vtopprio-\barheight/2) rectangle (\timeslice*2, \vtopprio+\barheight/2) 
+      node[lbl, midway]{RR};
 
     % Second domain
-    \path[draw, decorate, decoration=brace] (\timeslice * 4, \vtopprio + 0.5) -- (\timeslice * 8, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Subdomain 1};
-    \draw (\timeslice * 4, \vtopprio-\barheight/2) rectangle (\timeslice * 8, \vtopprio+\barheight/2) 
+    \path[draw, decorate, decoration=brace] (\timeslice * 4, \vtopprio + 0.5) -- (\timeslice * 8, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 2};
+    \draw (\timeslice*4, \vtopprio-\barheight/2) rectangle (\timeslice*8, \vtopprio+\barheight/2) 
       node[lbl, midway]{Round robin};
 
     % Main timeline axis
     \draw[thick] (0, \ytimeline) -- (8*\timeslice, \ytimeline);
 
     % Intermediate ticks (not all but to give structure)
-    \foreach \x in {0, ..., 4} {
-         \draw (\x*\timeslice*2, \ytimeline-0.05) -- (\x*\timeslice*2, \ytimeline+0.05);
+    \foreach \x in {0, ..., 8} {
+         \draw (\x*\timeslice, \ytimeline-0.05) -- (\x*\timeslice, \ytimeline+0.05);
     }
 
     % Central label below the timeline
