@@ -15,7 +15,10 @@ use std::{
     },
 };
 
-use crate::utils::{ActiveRetriever, DomainRetriever, is_timing_end, is_timing_start, is_temporal_fence};
+use crate::utils::{
+    ActiveRetriever, DomainRetriever, is_round_trip_marker, is_temporal_fence, is_timing_end,
+    is_timing_start,
+};
 
 use std::fmt::Write;
 use std::sync::atomic::Ordering::Relaxed;
@@ -152,6 +155,51 @@ impl TransitionMetrics {
     }
 }
 
+/// Accumulated mtime-delta metrics for a domain round-trip interval
+#[derive(Debug)]
+struct DomainRoundTripMetrics {
+    domain: usize,
+    mtime_deltas: Vec<u64>,
+}
+
+impl DomainRoundTripMetrics {
+    fn new(domain: usize) -> Self {
+        Self {
+            domain,
+            mtime_deltas: Vec::new(),
+        }
+    }
+
+    fn add_sample(&mut self, mtime_delta: u64) {
+        self.mtime_deltas.push(mtime_delta);
+    }
+
+    fn mean_and_variance(&self) -> Option<(f64, f64)> {
+        if self.mtime_deltas.is_empty() {
+            return None;
+        }
+
+        let n = self.mtime_deltas.len() as f64;
+        let mean = self.mtime_deltas.iter().map(|&x| x as f64).sum::<f64>() / n;
+        let variance = self
+            .mtime_deltas
+            .iter()
+            .map(|&x| {
+                let diff = x as f64 - mean;
+                diff * diff
+            })
+            .sum::<f64>()
+            / n;
+
+        Some((mean, variance))
+    }
+
+    fn relative_variance(&self) -> Option<f64> {
+        let (mean, variance) = self.mean_and_variance()?;
+        Some((variance.sqrt()) / mean)
+    }
+}
+
 /// Per-VCPU state for interrupt timing tracking
 struct VcpuTimingState {
     state: InterruptState,
@@ -161,6 +209,9 @@ struct VcpuTimingState {
     current_l1_i_misses: u64,
     current_l2_misses: Option<u64>,
     last_domain: Option<usize>,
+
+    round_trip_mtime: u64,
+    round_trip_domain: Option<usize>,
 }
 
 impl VcpuTimingState {
@@ -173,6 +224,8 @@ impl VcpuTimingState {
             current_l1_i_misses: 0,
             current_l2_misses: if track_l2 { Some(0) } else { None },
             last_domain: None,
+            round_trip_mtime: 0,
+            round_trip_domain: None,
         }
     }
 
@@ -253,6 +306,7 @@ struct PluginState<T: DomainRetriever> {
 
     interrupt_states: Vec<Mutex<VcpuTimingState>>,
     transition_metrics: Mutex<HashMap<(usize, usize), TransitionMetrics>>,
+    round_trip_metrics: Mutex<HashMap<usize, DomainRoundTripMetrics>>,
 }
 
 enum AccessType {
@@ -313,14 +367,12 @@ impl<T: DomainRetriever> PluginState<T> {
 
             {
                 let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
-                if vcpu_state.state != InterruptState::Idle {
-                    match access_type {
-                        AccessType::Data(_) => {
-                            vcpu_state.current_l1_d_misses += 1;
-                        }
-                        AccessType::Instruction => {
-                            vcpu_state.current_l1_i_misses += 1;
-                        }
+                match access_type {
+                    AccessType::Data(_) => {
+                        vcpu_state.current_l1_d_misses += 1;
+                    }
+                    AccessType::Instruction => {
+                        vcpu_state.current_l1_i_misses += 1;
                     }
                 }
             }
@@ -342,10 +394,8 @@ impl<T: DomainRetriever> PluginState<T> {
                             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
                         let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
-                        if vcpu_state.state != InterruptState::Idle {
-                            if let Some(ref mut l2_misses) = vcpu_state.current_l2_misses {
-                                *l2_misses += 1;
-                            }
+                        if let Some(ref mut l2_misses) = vcpu_state.current_l2_misses {
+                            *l2_misses += 1;
                         }
                     }
                 }
@@ -448,13 +498,13 @@ extern "C" fn vcpu_insn_exec(vcpu_index: u32, user_data: *mut std::ffi::c_void) 
 
     state.process_cache_access(vcpu_index, insn_data, &AccessType::Instruction);
 
-    // Track instruction count during interrupt handling and detect context switches
+    // Track instruction count globally and detect context switches during interrupt handling
     let cache_idx = (vcpu_index as usize) % state.cores;
     let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
 
-    if vcpu_state.state != InterruptState::Idle {
-        vcpu_state.current_insn_count += 1;
+    vcpu_state.current_insn_count += 1;
 
+    if vcpu_state.state != InterruptState::Idle {
         if let Some((current_domain, _)) = state.domain.get_domain_info(vcpu_index, insn_data.addr)
         {
             if let Some(last_domain) = vcpu_state.last_domain {
@@ -580,6 +630,15 @@ extern "C" fn vcpu_tb_trans(_id: qemu_plugin_id_t, tb: *mut qemu_plugin_tb) {
                     data_ptr,
                 );
             }
+
+            if is_round_trip_marker(insn_opcode) {
+                qemu_plugin_register_vcpu_insn_exec_cb(
+                    insn,
+                    Some(vcpu_round_trip_marker),
+                    qemu_plugin_cb_flags_QEMU_PLUGIN_CB_R_REGS,
+                    data_ptr,
+                );
+            }
         };
     }
 }
@@ -625,6 +684,35 @@ extern "C" fn vcpu_stop_timing(vcpu_index: u32, user_data: *mut std::ffi::c_void
         unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
     if let Some((domain, _)) = state.domain.get_domain_info(vcpu_index, insn_data.addr) {
         vcpu_state.last_domain = Some(domain);
+    }
+}
+
+/// Domain round-trip marker callback - reads mtime and records delta for the previous domain
+#[unsafe(no_mangle)]
+extern "C" fn vcpu_round_trip_marker(vcpu_index: u32, user_data: *mut std::ffi::c_void) {
+    let state = get_state();
+    let mut round_trip_metrics = state.round_trip_metrics.lock().unwrap();
+    let cache_idx = (vcpu_index as usize) % state.cores;
+    let mut vcpu_state = state.interrupt_states[cache_idx].lock().unwrap();
+
+    let insn_data =
+        unsafe { user_data.cast::<InsnData>().as_ref() }.expect("InsnData pointer was null");
+
+    if let Some((current_domain, _)) = state.domain.get_domain_info(vcpu_index, insn_data.addr) {
+        let mtime_now = state.domain.read_mtime().unwrap_or(0);
+
+        // If a round trip was already active, record the mtime delta for the previous domain
+        if let Some(prev_domain) = vcpu_state.round_trip_domain {
+            let delta = mtime_now.saturating_sub(vcpu_state.round_trip_mtime);
+            let metrics = round_trip_metrics
+                .entry(prev_domain)
+                .or_insert_with(|| DomainRoundTripMetrics::new(prev_domain));
+            metrics.add_sample(delta);
+        }
+
+        // Start a new round trip for the current domain
+        vcpu_state.round_trip_mtime = mtime_now;
+        vcpu_state.round_trip_domain = Some(current_domain);
     }
 }
 
@@ -729,7 +817,7 @@ pub extern "C" fn qemu_plugin_install(
                     return -1;
                 }
             },
-            "elffile" => elf_file = val.to_string(),
+            "elf_file" => elf_file = val.to_string(),
             "use_l2" => use_l2 = val.parse().unwrap_or(false),
             "l1_penalty" => l1_penalty = val.parse().unwrap_or(l1_penalty),
             "l2_penalty" => l2_penalty = val.parse().unwrap_or(l2_penalty),
@@ -792,6 +880,7 @@ pub extern "C" fn qemu_plugin_install(
             .map(|_| Mutex::new(VcpuTimingState::new(use_l2)))
             .collect(),
         transition_metrics: Mutex::new(HashMap::new()),
+        round_trip_metrics: Mutex::new(HashMap::new()),
     };
 
     STATE
@@ -929,6 +1018,8 @@ extern "C" fn plugin_exit(_id: qemu_plugin_id_t, _user_data: *mut std::ffi::c_vo
 
     print_interrupt_timing_report(&mut out, state);
 
+    print_round_trip_timing_report(&mut out, state);
+
     state.domain.on_exit(&mut out);
 
     qemu_print(&out);
@@ -1034,6 +1125,74 @@ fn print_interrupt_timing_report(out: &mut String, state: &PluginState<ActiveRet
                 // New line
                 writeln!(out, "",).unwrap();
             }
+        }
+    }
+}
+
+fn print_round_trip_timing_report(out: &mut String, state: &PluginState<ActiveRetriever>) {
+    let round_trip_metrics = state.round_trip_metrics.lock().unwrap();
+
+    if round_trip_metrics.is_empty() {
+        return;
+    }
+
+    writeln!(
+        out,
+        "\n=== Domain Round-Trip Timing Channel Detection Report ==="
+    )
+    .unwrap();
+    writeln!(
+        out,
+        "Threshold: {:.2}% variance\n",
+        state.timing_threshold * 100.0
+    )
+    .unwrap();
+
+    let mut violations: Vec<&DomainRoundTripMetrics> = Vec::new();
+
+    fn get_mean_min_max(data: &[u64]) -> (f64, u64, u64) {
+        let n = data.len() as f64;
+        let mean = data.iter().map(|&x| x as f64).sum::<f64>() / n;
+        let min = data.iter().copied().min().unwrap_or(0);
+        let max = data.iter().copied().max().unwrap_or(0);
+        (mean, min, max)
+    }
+
+    for metrics in round_trip_metrics.values() {
+        if let Some(relative_var) = metrics.relative_variance() {
+            if relative_var > state.timing_threshold {
+                violations.push(metrics);
+            }
+        }
+    }
+
+    // Sort by variance (descending)
+    violations.sort_by(|a, b| {
+        b.relative_variance()
+            .partial_cmp(&a.relative_variance())
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    // Report violations
+    if !violations.is_empty() {
+        writeln!(
+            out,
+            "VIOLATIONS DETECTED (timing variance exceeds threshold):"
+        )
+        .unwrap();
+
+        for metrics in &violations {
+            let rel_var = metrics.relative_variance().unwrap_or(0.0);
+            let (mean, min, max) = get_mean_min_max(&metrics.mtime_deltas);
+            writeln!(
+                out,
+                "Domain: {}, Samples: {}, Variance: {:.2}%, mtime delta - Mean: {:.0}, Min: {}, Max: {}",
+                metrics.domain,
+                metrics.mtime_deltas.len(),
+                rel_var * 100.0,
+                mean, min, max
+            )
+            .unwrap();
         }
     }
 }
