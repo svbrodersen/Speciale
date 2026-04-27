@@ -14,15 +14,16 @@
 - [x] Move to latex.
 
 ## FreeRTOS
-- [ ] Adding deterministic domain switch with flushing. 
+- [x] Adding deterministic domain switch with flushing. 
+- [x] Fix the xQueue domain event adding back to ready list. Somehow has to track the domain of the item.
 - [ ] Deterministic timer interrupts.
-- [ ] Deterministic data sharing through Queues.
-- [ ] Partitioning the OS, different system calls.
 
 ## QEMU
-
 - [ ] How accurate is the cycle?
+- [ ] Fix FreeRTOS plugin version and test domain scheduler
 
 ## User level constant time related work
 - [ ] Evaluate user level constant time implementations. Why this is insufficient and why it is still needed even in a "safe" OS?
 - [ ] Tools for showing timing channel. dudect, why the plugin is needed for OS evaluation.
+
+
