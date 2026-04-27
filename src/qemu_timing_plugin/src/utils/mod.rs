@@ -6,22 +6,24 @@ mod s3k;
 #[cfg(feature = "s3k")]
 pub use self::s3k::S3KDomainRetriever as ActiveRetriever;
 #[cfg(feature = "s3k")]
-pub use self::s3k::is_timing_start;
+pub use self::s3k::is_temporal_fence;
 #[cfg(feature = "s3k")]
 pub use self::s3k::is_timing_end;
 #[cfg(feature = "s3k")]
-pub use self::s3k::is_temporal_fence;
+pub use self::s3k::is_timing_start;
 
 #[cfg(feature = "FreeRTOS")]
 mod FreeRTOS;
 #[cfg(feature = "FreeRTOS")]
 pub use self::FreeRTOS::FreeRTOSDomainRetriever as ActiveRetriever;
 #[cfg(feature = "FreeRTOS")]
-pub use self::FreeRTOS::is_timing_start;
+pub use self::FreeRTOS::is_round_trip_marker;
+#[cfg(feature = "FreeRTOS")]
+pub use self::FreeRTOS::is_temporal_fence;
 #[cfg(feature = "FreeRTOS")]
 pub use self::FreeRTOS::is_timing_end;
 #[cfg(feature = "FreeRTOS")]
-pub use self::FreeRTOS::is_temporal_fence;
+pub use self::FreeRTOS::is_timing_start;
 
 #[cfg(not(feature = "retriever"))]
 mod noop;
@@ -30,9 +32,9 @@ pub type ActiveRetriever = noop::NoOpRetriever;
 #[cfg(not(feature = "retriever"))]
 pub use self::noop::is_temporal_fence;
 #[cfg(not(feature = "retriever"))]
-pub use self::noop::is_timing_start;
-#[cfg(not(feature = "retriever"))]
 pub use self::noop::is_timing_end;
+#[cfg(not(feature = "retriever"))]
+pub use self::noop::is_timing_start;
 
 pub trait DomainRetriever: Send + Sync + 'static {
     fn new(cores: usize, elf_file: &str) -> Self;
@@ -45,6 +47,12 @@ pub trait DomainRetriever: Send + Sync + 'static {
     /// Default implementation returns false (no SPM regions).
     fn is_spm_address(&self, _addr: usize) -> bool {
         false
+    }
+
+    /// Read the machine time (`mtime`).
+    /// Default implementation returns `None` (not supported).
+    fn read_mtime(&self) -> Option<u64> {
+        None
     }
 }
 
