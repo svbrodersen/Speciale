@@ -1,5 +1,5 @@
 %! TeX program = lualatex
-\documentclass[12pt]{article}
+\documentclass[12pt, draft]{article}
 
 \usepackage{amsmath}
 \usepackage{url}
@@ -16,6 +16,8 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{hyphenat} % Allow break in config flags
+\usepackage{algorithm,algorithmicx,algpseudocode}
+\usepackage[style=ieee, backend=biber]{biblatex}
 
 \lstdefinelanguage[RISC-V]{Assembler}
 {
@@ -75,8 +77,6 @@
     xrightmargin=1em,
     captionpos=b,
 }
-\usepackage{algorithm,algorithmicx,algpseudocode}
-\usepackage[style=ieee, backend=biber]{biblatex}
 
 \usetikzlibrary{shapes, positioning, decorations.pathreplacing}
 
@@ -107,6 +107,8 @@
 
 
 \input{sections/scheduling}
+\input{sections/evaluation}
+\input{sections/discussion}
 
 {
 	\emergencystretch=1em

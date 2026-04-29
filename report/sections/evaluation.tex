@@ -1,0 +1,133 @@
+\section{Evaluation}
+
+\subsection{The blinky example}
+\begin{figure}
+  \begin{center}
+    \include{figures/blinky_timeline}
+  \end{center}
+  \caption{Timeline of the Blinky Domain Scheduling}\label{fig:blinky_timeline}
+\end{figure}
+
+
+The RISC-V mpu port includes a standard \texttt{mpu\_blinky.c} example. The
+example program creates two tasks, a sender and a receiver. The sender adds a
+message to a \texttt{Queue} at a set interval, and the receiver reads from the
+\texttt{Queue} whenever there is a message available. After a set amount of
+message passing, the sender reads from a restricted memory address causing a
+pmp fault that gets handled by a custom exception handler. For cross-domain
+communication, a similar approach can be used to check that the tasks are still
+capable of passing messages to each other. The domain level scheduler is setup
+such, that the main function is called with elevated privilege and it is
+capable of creating queues and new tasks. The tasks creation is modified to
+make use of the new api, such that we create two new tasks, each in a separate
+domain. The scheduling timeline of this modified example is provided in
+Figure~\ref{fig:blinky_timeline}.
+
+That is, when the initial program is started and we are within domain 0, then
+domain 0 has given up 2 time slices for the Sender (domain 2), and 2 time
+slices for the Receiver domain (Domain 1). As it itself finishes execution, the
+rest of its time slices will simply be used by the idle task. Each task is
+capable of reading the current domain tick, and the demo simply prints this,
+when execution starts. Running the demo, we get the following snippet of output:
+\begin{lstlisting}[language={c}]
+Sending to task, DomainTick: 4
+Message received from task, DomainTick: 2
+Sending to task, DomainTick: 4
+Message received from task, DomainTick: 2
+Sending to task, DomainTick: 4
+Message received from task, DomainTick: 2
+Sending to task, DomainTick: 4
+Message received from task, DomainTick: 2
+Sending to task, DomainTick: 4
+prvQueueSendTask: trying to access privileged data
+
+=== PMP ACCESS FAULT ===
+mcause  = 0x00000005
+mepc    = 0x80003730
+mtval   = 0x80180001
+mstatus = 0x00000080
+type    = load
+task    = Tx
+system halted.
+\end{lstlisting}
+
+The output does show some interesting properties with regards to the domain
+scheduler. First, although the receive task is scheduled before the sender
+task, given that there is no message to read in the Queue, it simply sleeps for
+it's very first execution scheduling the Idle task. Next, we see that the
+sending happens always at the specified DomainTick 4, and that the Receiving
+also happens within the expected domain tick 2. Another interesting note is,
+that in the very last iteration before the access fault, the receiver tasks is
+never able to receive the final message, as the sender continues uninterrupted
+before causing the fault.
+
+\paragraph{Constant time:} While this does show, that the Domain Tick seems
+constant for both\footnote{If it varies then the likely culprit is the
+priority based scheduler within each domain.}, it does not show that each
+domain runs for a constant amount of time before interruptions. To truly show
+that this runs in constant time, we are limited with the tools available. QEMU
+does not provide cycle-accurate emulation, and by default makes use of the host
+system clock for interrupts, meaning that the demos execution is depended on
+the rest of the host system. This issue is something that will be discussed
+later in Section~\ref{sec:discussion}. QEMU does however provide a flag known
+as \texttt{-icount}, which provides deterministic execution from the guest
+point of view. Instead of making use of the host interrupt, QEMU instead makes
+use of instruction counting to determine elapsed time
+\cite{TCGInstructionCounting}. While this by no means is cycle accurate and
+does not take into account any microarchitectural state, it can be used to
+approximate the time each domain is allowed to run before a scheduling occurs.
+
+In RISC-V the \texttt{rdcycle} instruction reads XLEN bits of the
+\texttt{cycle} counter, which holds a count of the number of clock cycles
+executed by the processor core on which the hart is running from an arbitrary
+start time in the past. Given FreeRTOS runs with XLEN 32-bit, we have to also
+make use of the \texttt{rdcycleh} instruction, to read the upper 32 bits of the
+cycle counter, to get the true cycle count. This means, that we can find a round trip time of the domain switch in the following fashion:
+\begin{lstlisting}[language={c}]
+static uint64_t ullPrevMtime = 0;
+
+uint64_t ullMtime;
+uint64_t ullMtimeHigh;
+
+asm volatile ("rdtime %0" : "=r"(ullMtime));
+asm volatile ("rdtimeh %0" : "=r"(ullMtimeHigh));
+ullMtime = ((ullMtimeHigh << 32) | ullMtime);
+\end{lstlisting}
+
+By saving the previous cycle count from when we last reached this and
+calculating the round trip time, we can make the demo print this round trip
+time for each domain, giving us output like the following:
+
+\begin{verbatim}
+...
+Sending to task, DomainTick: 4
+Round Trip: domain=2 delta=50000
+Round Trip: domain=0 delta=50000
+Message received from task, DomainTick: 2
+Round Trip: domain=1 delta=50000
+Round Trip: domain=2 delta=50000
+Round Trip: domain=0 delta=50001
+Round Trip: domain=1 delta=49999
+Round Trip: domain=2 delta=50000
+Round Trip: domain=0 delta=50000
+Round Trip: domain=1 delta=50000
+Round Trip: domain=2 delta=50000
+Round Trip: domain=0 delta=50000
+Round Trip: domain=1 delta=50000
+Round Trip: domain=2 delta=50000
+Round Trip: domain=0 delta=50000
+Round Trip: domain=1 delta=50000
+Sending to task, DomainTick: 4
+Round Trip: domain=2 delta=50000
+Round Trip: domain=0 delta=50000
+Message received from task, DomainTick: 2
+...
+\end{verbatim}
+
+Which shows that each domain runs in the same number of cycles
+with a variance of 1. This variance seems negligible, and could most likely be
+attributed in some small descreptensy in how QEMU handles the machine timer
+interrupt.
+
+
+
