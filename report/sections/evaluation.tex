@@ -54,7 +54,7 @@ system halted.
 The output does show some interesting properties with regards to the domain
 scheduler. First, although the receive task is scheduled before the sender
 task, given that there is no message to read in the Queue, it simply sleeps for
-it's very first execution scheduling the Idle task. Next, we see that the
+its very first execution scheduling the Idle task. Next, we see that the
 sending happens always at the specified DomainTick 4, and that the Receiving
 also happens within the expected domain tick 2. Another interesting note is,
 that in the very last iteration before the access fault, the receiver tasks is
@@ -68,7 +68,7 @@ scheduler within each domain.}, it does not show that each domain runs for a
 constant amount of time before interruptions. To truly show that this runs in
 constant time, we are limited with the tools available. QEMU does not provide
 cycle-accurate emulation, and by default makes use of the host system clock for
-interrupts, meaning that the demos execution is depended on the rest of the
+interrupts, meaning that the demo's execution is dependent on the rest of the
 host system. This issue is something that will be discussed later in
 Section~\ref{sec:qemu_cycle_accuracy}. QEMU does however provide a flag known as
 \texttt{-icount}, which provides deterministic execution from the guest point
@@ -128,7 +128,7 @@ Message received from task, DomainTick: 2
 
 Which shows that each domain runs in the same number of cycles
 with a variance of 1. This variance seems negligible, and could most likely be
-attributed in some small descreptensy in how QEMU handles the machine timer
+attributed in some small discrepancy in how QEMU handles the machine timer
 interrupt.
 
 

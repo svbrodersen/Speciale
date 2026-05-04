@@ -1,7 +1,7 @@
-\subsection{The missing OS Abstraction: sel4}
+\subsection{The missing OS Abstraction: seL4}
 In the paper Time Protection: The missing OS Abstraction
-\cite{ge2019} a customized version of the sel4 microkernel is
-presented, which aims to protect against all possible timing channels via. the
+\cite{ge2019} a customized version of the seL4 microkernel is
+presented, which aims to protect against all possible timing channels via the
 OS.
 
 \subsubsection{Threat model}
@@ -45,13 +45,13 @@ all, they provide the following five core requirements:
 
 \subsubsection{Cloning the OS}
 In the paper they introduce a method for cloning the OS. A userland program,
-which has the capability of cloning gives up a subset of it's own allocated
+which has the capability of cloning gives up a subset of its own allocated
 memory for the clone call, and the kernel then creates a kernel image copy in
 the user-supplied memory. This memory now gets marked as kernel data, meaning
 that the userland can not change it, but that any syscalls will run through
 this kernel copy.
 
-This works via the security domains of sel4. The initial kernel creates a
+This works via the security domains of seL4. The initial kernel creates a
 master Kernel\_Image which represents the present kernel and includes the clone
 right. It hands this capability along with the size of the image to the initial
 user process, which then partitions the memory into security domains, where it

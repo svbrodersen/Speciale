@@ -2,13 +2,13 @@
 S3k provides an implementation for a real time operating system, which aims to
 provide a capability-based multicore partitioning kernel for embedded RISC-V
 systems. S3K provides spatial and temporal isolation\footnote{Spatial means
-separation of memory, where as temporal indicates that the failure of one
+separation of memory, whereas temporal indicates that the failure of one
 component should not affect the schedulability of another.}, time protection
 and dynamic resource reconfiguration. Further, S3K's scheduler guarantees
 deterministic process dispatch, free from microarchitectural interference.
 \cite{karlsson2025}
 
-It does via. 3 main attributes
+It does so via 3 main attributes
 \begin{itemize}
   \item Capability model;
   \item Time-driven capability based scheduler with systematic use of
@@ -25,7 +25,7 @@ capabilities. These processes are designed to host bare-metal real-time
 operating systems or applications, with the kernel acting as a bare-metal
 hypervisor. The number of processes is statically defined at compile time.
 Processes use \emph{monitor capabilities} and capability revocation to manage
-other processes, reclaim resourceses, and repurpose existing processes for new
+other processes, reclaim resources, and repurpose existing processes for new
 tasks. \cite{karlsson2025}
 
 \paragraph{Capabilities:}
@@ -43,7 +43,7 @@ of computing resources while maintaining process isolation. \cite{karlsson2025}
 A major frame is divided into a fixed number of time slots, each with equal
 duration. A single time slot represents the smallest scheduling unit. A time
 slice capability grants control over a range of time slots on a hardware
-thread(hart). The process that owns the time slice capability receives a minor
+thread (hart). The process that owns the time slice capability receives a minor
 frame, which is less than or equal to the major frame. Each time slice
 capability has an \emph{enable} field, which specifies if the minor frame is
 active. If set, the owner of the time slice is scheduled during the
@@ -88,7 +88,7 @@ highest recorded non-preemptable cost of 1,195 cpu cycles, together with an
 estimated 16,000 cycles for data cache write-back for temporal fence, they set
 the CSPAD to 18,000 cycles for the fence.t instruction.
 
-\paragraph{Scheduling Jitter:} A measurer process, shceduled once per major
+\paragraph{Scheduling Jitter:} A measurer process, scheduled once per major
 frame, records the \emph{mcycle} performance counter value upon dispatch. To
 simulate interference they introduce interfering processes that execute random
 system calls and pollute the cache. They find, that when the measurer
