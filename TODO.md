@@ -16,14 +16,36 @@
 ## FreeRTOS
 - [x] Adding deterministic domain switch with flushing. 
 - [x] Fix the xQueue domain event adding back to ready list. Somehow has to track the domain of the item.
-- [ ] Deterministic timer interrupts.
+- [x] Deterministic timer interrupts.
 
 ## QEMU
-- [ ] How accurate is the cycle?
-- [ ] Fix FreeRTOS plugin version and test domain scheduler
+- [x] How accurate is the cycle?
+- [x] Fix FreeRTOS plugin version and test domain scheduler
 
 ## User level constant time related work
-- [ ] Evaluate user level constant time implementations. Why this is insufficient and why it is still needed even in a "safe" OS?
-- [ ] Tools for showing timing channel. dudect, why the plugin is needed for OS evaluation.
+- [x] Evaluate user level constant time implementations. Why this is insufficient and why it is still needed even in a "safe" OS?
 
 
+## Report
+
+- [x] Create domain constant time in regards to available information. Create
+  some illustration and example of why it is needed with linked lists.
+- [x] Figure out missing parts of report, and what else should be added.
+
+- [ ] Read over current sections.
+
+- [ ] Discussion
+  - [ ] what is possible
+  - [ ] L2 cache 
+- [ ] Evaluation
+  - [ ] Limitation
+  - [ ] Privilege mode making isolation hard.
+  - [ ] Example of within domain communication as well as external communication.
+
+- [ ] Future work
+- [ ] Conclusion
+
+
+## Future work
+
+- [ ] Make it simple to create tasks within a domain. Currently cumbersome.
