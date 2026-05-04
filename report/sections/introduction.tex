@@ -1,37 +1,41 @@
 \section{Introduction}
-Information channels are methods of communication and generally ones not
-intended for it. One such example is timing channels, which occur when a
-programs execution time varies based on information throughout the program
-execution. This way timing channels bypass the operating system's (OS's)
-security enforcement leaking information through the timing of observable
-events. Prominent examples of such channels includes side channels in
-cryptographic libraries \cite{dhem2000,
-aciicmez2005}. Further, attacks showed that it is possible
-to do across VM's running in a cloud computing setting \cite{ristenpart2009}. Not
-only that, side-effects from out-of-order executions on modern processors gave
-way for the meltdown attacks to read arbitrary kernel-memory locations
-including personal data and passwords \cite{lipp2018}. Mitigations against the
-Meltdown attacks, where kernel memory is hidden from user space are moving
-forward \cite{corbet2017} Mitigations against these attacks
-have been proposed. Notably in cryptography a push towards more constant-time
-libraries gave way to implementations such as FaCT \cite{cauligi2019}, which aims to
-guarantee constant-time execution with respect to information marked secret.
-However, while this does produce seemingly constant-time program, CPU's
-speculative execution still leaves doors open for timing attacks such as the
-ones seen in \cite{kocher2019}.
+Information channels are methods of communication in an unintended manner. One
+such example is timing channels, which occur when a tasks execution time varies
+based on the execution of another task in the system. Whether inadvertently,
+i.e. a side-channel, or purposely the other task is giving information to the
+current task by altering its execution time. This way timing channels bypass
+the operating system's (OS's) security enforcement leaking information through
+timing of observable events. At first many attacks were targeting different
+cryptographic libraries and leaking information about secret keys through these
+timing channels \cite{dhem2000, aciicmez2005}. Further, attacks have shown that
+it is possible to gather information across VMs running in a cloud computing
+setting \cite{ristenpart2009}. Not only that, side-effects from out-of-order
+executions on modern processors gave way for the meltdown attacks to read
+arbitrary kernel-memory locations including personal data and passwords
+\cite{lipp2018}. Different mitigations are moving forward, such as hiding
+kernel memory from user space tasks \cite{corbet2017} to prevent Meltdown
+attacks, and a move to more constant time programming in cryptographic
+libraries with help from DSL languages such as FaCT \cite{cauligi2019} that
+aims to guarantee constant-time execution with respect to secretly marked
+information. While these mitigations do prove valuable, more modern CPU's
+speculative execution still leaves doors open for more sophisticated attacks
+such as the ones seen in \cite{kocher2019}.
 
 The attack front is clear, but the solution is not as simple. While some
 proposed solutions focus on the user side implementing secure programs, this
-creates a huge burden on the programmer to implement secure code. Instead
-implementations of secure microkernels \cite{karlsson2025, ge2019}
-attempt to guarantee security through the OS. The operating system would then
-be in charge of partitioning domains in regards to the microarchitectural
-state, such that no channel between domains is possible. This is already done
-for memory, and examples of separation kernels on the memory level have been
-formally proven \cite{murray2013}, similar work attempts to
-provide same rigorous proof for the absence of timing channels
-\cite{buckley2023}. However, currently no formal proof for multicore systems
-exists, and the proof also relies on the secure system to track the touched
-addresses.
+creates a huge burden on the developer to implement secure code. Instead
+implementations of secure microkernels \cite{karlsson2025, ge2019} attempt to
+guarantee security through the OS. The operating system would then be in charge
+of partitioning domains in regards to the microarchitectural state, such that
+no channel between domains is possible. This is already done for memory, and
+examples of formally proven memory safe kernels are available\cite{murray2013}.
+Attempts to create similar proof against the presence of timing channels have
+been carried out \cite{buckley2023}, but as far as this paper is aware no
+kernel is formally verified against timing channels.
 
-
+Many of these attempts are focussed on the creation of a highly secure OS from
+the ground up, providing timing protection as a foundation of the OS. While
+this is a more robust solution for a truly safe OS the authors of \cite{ge2019}
+hint that "there is no reason time protection cannot be implemented in other
+systems...", something which could bring timing protection to more main stream
+applications and something this thesis will attempt to investigate further.

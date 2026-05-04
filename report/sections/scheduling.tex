@@ -415,7 +415,7 @@ to the current domain. In the case that there is no next domain the
 \texttt{SIZE\_MAX} is used.
 
 With this in place, it allows finding the encompassing domain as follows:
-\begin{lstlisting}[language={c}, caption={Function for creating domains}, label={lst:create_domain}]
+\begin{lstlisting}[language={c}]
 static BaseType_t prvFindContainingBlock(
     size_t uxFirstBlock,
     size_t start,
