@@ -173,6 +173,22 @@ impl DomainRetriever for S3KDomainRetriever {
 
         (QEMU_KERNEL_START..QEMU_KERNEL_END).contains(&addr)
     }
+
+    /// Read the CLINT `mtime` register (QEMU virt: 0x0200bff8).
+    fn read_mtime(&self) -> Option<u64> {
+        const MTIME_ADDR: u64 = 0x0200_bff8;
+        unsafe {
+            let mutex_guard = self.proc_buf.lock().unwrap();
+            let proc_buf = mutex_guard.0;
+            g_byte_array_set_size(proc_buf, 8);
+            let succ = qemu_plugin_read_memory_vaddr(MTIME_ADDR, proc_buf, 8);
+            if succ {
+                Some(u64::from_le_bytes(*((*proc_buf).data as *const [u8; 8])))
+            } else {
+                None
+            }
+        }
+    }
 }
 
 // Check for temporal_fence instruction (magic NOP)
@@ -192,4 +208,10 @@ pub fn is_timing_start(insn_opcode: u64) -> bool {
 // RISC-V: addi x0, x0, 13 = 0x00c00013
 pub fn is_timing_end(insn_opcode: u64) -> bool {
     insn_opcode == 0x00d0_0013
+}
+
+// Check for domain round-trip marker instruction (magic NOP)
+// RISC-V: addi x0, x0, 14 = 0x00e00013
+pub fn is_round_trip_marker(insn_opcode: u64) -> bool {
+    insn_opcode == 0x00e0_0013
 }

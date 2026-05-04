@@ -25,3 +25,7 @@ pub fn is_temporal_fence(_insn_opcode: u64) -> bool {
 pub fn is_timing_end(_insn_opcode: u64) -> bool {
     false
 }
+
+pub fn is_round_trip_marker(_insn_opcode: u64) -> bool {
+    false
+}
