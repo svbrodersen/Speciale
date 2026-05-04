@@ -71,7 +71,7 @@ Generally two main categories of covert channels exists; \textbf{Storage
 channels:} which modify some stored object, e.g. a file or some metadata;
 \textbf{Timing channels:} which change the time of different observable events
 for the receiver. For this thesis storage channels are not referenced, as
-kernels such as sel4 have already proven the absence of them
+kernels such as seL4 have already proven the absence of them
 \cite{murray2013}.
 
 Covert timing channels work through the same mechanisms as the aforementioned
@@ -122,7 +122,7 @@ covert channels it must be, but quite a significant amount of timing channels
 can be closed at the user-level if one allows a distinction between different
 information types.
 
-One such example is the FACT DSL language \cite{cauligi2019}. FaCT sought to
+One such example is the FaCT DSL \cite{cauligi2019}. FaCT sought to
 address the challenges of writing constant-time cryptographic code, which does
 not depend on "secret" information. That is, instead of treating all
 information as possible leakage, one indicates what information must not be
@@ -131,17 +131,17 @@ isolated execution this will not leak. FaCT works by making the code constant
 time in regards to the sensitive information, and any branching is only
 dependent on non-sensitive information. The idea being, that any attack can not
 measure the execution time of the encryption code to gather information about
-sensitive information. This does work to an extend, by guaranteeing constant
+sensitive information. This does work to an extent, by guaranteeing constant
 time at the C program level, but compiler introduced or variable execution time
 of instructions based on inputs. For example, the division operator is
-notoriously known to have it's execution dependent on the numerator
+notoriously known to have its execution dependent on the numerator
 \cite{schroder, jin2023}. Mitigations against these attacks require help from
 hardware, and systematic use of instructions such as the temporal
 fence\cite{wistoff2023} are still needed to close these channels.
 
 Furthermore, information that the operating system holds about a given process
 could also be deemed sensitive. For example, in highly secure environments the
-run ability of a task could be deemed sensitive, and no changes on the user
+runnability of a task could be deemed sensitive, and no changes on the user
 level side will ever close such a timing channels, as the OS scheduler will
 unknowingly always leak this information through its scheduling decisions.
 Therefore, while user level implementations do help significantly, the issue

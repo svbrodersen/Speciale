@@ -49,7 +49,7 @@ uses time slice based scheduling within the priority. An example of this can be
 seen visualized in Figure~\ref{fig:prio_sched}, where tasks A and B are within
 the same priority. Here, if we assume that A and B are runnable, then they
 would be scheduled before the lower priority C and D. This would allow C and D
-to gather information about the run ability of the entire High priority noting
+to gather information about the runnability of the entire High priority noting
 that either A or B was runnable if C or D are delayed. However, within the same
 domain tasks A and B can not gather information about each other. Say for
 example A gets to run, then it does not know whether task B is runnable or not,
@@ -90,7 +90,7 @@ finished its execution.
 \paragraph{Domain scheduling:}
 Another approach is the one seen in \cite{ge2019}, which is the domain level
 scheduler. The general idea is quite similar to the approach seen before, but
-the idea of priorities have are removed entirely and instead we focus on
+the idea of priorities is removed entirely and instead we focus on
 domains. Each domain can have multiple tasks within, where we do not care about
 timing channels and only between different domains do we care about timing
 protection. In Figure~\ref{fig:static_domain_sched} an illustration of this
@@ -106,7 +106,7 @@ more freedom to do as pleased. For example, one could imagine having a regular
 round robin scheduler within a domain, which then allows more CPU utilization
 within this specific domain and less unused resources.  
 
-An extension of this approach would be the on seen in
+An extension of this approach would be the one seen in
 Figure~\ref{fig:dynamic_domain_sched}, which closely follows the capability
 based scheduler in \cite{karlsson2025}. The idea is, that within a specific
 domain, we can give up some of the attributed time to create a new subdomain.
@@ -179,7 +179,7 @@ BaseType_t xTaskCreateRestricted(
 \end{lstlisting}
 
 That is, we can create a task which has access to a number of memory regions
-defined by the region start address (pvBaseAdddress), the region size in bytes
+defined by the region start address (pvBaseAddress), the region size in bytes
 (ulLengthInBytes) and the access permissions for the region (ulParameters). The
 function parameter uxPriority is also of importance. By default this function
 creates tasks running in user mode, which restricts access to specific system
@@ -224,7 +224,7 @@ With this, no more of the external api has to be changed.
 
 \subsubsection{New configuration flags}
 To enable the functionality of domain level scheduling, a few new compile flags
-needs to be introduces.
+need to be introduced.
 
 \paragraph{configENABLE\_DOMAINS} A binary flag to indicate whether or not to
 use the domain level scheduler alongside the default priority based scheduler.
@@ -234,7 +234,7 @@ domain scheduler to take into account. As mentioned before this flag also
 constitutes the maximum number of possible domains, such that any domain
 scheduling decisions can be done in constant time.
 
-\paragraph{connfigNUM\_TICKS\_PER\_SLICE} The number of timer interrupt ticks to
+\paragraph{configNUM\_TICKS\_PER\_SLICE} The number of timer interrupt ticks to
 constitute a single time slice. Say that the ticks is defined as
 \texttt{\#define configTICK\_RATE\_HZ ((TickType\_t) 1000)} with \texttt{\#define
 configNUM\_TICKS\_PER\_SLICE (5)}, this would mean that a single time slice is
@@ -266,14 +266,13 @@ freertos_risc_v_mtimer_interrupt_handler:
     call vTaskSwitchContext
 \end{lstlisting}
 
-It increments a global tick, and switches the task content. However, FreeRTOS
+It increments a global tick, and switches the task context. However, FreeRTOS
 only increments the global \texttt{xTickCount} if the priority based scheduler
 is running and not suspended for critical handling. This means, we have to
 introduce our own proxy for Ticks, as the per domain \texttt{xTickCount} would
 leak information about other scheduler states and possibly delay the domain
 switching. For our purposes we can hook into the pre-existing
-\texttt{xTaskIncrementTick} function, but add tracking for our own tick. 
-as check for a domain switch.
+\texttt{xTaskIncrementTick} function, and check for a domain switch.
 
 \begin{lstlisting}[language={c}, caption={Custom hook for xTaskIncrementTick}, label={lst:inc_tick}]
 /* Static variable to contain the current Domain Tick */
@@ -294,7 +293,7 @@ xEffectiveTick  = xConstTickCount;
 /* Update the Domain tick in regards to the effective tick */
 xDomainTick = (xEffectiveTick / configNUM_TICKS_PER_SLICE) % configNUM_TIME_SLICES;
 
-/* Time slot expired or wraparound */
+/* Time slot expired or wrap-around */
 if( xDomainTick >= pxCurrentDomainIndex + xDomains[pxCurrentDomainIndex].uxLength
     || xDomainTick < pxCurrentDomainIndex )
 {
@@ -445,7 +444,7 @@ static BaseType_t prvFindContainingBlock(
 \end{lstlisting}
 
 Once we have found the encompassing group of time slices we have to create the
-new domain, which is done via index arithmetics as seen below: 
+new domain, which is done via index arithmetic as seen below: 
 
 \begin{lstlisting}[language={c}]
 ...
@@ -499,7 +498,7 @@ linked list, and update it to point to the right fragment if it was created or
 the next block. In the case that there is no next block, then it was previously
 set to SIZE\_MAX indicating again, that there is no next block.
 
-At last, we have to update the \texttt{xDomains} to include the new created
+At last, we have to update the \texttt{xDomains} to include the newly created
 domain, which is simply done as follows:
 
 \begin{lstlisting}[language={c}]
@@ -515,7 +514,7 @@ xDomainInfo[uxChildDomainID].uxFirstBlock = start;
 \end{lstlisting}
 
 The global xDomainInfo is the array used for scheduling the TCB within each
-domains, and is indexable by the doamin id rather than the start of the time
+domains, and is indexable by the domain id rather than the start of the time
 slice block.
 
 \subsubsection{Per domain scheduling}
@@ -578,7 +577,7 @@ This is generally also fine, except that when moving a task to the ready list,
 the task might be outside the domain that is currently running. When the Queue
 moves a task to the ready list, it does so through the function
 \texttt{xTaskRemoveFromEventList}. This function takes a linked list of tasks,
-namely the tasks waiting on the queue, removes the first tasks from the list
+namely the tasks waiting on the queue, removes the first task from the list
 and moves the given task into the ready list if the scheduler is suspended and
 otherwise moves it to the \texttt{xPendingReadyList} to wait for the next
 scheduler suspension before moving into the true ready list. If the new task

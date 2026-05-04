@@ -6,25 +6,25 @@ demonstrated that there currently exists presence of serious timing channels
 within the in-order RISC-V core and confirm that the current ISA lacks
 mechanisms to close them reliably.
 
-The initially present two version of the \texttt{fence.t} instruction, a basic
+The initially present two versions of the \texttt{fence.t} instruction, a basic
 flush which exclusively flushes the L1 data and instruction caches, the TLBs,
 and the branch predictors. Through their evaluation they find that further
 stateful components such as the LFSR providing pseudo-random index sequence for
 the cache replacement policy and the round-robin memory arbiters of the core
 still leak data in the microarchitectural state. As such, they also implement a
-Full Flush, which clears these components along with the once in the basic
+Full Flush, which clears these components along with the ones in the basic
 flush. To use this full flush efficiently the \texttt{fence.t} proceeds as follows.
 \begin{itemize}
   \item Save the program counter.
   \item Save locally modified (dirty) architectural state.
   \item Drain pending transactions.
   \item Clear components that are not cleared on reset.
-  \item Assert Microreset. Clearning all flip-flops containing non-architectural state.
+  \item Assert Microreset. Clearing all flip-flops containing non-architectural state.
 \end{itemize}
 
 A full explanation of each step is provided in \cite{wistoff2023}.
 
-Given this implementation, they augment the sel4 kernel to always call the
+Given this implementation, they augmented the seL4 kernel to always call the
 \texttt{fence.t} instruction whenever there is a context switch, and they find
 that the overhead is around 0.7\%. It is noted, that this should be seen as a
 pessimistic result due to the use of idle tasks, and that in a setting with
