@@ -1,0 +1,29 @@
+\begin{tikzpicture}[font=\ttfamily]
+    % Style for general text nodes
+    \tikzset{lbl/.style={inner sep=1pt, align=center}}
+
+    % Define vertical coordinates for rows and labels
+    \def\barheight{0.6} % Height of each bar
+    \def\vtopprio{1.5}   % Vertical center of the top bar row
+    \def\ytimeline{\vtopprio - \barheight} % Vertical position of the minor frames timeline
+
+    % Define standard tick positions
+    \def\timeslice{1}
+
+    \path[draw, decorate, decoration=brace] (0, \vtopprio + 0.5) -- (\timeslice * 6, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 0};
+    \draw (0, \vtopprio-\barheight/2) rectangle (\timeslice*6, \vtopprio+\barheight/2) 
+      node[lbl, midway]{Idle};
+
+    % Main timeline axis
+    \draw[thick] (0, \ytimeline) -- (6*\timeslice, \ytimeline);
+
+    % Intermediate ticks (not all but to give structure)
+    \foreach \x in {0, ..., 6} {
+         \draw (\x*\timeslice, \ytimeline-0.05) -- (\x*\timeslice, \ytimeline+0.05);
+    }
+
+    % Central label below the timeline
+    \node[lbl] at ( { 3 * \timeslice }, \ytimeline-0.5 ) {Time Slices};
+
+\end{tikzpicture}
+

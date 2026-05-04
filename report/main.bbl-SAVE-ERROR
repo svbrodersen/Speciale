@@ -1,0 +1,1740 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{kocher2019}{inproceedings}{}{}
+      \name{author}{12}{}{%
+        {{hash=f0a163cdbf4dbde1c36f8457b3e2278e}{%
+           family={Kocher},
+           familyi={K\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+        {{hash=eafaecc2266dc244316f657295446434}{%
+           family={Horn},
+           familyi={H\bibinitperiod},
+           given={Jann},
+           giveni={J\bibinitperiod}}}%
+        {{hash=2c3fca76329df4410f37919bcd49f3e5}{%
+           family={Fogh},
+           familyi={F\bibinitperiod},
+           given={Anders},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a975d7abc1fc5a3fb673ffb9282d9220}{%
+           family={Genkin},
+           familyi={G\bibinitperiod},
+           given={{and}\bibnamedelima Daniel},
+           giveni={a\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=674bea57e03671a89cb3f84cad730696}{%
+           family={Gruss},
+           familyi={G\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=90745f0bee3dd32447e37472dbab6c41}{%
+           family={Haas},
+           familyi={H\bibinitperiod},
+           given={Werner},
+           giveni={W\bibinitperiod}}}%
+        {{hash=d9528fb2869236a3c4d978220eded42c}{%
+           family={Hamburg},
+           familyi={H\bibinitperiod},
+           given={Mike},
+           giveni={M\bibinitperiod}}}%
+        {{hash=06dadd3dad2de585a3fce14dd5e8f779}{%
+           family={Lipp},
+           familyi={L\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+        {{hash=1cdffbc482347edefd718f61814abbc3}{%
+           family={Mangard},
+           familyi={M\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+        {{hash=b38d2f646061589c79aab7b15fec7827}{%
+           family={Prescher},
+           familyi={P\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=463f3d270ca422b7f257c887efd3eed8}{%
+           family={Schwarz},
+           familyi={S\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=cd7579fd1f745b58396f5395d38e1a5c}{%
+           family={Yarom},
+           familyi={Y\bibinitperiod},
+           given={Yuval},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{f9bfb14413b2e52a7f9fdbcb613fd6c0}
+      \strng{fullhash}{cf171050828183a7a57c30af31ca8385}
+      \strng{fullhashraw}{cf171050828183a7a57c30af31ca8385}
+      \strng{bibnamehash}{f9bfb14413b2e52a7f9fdbcb613fd6c0}
+      \strng{authorbibnamehash}{f9bfb14413b2e52a7f9fdbcb613fd6c0}
+      \strng{authornamehash}{f9bfb14413b2e52a7f9fdbcb613fd6c0}
+      \strng{authorfullhash}{cf171050828183a7a57c30af31ca8385}
+      \strng{authorfullhashraw}{cf171050828183a7a57c30af31ca8385}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{40th {{IEEE}} Symposium on Security and Privacy ({{S}}\&{{P}}'19)}
+      \field{title}{Spectre Attacks: {{Exploiting}} Speculative Execution}
+      \field{year}{2019}
+      \field{dateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/5MXEM372/Kocher et al. - 2019 - Spectre attacks Exploiting speculative execution.pdf
+      \endverb
+    \endentry
+    \entry{lipp2018}{inproceedings}{}{}
+      \name{author}{12}{}{%
+        {{hash=06dadd3dad2de585a3fce14dd5e8f779}{%
+           family={Lipp},
+           familyi={L\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+        {{hash=463f3d270ca422b7f257c887efd3eed8}{%
+           family={Schwarz},
+           familyi={S\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=674bea57e03671a89cb3f84cad730696}{%
+           family={Gruss},
+           familyi={G\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=b38d2f646061589c79aab7b15fec7827}{%
+           family={Prescher},
+           familyi={P\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=90745f0bee3dd32447e37472dbab6c41}{%
+           family={Haas},
+           familyi={H\bibinitperiod},
+           given={Werner},
+           giveni={W\bibinitperiod}}}%
+        {{hash=2c3fca76329df4410f37919bcd49f3e5}{%
+           family={Fogh},
+           familyi={F\bibinitperiod},
+           given={Anders},
+           giveni={A\bibinitperiod}}}%
+        {{hash=eafaecc2266dc244316f657295446434}{%
+           family={Horn},
+           familyi={H\bibinitperiod},
+           given={Jann},
+           giveni={J\bibinitperiod}}}%
+        {{hash=1cdffbc482347edefd718f61814abbc3}{%
+           family={Mangard},
+           familyi={M\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+        {{hash=f0a163cdbf4dbde1c36f8457b3e2278e}{%
+           family={Kocher},
+           familyi={K\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+        {{hash=9b8ddec78ab1bf52f758858ca3928a61}{%
+           family={Genkin},
+           familyi={G\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=cd7579fd1f745b58396f5395d38e1a5c}{%
+           family={Yarom},
+           familyi={Y\bibinitperiod},
+           given={Yuval},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=d9528fb2869236a3c4d978220eded42c}{%
+           family={Hamburg},
+           familyi={H\bibinitperiod},
+           given={Mike},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{bcb27dc731e81c8bc1f2c51ea67b22f9}
+      \strng{fullhash}{607f901c3c3ee7264475c79a031a7051}
+      \strng{fullhashraw}{607f901c3c3ee7264475c79a031a7051}
+      \strng{bibnamehash}{bcb27dc731e81c8bc1f2c51ea67b22f9}
+      \strng{authorbibnamehash}{bcb27dc731e81c8bc1f2c51ea67b22f9}
+      \strng{authornamehash}{bcb27dc731e81c8bc1f2c51ea67b22f9}
+      \strng{authorfullhash}{607f901c3c3ee7264475c79a031a7051}
+      \strng{authorfullhashraw}{607f901c3c3ee7264475c79a031a7051}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{27th {{USENIX}} Security Symposium ({{USENIX}} Security 18)}
+      \field{title}{Meltdown: {{Reading}} Kernel Memory from User Space}
+      \field{year}{2018}
+      \field{dateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/FVLLKGSD/Lipp et al. - 2018 - Meltdown Reading kernel memory from user space.pdf
+      \endverb
+    \endentry
+    \entry{cauligi2019}{inproceedings}{}{}
+      \name{author}{10}{}{%
+        {{hash=0a1ae063047b389990c4e93b0718973c}{%
+           family={Cauligi},
+           familyi={C\bibinitperiod},
+           given={Sunjay},
+           giveni={S\bibinitperiod}}}%
+        {{hash=08f6883d2c0186e9b9aaa665830f2f84}{%
+           family={Soeller},
+           familyi={S\bibinitperiod},
+           given={Gary},
+           giveni={G\bibinitperiod}}}%
+        {{hash=a1178047a63364329c0bf1b2db152485}{%
+           family={Johannesmeyer},
+           familyi={J\bibinitperiod},
+           given={Brian},
+           giveni={B\bibinitperiod}}}%
+        {{hash=811488f260057d15e125867d9a68261d}{%
+           family={Brown},
+           familyi={B\bibinitperiod},
+           given={Fraser},
+           giveni={F\bibinitperiod}}}%
+        {{hash=576bbde2acf3c9771442761f5c5591a5}{%
+           family={Wahby},
+           familyi={W\bibinitperiod},
+           given={Riad\bibnamedelima S.},
+           giveni={R\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=60730dec5c9c18ac689d92fbfcf22833}{%
+           family={Renner},
+           familyi={R\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=9aaabfdec4a2adeda65fe8b2056786ec}{%
+           family={Grégoire},
+           familyi={G\bibinitperiod},
+           given={Benjamin},
+           giveni={B\bibinitperiod}}}%
+        {{hash=a591e71debdbd9a86231c933df50ef0b}{%
+           family={Barthe},
+           familyi={B\bibinitperiod},
+           given={Gilles},
+           giveni={G\bibinitperiod}}}%
+        {{hash=0b731274f4d045521bac73df419287ea}{%
+           family={Jhala},
+           familyi={J\bibinitperiod},
+           given={Ranjit},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f6e0b0677e8cadae314f722512c851f8}{%
+           family={Stefan},
+           familyi={S\bibinitperiod},
+           given={Deian},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{570529469f2fd39a1cef7ea0411cbbe5}
+      \strng{fullhash}{59912d6665ea470616bc7ce81db226dd}
+      \strng{fullhashraw}{59912d6665ea470616bc7ce81db226dd}
+      \strng{bibnamehash}{570529469f2fd39a1cef7ea0411cbbe5}
+      \strng{authorbibnamehash}{570529469f2fd39a1cef7ea0411cbbe5}
+      \strng{authornamehash}{570529469f2fd39a1cef7ea0411cbbe5}
+      \strng{authorfullhash}{59912d6665ea470616bc7ce81db226dd}
+      \strng{authorfullhashraw}{59912d6665ea470616bc7ce81db226dd}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Real-world cryptographic code is often written in a subset of C intended to execute in constant-time, thereby avoiding timing side channel vulnerabilities. This C subset eschews structured programming as we know it: if-statements, looping constructs, and procedural abstractions can leak timing information when handling sensitive data. The resulting obfuscation has led to subtle bugs, even in widely-used high-profile libraries like OpenSSL. To address the challenge of writing constant-time cryptographic code, we present FaCT, a crypto DSL that provides high-level but safe language constructs. The FaCT compiler uses a secrecy type system to automatically transform potentially timing-sensitive high-level code into low-level, constant-time LLVM bitcode. We develop the language and type system, formalize the constant-time transformation, and present an empirical evaluation that uses FaCT to implement core crypto routines from several open-source projects including OpenSSL, libsodium, and curve25519-donna. Our evaluation shows that FaCT’s design makes it possible to write readable, high-level cryptographic code, with efficient, constant-time behavior.}
+      \field{booktitle}{Proceedings of the 40th {{ACM SIGPLAN Conference}} on {{Programming Language Design}} and {{Implementation}}}
+      \field{day}{8}
+      \field{isbn}{978-1-4503-6712-7}
+      \field{month}{6}
+      \field{series}{{{PLDI}} 2019}
+      \field{shorttitle}{{{FaCT}}}
+      \field{title}{{{FaCT}}: A {{DSL}} for Timing-Sensitive Computation}
+      \field{urlday}{3}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2019}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{174\bibrangedash 189}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1145/3314221.3314605
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/VVDNRV7R/Cauligi et al. - 2019 - FaCT a DSL for timing-sensitive computation.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/3314221.3314605
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/3314221.3314605
+      \endverb
+      \keyw{cryptography,domain-specific language,program transformation}
+    \endentry
+    \entry{wistoff2023}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=849df995ba233943a79fdf522583c7a6}{%
+           family={Wistoff},
+           familyi={W\bibinitperiod},
+           given={Nils},
+           giveni={N\bibinitperiod}}}%
+        {{hash=60a6ce14ca05aa8f1179991b49302a27}{%
+           family={Schneider},
+           familyi={S\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+        {{hash=5797ea2545525fd7b77b2fb6c8c0054f}{%
+           family={Gürkaynak},
+           familyi={G\bibinitperiod},
+           given={Frank\bibnamedelima K.},
+           giveni={F\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=22cbcffae9ccc9f40eba5c2eda212e66}{%
+           family={Heiser},
+           familyi={H\bibinitperiod},
+           given={Gernot},
+           giveni={G\bibinitperiod}}}%
+        {{hash=ba31f0daddec3d14ef6a4f5279845d2d}{%
+           family={Benini},
+           familyi={B\bibinitperiod},
+           given={Luca},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Institute of Electrical and Electronics Engineers (IEEE)}%
+      }
+      \strng{namehash}{229bb94dd647792c9fa3773be743004d}
+      \strng{fullhash}{aaa441fc3a987bf0490815d8a5764ca2}
+      \strng{fullhashraw}{aaa441fc3a987bf0490815d8a5764ca2}
+      \strng{bibnamehash}{aaa441fc3a987bf0490815d8a5764ca2}
+      \strng{authorbibnamehash}{aaa441fc3a987bf0490815d8a5764ca2}
+      \strng{authornamehash}{229bb94dd647792c9fa3773be743004d}
+      \strng{authorfullhash}{aaa441fc3a987bf0490815d8a5764ca2}
+      \strng{authorfullhashraw}{aaa441fc3a987bf0490815d8a5764ca2}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2326-3814}
+      \field{journaltitle}{IEEE Transactions on Computers}
+      \field{month}{5}
+      \field{number}{5}
+      \field{title}{Systematic Prevention of On-Core Timing Channels by Full Temporal Partitioning}
+      \field{volume}{72}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{pages}{1420\bibrangedash 1430}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1109/tc.2022.3212636
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/6EZKJJ3Q/Wistoff et al. - 2023 - Systematic Prevention of On-Core Timing Channels by Full Temporal Partitioning.pdf;/home/simon/Zotero/storage/EP8WQ9Q4/Wistoff et al. - 2023 - Systematic Prevention of On-Core Timing Channels by Full Temporal Partitioning.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://dx.doi.org/10.1109/TC.2022.3212636
+      \endverb
+      \verb{url}
+      \verb http://dx.doi.org/10.1109/TC.2022.3212636
+      \endverb
+      \keyw{computer architecture,covert channels,Germanium,Hardware,microarchitecture,Microarchitecture,security,Security,Software,Timing,Timing channels,Trojan horses}
+    \endentry
+    \entry{wistoff2025}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=849df995ba233943a79fdf522583c7a6}{%
+           family={Wistoff},
+           familyi={W\bibinitperiod},
+           given={Nils},
+           giveni={N\bibinitperiod}}}%
+        {{hash=22cbcffae9ccc9f40eba5c2eda212e66}{%
+           family={Heiser},
+           familyi={H\bibinitperiod},
+           given={Gernot},
+           giveni={G\bibinitperiod}}}%
+        {{hash=ba31f0daddec3d14ef6a4f5279845d2d}{%
+           family={Benini},
+           familyi={B\bibinitperiod},
+           given={Luca},
+           giveni={L\bibinitperiod}}}%
+      }
+      \name{editor}{5}{}{%
+        {{hash=3b071971bbf6aea22fc4d6a1aed01618}{%
+           family={Ruo\bibnamedelima Roch},
+           familyi={R\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={Massimo},
+           giveni={M\bibinitperiod}}}%
+        {{hash=df27e4e899a204ff55a7d493d66286e4}{%
+           family={Bellotti},
+           familyi={B\bibinitperiod},
+           given={Francesco},
+           giveni={F\bibinitperiod}}}%
+        {{hash=2795084d0c7d45f034d3a0fbf6222688}{%
+           family={Berta},
+           familyi={B\bibinitperiod},
+           given={Riccardo},
+           giveni={R\bibinitperiod}}}%
+        {{hash=d54d5e19c6524816ff5be4faa209a88f}{%
+           family={Martina},
+           familyi={M\bibinitperiod},
+           given={Maurizio},
+           giveni={M\bibinitperiod}}}%
+        {{hash=1a0dd8664519622bd2489afb8368628e}{%
+           family={Motto\bibnamedelima Ros},
+           familyi={M\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={Paolo},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer Nature Switzerland}%
+      }
+      \strng{namehash}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{fullhash}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{fullhashraw}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{bibnamehash}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{authorbibnamehash}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{authornamehash}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{authorfullhash}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{authorfullhashraw}{8c61a9e3441675d3f4298d2269e06b03}
+      \strng{editorbibnamehash}{4c0f8ebd80436a95349d391df0fd20e4}
+      \strng{editornamehash}{4a0fa1e9714b98bb781ae98e9c05eaa5}
+      \strng{editorfullhash}{4c0f8ebd80436a95349d391df0fd20e4}
+      \strng{editorfullhashraw}{4c0f8ebd80436a95349d391df0fd20e4}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Microarchitectural timing channels exploit information leakage between security domains that should be isolated, bypassing the operating system’s security boundaries. These channels result from contention for shared microarchitectural state. In the RISC-V instruction set, the temporal fence instruction (fence.t) was proposed to close timing channels by providing an operating system with the means to temporally partition microarchitectural state inexpensively in simple in-order cores. This work explores challenges with fence.t in superscalar out-of-order cores featuring large and pervasive microarchitectural state. To overcome these challenges, we propose a novel SW-supported temporal fence (fence.t.s), which reuses existing mechanisms and supports advanced microarchitectural features, enabling full timing channel protection of an exemplary out-of-order core (OpenC910) at negligible hardware costs and a minimal performance impact of 1.0\%.}
+      \field{booktitle}{Applications in {{Electronics Pervading Industry}}, {{Environment}} and {{Society}}}
+      \field{isbn}{978-3-031-84100-2}
+      \field{langid}{english}
+      \field{shorttitle}{Fence.t.s}
+      \field{title}{Fence.t.s: {{Closing Timing Channels}} in~{{High-Performance Out-of-Order Cores Through ISA-Supported Temporal Partitioning}}}
+      \field{year}{2025}
+      \field{dateera}{ce}
+      \field{pages}{269\bibrangedash 276}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1007/978-3-031-84100-2_32
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/H244NU7S/Wistoff et al. - 2025 - fence.t.s Closing Timing Channels in High-Performance Out-of-Order Cores Through ISA-Supported Temp.pdf
+      \endverb
+    \endentry
+    \entry{ge2019}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=1a908d8b1367b66dfdae1e39a0af6b25}{%
+           family={Ge},
+           familyi={G\bibinitperiod},
+           given={Qian},
+           giveni={Q\bibinitperiod}}}%
+        {{hash=cd7579fd1f745b58396f5395d38e1a5c}{%
+           family={Yarom},
+           familyi={Y\bibinitperiod},
+           given={Yuval},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=5881a73f6ac2cff066229fc279fe63d5}{%
+           family={Chothia},
+           familyi={C\bibinitperiod},
+           given={Tom},
+           giveni={T\bibinitperiod}}}%
+        {{hash=22cbcffae9ccc9f40eba5c2eda212e66}{%
+           family={Heiser},
+           familyi={H\bibinitperiod},
+           given={Gernot},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{48f76dd7aeeb8bb29278e27ae72bd93b}
+      \strng{fullhash}{c10c0dae49da34e9306b8e3ff4d7b5f5}
+      \strng{fullhashraw}{c10c0dae49da34e9306b8e3ff4d7b5f5}
+      \strng{bibnamehash}{c10c0dae49da34e9306b8e3ff4d7b5f5}
+      \strng{authorbibnamehash}{c10c0dae49da34e9306b8e3ff4d7b5f5}
+      \strng{authornamehash}{48f76dd7aeeb8bb29278e27ae72bd93b}
+      \strng{authorfullhash}{c10c0dae49da34e9306b8e3ff4d7b5f5}
+      \strng{authorfullhashraw}{c10c0dae49da34e9306b8e3ff4d7b5f5}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Timing channels enable data leakage that threatens the security of computer systems, from cloud platforms to smartphones and browsers executing untrusted third-party code. Preventing unauthorised information flow is a core duty of the operating system, however, present OSes are unable to prevent timing channels. We argue that OSes must provide time protection, the temporal equivalent of the established memory protection, for isolating security domains. We examine the requirements of time protection, present a design and its implementation in the seL4 microkernel, and evaluate efficacy and cost on x86 and Arm processors.}
+      \field{booktitle}{Proceedings of the {{Fourteenth EuroSys Conference}} 2019}
+      \field{day}{25}
+      \field{isbn}{978-1-4503-6281-8}
+      \field{month}{3}
+      \field{series}{{{EuroSys}} '19}
+      \field{shorttitle}{Time {{Protection}}}
+      \field{title}{Time {{Protection}}: {{The Missing OS Abstraction}}}
+      \field{urlday}{3}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2019}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1\bibrangedash 17}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.1145/3302424.3303976
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/EGT7F4WX/Ge et al. - 2019 - Time Protection The Missing OS Abstraction.pdf;/home/simon/Zotero/storage/ZAT4AB2I/OS_abstraction.md
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/3302424.3303976
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/3302424.3303976
+      \endverb
+    \endentry
+    \entry{karlsson2025}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=6eeef91001a3eb512f59e689a668e4af}{%
+           family={Karlsson},
+           familyi={K\bibinitperiod},
+           given={Henrik},
+           giveni={H\bibinitperiod}}}%
+        {{hash=8e845485cfdffe45735dcedbbb074689}{%
+           family={Guanciale},
+           familyi={G\bibinitperiod},
+           given={Roberto},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{3152c3c8462ad58230530ee04f442f0d}
+      \strng{fullhash}{3152c3c8462ad58230530ee04f442f0d}
+      \strng{fullhashraw}{3152c3c8462ad58230530ee04f442f0d}
+      \strng{bibnamehash}{3152c3c8462ad58230530ee04f442f0d}
+      \strng{authorbibnamehash}{3152c3c8462ad58230530ee04f442f0d}
+      \strng{authornamehash}{3152c3c8462ad58230530ee04f442f0d}
+      \strng{authorfullhash}{3152c3c8462ad58230530ee04f442f0d}
+      \strng{authorfullhashraw}{3152c3c8462ad58230530ee04f442f0d}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Partitioning kernels often face challenges such as static resource allocation and insufficient temporal protection, limiting their applicability in dynamic and mixed-criticality systems where resource needs and security boundaries evolve over time. To address these limitations, we present S3K, a capability-based multicore partitioning kernel for embedded RISC-V systems. S3K provides robust spatial and temporal isolation, time protection, and dynamic resource reconfiguration, enabling flexible adaptation to changing operational requirements while maintaining strong safety and security guarantees. Its capability-based model ensures secure and efficient resource management, while in-kernel data partitioning prevents information leakage and mitigates side-channel attacks. Additionally, S3K's scheduler guarantees deterministic process dispatch, free from microarchitectural interference. Evaluation results demonstrate S3K's effectiveness, showing the absence of scheduling jitter, resistance to intra-core side-channels, and efficient interprocess communication. These results highlight S3K's suitability for safety-critical and security-critical applications in dynamic, resource-constrained environments.}
+      \field{booktitle}{2025 {{IEEE Real-Time Systems Symposium}} ({{RTSS}})}
+      \field{eventtitle}{2025 {{IEEE Real-Time Systems Symposium}} ({{RTSS}})}
+      \field{issn}{2576-3172}
+      \field{month}{12}
+      \field{title}{Partitioning {{Kernel With Capability Controlled Temporal}} and {{Spatial Partitioning}}}
+      \field{urlday}{4}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2025}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{68\bibrangedash 81}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1109/RTSS66672.2025.00015
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/PLLT92SF/Karlsson and Guanciale - 2025 - Partitioning Kernel With Capability Controlled Temporal and Spatial Partitioning.pdf;/home/simon/Zotero/storage/TM2UFST6/11315078.html
+      \endverb
+      \verb{urlraw}
+      \verb https://ieeexplore.ieee.org/document/11315078
+      \endverb
+      \verb{url}
+      \verb https://ieeexplore.ieee.org/document/11315078
+      \endverb
+      \keyw{capability-based systems,Dynamic scheduling,Hardware,Interference,Kernel,multicore scheduling,Protection,real-time systems,Real-time systems,Resistance,Resource management,risc-v,Security,separation kernel,Side-channel attacks,spatial isolation,temporal isolation,time protection}
+    \endentry
+    \entry{dhem2000}{incollection}{}{}
+      \name{author}{6}{}{%
+        {{hash=170e11d00387ba0e626d43f9eb700eb3}{%
+           family={Dhem},
+           familyi={D\bibinitperiod},
+           given={Jean-François},
+           giveni={J\bibinithyphendelim F\bibinitperiod}}}%
+        {{hash=b61c1c06700535b96c1c746aed7faf89}{%
+           family={Koeune},
+           familyi={K\bibinitperiod},
+           given={François},
+           giveni={F\bibinitperiod}}}%
+        {{hash=408e1a522ecffb86738ebb4b9076fd87}{%
+           family={Leroux},
+           familyi={L\bibinitperiod},
+           given={Philippe-Alexandre},
+           giveni={P\bibinithyphendelim A\bibinitperiod}}}%
+        {{hash=88d45ddc411c13f6c9192cabd2621833}{%
+           family={Mestré},
+           familyi={M\bibinitperiod},
+           given={Patrick},
+           giveni={P\bibinitperiod}}}%
+        {{hash=2a6e6a997940d16ad9bb1f723ceb8ec9}{%
+           family={Quisquater},
+           familyi={Q\bibinitperiod},
+           given={Jean-Jacques},
+           giveni={J\bibinithyphendelim J\bibinitperiod}}}%
+        {{hash=5f673888fc274368f4a3e1977a83f5ce}{%
+           family={Willems},
+           familyi={W\bibinitperiod},
+           given={Jean-Louis},
+           giveni={J\bibinithyphendelim L\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=2a6e6a997940d16ad9bb1f723ceb8ec9}{%
+           family={Quisquater},
+           familyi={Q\bibinitperiod},
+           given={Jean-Jacques},
+           giveni={J\bibinithyphendelim J\bibinitperiod}}}%
+        {{hash=d8df23ab843a37bf97ea40354db74d15}{%
+           family={Schneier},
+           familyi={S\bibinitperiod},
+           given={Bruce},
+           giveni={B\bibinitperiod}}}%
+      }
+      \name{editora}{3}{}{%
+        {{hash=97b8779c08da200ee2eb194bdc10ae4f}{%
+           family={Goos},
+           familyi={G\bibinitperiod},
+           given={Gerhard},
+           giveni={G\bibinitperiod}}}%
+        {{hash=84d4ea2bd3ec736effccd97ee64d09ef}{%
+           family={Hartmanis},
+           familyi={H\bibinitperiod},
+           given={Juris},
+           giveni={J\bibinitperiod}}}%
+        {{hash=4e6d4340bf56539a33dcad95ee6e8fc5}{%
+           family={Van\bibnamedelima Leeuwen},
+           familyi={V\bibinitperiod\bibinitdelim L\bibinitperiod},
+           given={Jan},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{3988f1c9d5eeb495a2d10cd699fbbf0c}
+      \strng{fullhash}{2dfeb459f7b087dc63efeebe948cd9f4}
+      \strng{fullhashraw}{2dfeb459f7b087dc63efeebe948cd9f4}
+      \strng{bibnamehash}{2dfeb459f7b087dc63efeebe948cd9f4}
+      \strng{authorbibnamehash}{2dfeb459f7b087dc63efeebe948cd9f4}
+      \strng{authornamehash}{3988f1c9d5eeb495a2d10cd699fbbf0c}
+      \strng{authorfullhash}{2dfeb459f7b087dc63efeebe948cd9f4}
+      \strng{authorfullhashraw}{2dfeb459f7b087dc63efeebe948cd9f4}
+      \strng{editorbibnamehash}{0839b60089c5cd59559b077ff4abe717}
+      \strng{editornamehash}{0839b60089c5cd59559b077ff4abe717}
+      \strng{editorfullhash}{0839b60089c5cd59559b077ff4abe717}
+      \strng{editorfullhashraw}{0839b60089c5cd59559b077ff4abe717}
+      \strng{editorabibnamehash}{3dfcf72b5841d3fc75d0df4fe9034b68}
+      \strng{editoranamehash}{3dfcf72b5841d3fc75d0df4fe9034b68}
+      \strng{editorafullhash}{3dfcf72b5841d3fc75d0df4fe9034b68}
+      \strng{editorafullhashraw}{3dfcf72b5841d3fc75d0df4fe9034b68}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{When the running time of a cryptographic algorithm is nonconstant, timing measurements can leak information about the secret key. This idea, rst publicly introduced by Kocher, is developed here to attack an earlier version of the CASCADE smart card1. We propose several improvements on Kocher's ideas, leading to a practical implementation that is able to break a 512-bit key in few hours, provided we are able to collect 300 000 timing measurements (128-bit keys can be recovered in few seconds using a personal computer and less than 10 000 samples). We therefore show that the timing attack represents an important threat against cryptosystems, which must be very seriously taken into account.}
+      \field{booktitle}{Smart {{Card Research}} and {{Applications}}}
+      \field{editoratype}{redactor}
+      \field{isbn}{978-3-540-67923-3 978-3-540-44534-0}
+      \field{langid}{english}
+      \field{title}{A {{Practical Implementation}} of the {{Timing Attack}}}
+      \field{urlday}{17}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{volume}{1820}
+      \field{year}{2000}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{167\bibrangedash 182}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1007/10721064_15
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/9RUZVDF6/Dhem et al. - 2000 - A Practical Implementation of the Timing Attack.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://link.springer.com/10.1007/10721064_15
+      \endverb
+      \verb{url}
+      \verb http://link.springer.com/10.1007/10721064_15
+      \endverb
+    \endentry
+    \entry{aciicmez2005}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=befb770fe0931d8e2ae8e91ea7984271}{%
+           family={Aciiçmez},
+           familyi={A\bibinitperiod},
+           given={Onur},
+           giveni={O\bibinitperiod}}}%
+        {{hash=0f571c95b8ce3149c1f1fd0dd59a0742}{%
+           family={Schindler},
+           familyi={S\bibinitperiod},
+           given={Werner},
+           giveni={W\bibinitperiod}}}%
+        {{hash=e7fcdfb13f075a3a39805c8b74e6f9a8}{%
+           family={Koç},
+           familyi={K\bibinitperiod},
+           given={Çetin\bibnamedelima K.},
+           giveni={Ç\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{28df19221bad50be96e2737507b394b0}
+      \strng{fullhash}{28df19221bad50be96e2737507b394b0}
+      \strng{fullhashraw}{28df19221bad50be96e2737507b394b0}
+      \strng{bibnamehash}{28df19221bad50be96e2737507b394b0}
+      \strng{authorbibnamehash}{28df19221bad50be96e2737507b394b0}
+      \strng{authornamehash}{28df19221bad50be96e2737507b394b0}
+      \strng{authorfullhash}{28df19221bad50be96e2737507b394b0}
+      \strng{authorfullhashraw}{28df19221bad50be96e2737507b394b0}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Since the remarkable work of Kocher [7], several papers considering different types of timing attacks have been published. In 2003, Brumley and Boneh presented a timing attack on unprotected OpenSSL implementations [2]. In this paper, we improve the efficiency of their attack by a factor of more than 10. We exploit the timing behavior of Montgomery multiplications in the table initialization phase, which allows us to increase the number of multiplications that provide useful information to reveal one of the prime factors of RSA moduli. We also present other improvements, which can be applied to the attack in [2].}
+      \field{booktitle}{Proceedings of the 12th {{ACM}} Conference on {{Computer}} and Communications Security}
+      \field{day}{7}
+      \field{isbn}{978-1-59593-226-6}
+      \field{month}{11}
+      \field{series}{{{CCS}} '05}
+      \field{title}{Improving {{Brumley}} and {{Boneh}} Timing Attack on Unprotected {{SSL}} Implementations}
+      \field{urlday}{17}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2005}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{139\bibrangedash 146}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1145/1102120.1102140
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/76KCCPI8/Aciiçmez et al. - 2005 - Improving Brumley and Boneh timing attack on unprotected SSL implementations.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/1102120.1102140
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/1102120.1102140
+      \endverb
+    \endentry
+    \entry{ristenpart2009}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=4987cfb2b2fac291a9b2963bdc9b5d53}{%
+           family={Ristenpart},
+           familyi={R\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=a9a80df1ddea18e1b64f84a0cbcdc25f}{%
+           family={Tromer},
+           familyi={T\bibinitperiod},
+           given={Eran},
+           giveni={E\bibinitperiod}}}%
+        {{hash=8e72ae85d346fe6dea613a2090664c28}{%
+           family={Shacham},
+           familyi={S\bibinitperiod},
+           given={Hovav},
+           giveni={H\bibinitperiod}}}%
+        {{hash=dee88ab507f218ded58a2f13c4801dfc}{%
+           family={Savage},
+           familyi={S\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Chicago Illinois USA}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{0c7fdfe6956d9c159719ef791a024b4c}
+      \strng{fullhash}{c35461651aaca15c3b5d2678a5911e9f}
+      \strng{fullhashraw}{c35461651aaca15c3b5d2678a5911e9f}
+      \strng{bibnamehash}{c35461651aaca15c3b5d2678a5911e9f}
+      \strng{authorbibnamehash}{c35461651aaca15c3b5d2678a5911e9f}
+      \strng{authornamehash}{0c7fdfe6956d9c159719ef791a024b4c}
+      \strng{authorfullhash}{c35461651aaca15c3b5d2678a5911e9f}
+      \strng{authorfullhashraw}{c35461651aaca15c3b5d2678a5911e9f}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Third-party cloud computing represents the promise of outsourcing as applied to computation. Services, such as Microsoft’s Azure and Amazon’s EC2, allow users to instantiate virtual machines (VMs) on demand and thus purchase precisely the capacity they require when they require it. In turn, the use of virtualization allows third-party cloud providers to maximize the utilization of their sunk capital costs by multiplexing many customer VMs across a shared physical infrastructure. However, in this paper, we show that this approach can also introduce new vulnerabilities. Using the Amazon EC2 service as a case study, we show that it is possible to map the internal cloud infrastructure, identify where a particular target VM is likely to reside, and then instantiate new VMs until one is placed co-resident with the target. We explore how such placement can then be used to mount cross-VM side-channel attacks to extract information from a target VM on the same machine.}
+      \field{booktitle}{Proceedings of the 16th {{ACM}} Conference on {{Computer}} and Communications Security}
+      \field{day}{9}
+      \field{eventtitle}{{{CCS}} '09: 16th {{ACM Conference}} on {{Computer}} and {{Communications Security}} 2009}
+      \field{isbn}{978-1-60558-894-0}
+      \field{langid}{english}
+      \field{month}{11}
+      \field{shorttitle}{Hey, You, Get off of My Cloud}
+      \field{title}{Hey, You, Get off of My Cloud: Exploring Information Leakage in Third-Party Compute Clouds}
+      \field{urlday}{4}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2009}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{199\bibrangedash 212}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1145/1653662.1653687
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/3Y4J2VYU/Ristenpart et al. - 2009 - Hey, you, get off of my cloud exploring information leakage in third-party compute clouds.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://dl.acm.org/doi/10.1145/1653662.1653687
+      \endverb
+      \verb{url}
+      \verb https://dl.acm.org/doi/10.1145/1653662.1653687
+      \endverb
+    \endentry
+    \entry{corbet2017}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=729670cd9d39b9b575390147a29d51d7}{%
+           family={Corbet},
+           familyi={C\bibinitperiod},
+           given={Jonathan},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{729670cd9d39b9b575390147a29d51d7}
+      \strng{fullhash}{729670cd9d39b9b575390147a29d51d7}
+      \strng{fullhashraw}{729670cd9d39b9b575390147a29d51d7}
+      \strng{bibnamehash}{729670cd9d39b9b575390147a29d51d7}
+      \strng{authorbibnamehash}{729670cd9d39b9b575390147a29d51d7}
+      \strng{authornamehash}{729670cd9d39b9b575390147a29d51d7}
+      \strng{authorfullhash}{729670cd9d39b9b575390147a29d51d7}
+      \strng{authorfullhashraw}{729670cd9d39b9b575390147a29d51d7}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{day}{15}
+      \field{entrysubtype}{newspaper}
+      \field{journaltitle}{LWN.net}
+      \field{langid}{american}
+      \field{month}{11}
+      \field{shorttitle}{{{KAISER}}}
+      \field{title}{{{KAISER}}: Hiding the Kernel from User Space}
+      \field{urlday}{17}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2017}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/JQ5383DL/738975.html
+      \endverb
+      \verb{urlraw}
+      \verb https://lwn.net/Articles/738975/
+      \endverb
+      \verb{url}
+      \verb https://lwn.net/Articles/738975/
+      \endverb
+    \endentry
+    \entry{murray2013}{inproceedings}{}{}
+      \name{author}{9}{}{%
+        {{hash=eb2c17cf73cb1d250132ff9d81f69d7c}{%
+           family={Murray},
+           familyi={M\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod}}}%
+        {{hash=a4de8eaf26797f95605a31df3600a7c4}{%
+           family={Matichuk},
+           familyi={M\bibinitperiod},
+           given={D.},
+           giveni={D\bibinitperiod}}}%
+        {{hash=514e159ac96fcab2d98792b37d39fc54}{%
+           family={Brassil},
+           familyi={B\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=4b4d6176036d6cada2dadd3850e3313b}{%
+           family={Gammie},
+           familyi={G\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod}}}%
+        {{hash=6879028044fa30f497bd3b77bb903aa2}{%
+           family={Bourke},
+           familyi={B\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod}}}%
+        {{hash=265e86a06c1711120e1a07789abc89f6}{%
+           family={Seefried},
+           familyi={S\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod}}}%
+        {{hash=dc10b81faa09d15eb7aba90b2bffe455}{%
+           family={Lewis},
+           familyi={L\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod}}}%
+        {{hash=c2f09f457f43460ce6be98c08bb1c0dc}{%
+           family={{Xin Gao}},
+           familyi={X\bibinitperiod}}}%
+        {{hash=46d58daa4bc32082a4bd1898d1e89fc7}{%
+           family={Klein},
+           familyi={K\bibinitperiod},
+           given={G.},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berkeley, CA}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{842d7d7545e00ed9e1bf68601a8d8839}
+      \strng{fullhash}{ce07024764384772d725dc72a8b3f364}
+      \strng{fullhashraw}{ce07024764384772d725dc72a8b3f364}
+      \strng{bibnamehash}{842d7d7545e00ed9e1bf68601a8d8839}
+      \strng{authorbibnamehash}{842d7d7545e00ed9e1bf68601a8d8839}
+      \strng{authornamehash}{842d7d7545e00ed9e1bf68601a8d8839}
+      \strng{authorfullhash}{ce07024764384772d725dc72a8b3f364}
+      \strng{authorfullhashraw}{ce07024764384772d725dc72a8b3f364}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{In contrast to testing, mathematical reasoning and formal verification can show the absence of whole classes of security vulnerabilities. We present the, to our knowledge, first complete, formal, machine-checked verification of information flow security for the implementation of a general-purpose microkernel; namely seL4. Unlike previous proofs of information flow security for operating system kernels, ours applies to the actual 8,830 lines of C code that implement seL4, and so rules out the possibility of invalidation by implementation errors in this code. We assume correctness of compiler, assembly code, hardware, and boot code. We prove everything else. This proof is strong evidence of seL4’s utility as a separation kernel, and describes precisely how the general purpose kernel should be configured to enforce isolation and mandatory information flow control. We describe the information flow security statement we proved (a variant of intransitive noninterference), including the assumptions on which it rests, as well as the modifications that had to be made to seL4 to ensure it was enforced. We discuss the practical limitations and implications of this result, including covert channels not covered by the formal proof.}
+      \field{booktitle}{2013 {{IEEE Symposium}} on {{Security}} and {{Privacy}}}
+      \field{eventtitle}{2013 {{IEEE Symposium}} on {{Security}} and {{Privacy}} ({{SP}}) {{Conference}}}
+      \field{isbn}{978-0-7695-4977-4 978-1-4673-6166-8}
+      \field{langid}{english}
+      \field{month}{5}
+      \field{shorttitle}{{{seL4}}}
+      \field{title}{{{seL4}}: {{From General Purpose}} to a {{Proof}} of {{Information Flow Enforcement}}}
+      \field{urlday}{17}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2013}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{415\bibrangedash 429}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1109/SP.2013.35
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/TZXGUIAA/Murray et al. - 2013 - seL4 From General Purpose to a Proof of Information Flow Enforcement.pdf;/home/simon/Zotero/storage/X62GUM2D/Murray et al. - 2013 - seL4 From General Purpose to a Proof of Information Flow Enforcement.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://ieeexplore.ieee.org/document/6547124/
+      \endverb
+      \verb{url}
+      \verb http://ieeexplore.ieee.org/document/6547124/
+      \endverb
+      \keyw{Abstracts,Access control,formal verification,Hardware,information flow control,Kernel,Message systems,Silicon}
+    \endentry
+    \entry{buckley2023}{online}{}{}
+      \name{author}{7}{}{%
+        {{hash=db567ffeab0bf6dd365229596c032c19}{%
+           family={Buckley},
+           familyi={B\bibinitperiod},
+           given={Scott},
+           giveni={S\bibinitperiod}}}%
+        {{hash=f7d8694147d1af8c77a0302d715498b6}{%
+           family={Sison},
+           familyi={S\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=849df995ba233943a79fdf522583c7a6}{%
+           family={Wistoff},
+           familyi={W\bibinitperiod},
+           given={Nils},
+           giveni={N\bibinitperiod}}}%
+        {{hash=c46d2d6bbcffae1af2cff8ffdd3ed337}{%
+           family={Millar},
+           familyi={M\bibinitperiod},
+           given={Curtis},
+           giveni={C\bibinitperiod}}}%
+        {{hash=04a1d218dd53bc261bf544d0cb6d31b8}{%
+           family={Murray},
+           familyi={M\bibinitperiod},
+           given={Toby},
+           giveni={T\bibinitperiod}}}%
+        {{hash=199a8abce7ff51f1ce18d08d6910be68}{%
+           family={Klein},
+           familyi={K\bibinitperiod},
+           given={Gerwin},
+           giveni={G\bibinitperiod}}}%
+        {{hash=22cbcffae9ccc9f40eba5c2eda212e66}{%
+           family={Heiser},
+           familyi={H\bibinitperiod},
+           given={Gernot},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{66dfee8a49e8a32d0ede0f5e4e31e862}
+      \strng{fullhash}{33cce63115f3cf92b2ff1197e04fe21b}
+      \strng{fullhashraw}{33cce63115f3cf92b2ff1197e04fe21b}
+      \strng{bibnamehash}{66dfee8a49e8a32d0ede0f5e4e31e862}
+      \strng{authorbibnamehash}{66dfee8a49e8a32d0ede0f5e4e31e862}
+      \strng{authornamehash}{66dfee8a49e8a32d0ede0f5e4e31e862}
+      \strng{authorfullhash}{33cce63115f3cf92b2ff1197e04fe21b}
+      \strng{authorfullhashraw}{33cce63115f3cf92b2ff1197e04fe21b}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Microarchitectural timing channels are a major threat to computer security. A set of OS mechanisms called time protection was recently proposed as a principled way of preventing information leakage through such channels and prototyped in the seL4 microkernel. We formalise time protection and the underlying hardware mechanisms in a way that allows linking them to the information-flow proofs that showed the absence of storage channels in seL4.}
+      \field{day}{25}
+      \field{eprintclass}{cs}
+      \field{eprinttype}{arXiv}
+      \field{month}{10}
+      \field{pubstate}{prepublished}
+      \field{title}{Proving the {{Absence}} of {{Microarchitectural Timing Channels}}}
+      \field{urlday}{10}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{version}{1}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/arXiv.2310.17046
+      \endverb
+      \verb{eprint}
+      \verb 2310.17046
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/ZH6KIY4E/Buckley et al. - 2023 - Proving the Absence of Microarchitectural Timing Channels.pdf;/home/simon/Zotero/storage/XSWRK9NY/2310.html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2310.17046
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2310.17046
+      \endverb
+      \keyw{Computer Science - Cryptography and Security,Computer Science - Logic in Computer Science,Computer Science - Operating Systems}
+    \endentry
+    \entry{schneider2025}{inproceedings}{}{}
+      \name{author}{5}{}{%
+        {{hash=60a6ce14ca05aa8f1179991b49302a27}{%
+           family={Schneider},
+           familyi={S\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+        {{hash=6b59395bd595da38df321abd2628e8d5}{%
+           family={Lain},
+           familyi={L\bibinitperiod},
+           given={Daniele},
+           giveni={D\bibinitperiod}}}%
+        {{hash=e3bd160d9bac221821c41bd11753286b}{%
+           family={Puddu},
+           familyi={P\bibinitperiod},
+           given={Ivan},
+           giveni={I\bibinitperiod}}}%
+        {{hash=8c9f518ce14d6cbbca96bdba2e706dec}{%
+           family={Dutly},
+           familyi={D\bibinitperiod},
+           given={Nicolas},
+           giveni={N\bibinitperiod}}}%
+        {{hash=028ff5c4d1eab5a2f2b2a92fb4d9bf88}{%
+           family={Capkun},
+           familyi={C\bibinitperiod},
+           given={Srdjan},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{f196bf1e22dbc491caa4021eb9b3aab7}
+      \strng{fullhash}{c4c47b60b8b3f33a228fc5e90349f956}
+      \strng{fullhashraw}{c4c47b60b8b3f33a228fc5e90349f956}
+      \strng{bibnamehash}{c4c47b60b8b3f33a228fc5e90349f956}
+      \strng{authorbibnamehash}{c4c47b60b8b3f33a228fc5e90349f956}
+      \strng{authornamehash}{f196bf1e22dbc491caa4021eb9b3aab7}
+      \strng{authorfullhash}{c4c47b60b8b3f33a228fc5e90349f956}
+      \strng{authorfullhashraw}{c4c47b60b8b3f33a228fc5e90349f956}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{The implementations of most hardened cryptographic libraries use defensive programming techniques for side-channel resistance. These techniques are usually specified as guidelines to developers on specific code patterns to use or avoid. Examples include performing arithmetic operations to choose between two variables instead of executing a secret-dependent branch. However, such techniques are only meaningful if they persist across compilation. In this paper, we investigate how optimizations used by modern compilers break the protections introduced by defensive programming techniques. Specifically, how compilers break high-level constant-time implementations used to mitigate timing side-channel attacks. We run a large-scale experiment to see if such compiler-induced issues manifest in state-of-the-art cryptographic libraries. We develop a tool that can profile virtually any architecture, and we use it to run trace-based dynamic analysis on 44,604 different targets. Particularly, we focus on the most widely deployed cryptographic libraries, which aim to provide side-channel resistance. We are able to evaluate whether their claims hold across various CPU architectures, including x86-64, x86-i386, armv7, aarch64, RISC-V, and MIPS-32.}
+      \field{booktitle}{Proceedings of the 20th {{ACM Asia Conference}} on {{Computer}} and {{Communications Security}}}
+      \field{day}{25}
+      \field{eprintclass}{cs}
+      \field{eprinttype}{arXiv}
+      \field{langid}{english}
+      \field{month}{8}
+      \field{shorttitle}{Breaking {{Bad}}}
+      \field{title}{Breaking {{Bad}}: {{How Compilers Break Constant-Time Implementations}}}
+      \field{urlday}{17}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2025}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1690\bibrangedash 1706}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.1145/3708821.3733909
+      \endverb
+      \verb{eprint}
+      \verb 2410.13489
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/YFRN924M/Schneider et al. - 2025 - Breaking Bad How Compilers Break Constant-Time Implementations.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2410.13489
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2410.13489
+      \endverb
+      \keyw{Computer Science - Cryptography and Security}
+    \endentry
+    \entry{osvik2006}{incollection}{}{}
+      \name{author}{3}{}{%
+        {{hash=43029f72004774fbcb241a9735ffae1c}{%
+           family={Osvik},
+           familyi={O\bibinitperiod},
+           given={Dag\bibnamedelima Arne},
+           giveni={D\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=71b77dd8ab33fe646ef25cded49e9881}{%
+           family={Shamir},
+           familyi={S\bibinitperiod},
+           given={Adi},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a9a80df1ddea18e1b64f84a0cbcdc25f}{%
+           family={Tromer},
+           familyi={T\bibinitperiod},
+           given={Eran},
+           giveni={E\bibinitperiod}}}%
+      }
+      \name{editor}{1}{}{%
+        {{hash=8477cabfb261c3696163854eae25beb1}{%
+           family={Pointcheval},
+           familyi={P\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+      }
+      \name{editora}{15}{}{%
+        {{hash=d003d9a994005f480f7fa06dde74326e}{%
+           family={Hutchison},
+           familyi={H\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=45496c6a7530cfbfb4f3218a2602b77e}{%
+           family={Kanade},
+           familyi={K\bibinitperiod},
+           given={Takeo},
+           giveni={T\bibinitperiod}}}%
+        {{hash=9dd3a56c94774f5880ca7475fdc308ea}{%
+           family={Kittler},
+           familyi={K\bibinitperiod},
+           given={Josef},
+           giveni={J\bibinitperiod}}}%
+        {{hash=fb11814963625d418100ec9ca3710333}{%
+           family={Kleinberg},
+           familyi={K\bibinitperiod},
+           given={Jon\bibnamedelima M.},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=e07c4272d13053fc36d770d4735f2c14}{%
+           family={Mattern},
+           familyi={M\bibinitperiod},
+           given={Friedemann},
+           giveni={F\bibinitperiod}}}%
+        {{hash=47dbc192a926109dd86ea18b25249a93}{%
+           family={Mitchell},
+           familyi={M\bibinitperiod},
+           given={John\bibnamedelima C.},
+           giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=c6af39e79e88306281e6e0b0ccea956c}{%
+           family={Naor},
+           familyi={N\bibinitperiod},
+           given={Moni},
+           giveni={M\bibinitperiod}}}%
+        {{hash=7d3ea70a5274b32c8a184dd4d844ee47}{%
+           family={Nierstrasz},
+           familyi={N\bibinitperiod},
+           given={Oscar},
+           giveni={O\bibinitperiod}}}%
+        {{hash=6bcab2334dc65214139b0ad45fe8185e}{%
+           family={Pandu\bibnamedelima Rangan},
+           familyi={P\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod}}}%
+        {{hash=665b6687b4ed05721bf55d61032505ca}{%
+           family={Steffen},
+           familyi={S\bibinitperiod},
+           given={Bernhard},
+           giveni={B\bibinitperiod}}}%
+        {{hash=8753fbfaaa4aa8a1195c657edc9daef4}{%
+           family={Sudan},
+           familyi={S\bibinitperiod},
+           given={Madhu},
+           giveni={M\bibinitperiod}}}%
+        {{hash=cd9aa5de7673e375889cc32997ef97df}{%
+           family={Terzopoulos},
+           familyi={T\bibinitperiod},
+           given={Demetri},
+           giveni={D\bibinitperiod}}}%
+        {{hash=ddfb7c40f1ab7e805c025ac7ef922cc7}{%
+           family={Tygar},
+           familyi={T\bibinitperiod},
+           given={Dough},
+           giveni={D\bibinitperiod}}}%
+        {{hash=a4cf237a06b02ad7e7601b14b4d005be}{%
+           family={Vardi},
+           familyi={V\bibinitperiod},
+           given={Moshe\bibnamedelima Y.},
+           giveni={M\bibinitperiod\bibinitdelim Y\bibinitperiod}}}%
+        {{hash=e47f9d085c16045a5911784850208ada}{%
+           family={Weikum},
+           familyi={W\bibinitperiod},
+           given={Gerhard},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{fullhash}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{fullhashraw}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{bibnamehash}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{authorbibnamehash}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{authornamehash}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{authorfullhash}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{authorfullhashraw}{e81059b7db75b43225d34c28f2dc43c6}
+      \strng{editorbibnamehash}{8477cabfb261c3696163854eae25beb1}
+      \strng{editornamehash}{8477cabfb261c3696163854eae25beb1}
+      \strng{editorfullhash}{8477cabfb261c3696163854eae25beb1}
+      \strng{editorfullhashraw}{8477cabfb261c3696163854eae25beb1}
+      \strng{editorabibnamehash}{0ace6dc30af10bcf15accad9d4c4dc12}
+      \strng{editoranamehash}{0ace6dc30af10bcf15accad9d4c4dc12}
+      \strng{editorafullhash}{fb5e2fa0f3717a2212ecb8c106779a7f}
+      \strng{editorafullhashraw}{fb5e2fa0f3717a2212ecb8c106779a7f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{We describe several software side-channel attacks based on inter-process leakage through the state of the CPU’s memory cache. This leakage reveals memory access patterns, which can be used for cryptanalysis of cryptographic primitives that employ data-dependent table lookups. The attacks allow an unprivileged process to attack other processes running in parallel on the same processor, despite partitioning methods such as memory protection, sandboxing and virtualization. Some of our methods require only the ability to trigger services that perform encryption or MAC using the unknown key, such as encrypted disk partitions or secure network links. Moreover, we demonstrate an extremely strong type of attack, which requires knowledge of neither the specific plaintexts nor ciphertexts, and works by merely monitoring the effect of the cryptographic process on the cache. We discuss in detail several such attacks on AES, and experimentally demonstrate their applicability to real systems, such as OpenSSL and Linux’s dm-crypt encrypted partitions (in the latter case, the full key can be recovered after just 800 writes to the partition, taking 65 milliseconds). Finally, we describe several countermeasures which can be used to mitigate such attacks.}
+      \field{booktitle}{Topics in {{Cryptology}} – {{CT-RSA}} 2006}
+      \field{editoratype}{redactor}
+      \field{isbn}{978-3-540-31033-4 978-3-540-32648-9}
+      \field{langid}{english}
+      \field{shorttitle}{Cache {{Attacks}} and {{Countermeasures}}}
+      \field{title}{Cache {{Attacks}} and {{Countermeasures}}: {{The Case}} of {{AES}}}
+      \field{urlday}{10}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{volume}{3860}
+      \field{year}{2006}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1\bibrangedash 20}
+      \range{pages}{20}
+      \verb{doi}
+      \verb 10.1007/11605805_1
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/CPQRFV6I/Osvik et al. - 2006 - Cache Attacks and Countermeasures The Case of AES.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://link.springer.com/10.1007/11605805_1
+      \endverb
+      \verb{url}
+      \verb http://link.springer.com/10.1007/11605805_1
+      \endverb
+    \endentry
+    \entry{liu2015}{inproceedings}{}{}
+      \name{author}{5}{}{%
+        {{hash=4c2d27897bd6c59ed93528811fc8aade}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Fangfei},
+           giveni={F\bibinitperiod}}}%
+        {{hash=cd7579fd1f745b58396f5395d38e1a5c}{%
+           family={Yarom},
+           familyi={Y\bibinitperiod},
+           given={Yuval},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=1a908d8b1367b66dfdae1e39a0af6b25}{%
+           family={Ge},
+           familyi={G\bibinitperiod},
+           given={Qian},
+           giveni={Q\bibinitperiod}}}%
+        {{hash=22cbcffae9ccc9f40eba5c2eda212e66}{%
+           family={Heiser},
+           familyi={H\bibinitperiod},
+           given={Gernot},
+           giveni={G\bibinitperiod}}}%
+        {{hash=1911d403edbb2cc72c3f971486e071d1}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={Ruby\bibnamedelima B.},
+           giveni={R\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+      }
+      \strng{namehash}{4b7049c04c920193d74f789c3de7de8b}
+      \strng{fullhash}{17986a2bf08c5bd3acb9e33860a5faa3}
+      \strng{fullhashraw}{17986a2bf08c5bd3acb9e33860a5faa3}
+      \strng{bibnamehash}{17986a2bf08c5bd3acb9e33860a5faa3}
+      \strng{authorbibnamehash}{17986a2bf08c5bd3acb9e33860a5faa3}
+      \strng{authornamehash}{4b7049c04c920193d74f789c3de7de8b}
+      \strng{authorfullhash}{17986a2bf08c5bd3acb9e33860a5faa3}
+      \strng{authorfullhashraw}{17986a2bf08c5bd3acb9e33860a5faa3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We present an effective implementation of the Prime+Probe side-channel attack against the last-level cache. We measure the capacity of the covert channel the attack creates and demonstrate a cross-core, cross-VM attack on multiple versions of GnuPG. Our technique achieves a high attack resolution without relying on weaknesses in the OS or virtual machine monitor or on sharing memory between attacker and victim.}
+      \field{booktitle}{2015 {{IEEE Symposium}} on {{Security}} and {{Privacy}}}
+      \field{eventtitle}{2015 {{IEEE Symposium}} on {{Security}} and {{Privacy}}}
+      \field{issn}{2375-1207}
+      \field{month}{5}
+      \field{title}{Last-{{Level Cache Side-Channel Attacks}} Are {{Practical}}}
+      \field{urlday}{4}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2015}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{605\bibrangedash 622}
+      \range{pages}{18}
+      \verb{doi}
+      \verb 10.1109/SP.2015.43
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/UCGGPCKG/Liu et al. - 2015 - Last-Level Cache Side-Channel Attacks are Practical.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://ieeexplore.ieee.org/document/7163050
+      \endverb
+      \verb{url}
+      \verb https://ieeexplore.ieee.org/document/7163050
+      \endverb
+      \keyw{covert channel,cross-VM side channel,Cryptography,ElGamal,Indexes,last-level cache,Memory management,Monitoring,Multicore processing,Probes,side-channel attack,Virtual machine monitors}
+    \endentry
+    \entry{rushby1999}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=3e221eeb3fa79449fb4e0e4292b3bef0}{%
+           family={Rushby},
+           familyi={R\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \strng{fullhash}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \strng{fullhashraw}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \strng{bibnamehash}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \strng{authorbibnamehash}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \strng{authornamehash}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \strng{authorfullhash}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \strng{authorfullhashraw}{3e221eeb3fa79449fb4e0e4292b3bef0}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{english}
+      \field{title}{Avionics {{Architectures}}: {{Mechanisms}}, and {{Assurance}}}
+      \field{year}{1999}
+      \field{dateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/4K462MB7/Rushby - 1999 - Avionics Architectures Mechanisms, and Assurance.pdf
+      \endverb
+    \endentry
+    \entry{schroder}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=5e05feeea61a955d8822bd534475128b}{%
+           family={Schröder},
+           familyi={S\bibinitperiod},
+           given={Robin\bibnamedelima Leander},
+           giveni={R\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=cb8910a01c9f4ebd952912429fbd9755}{%
+           family={Gast},
+           familyi={G\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+        {{hash=547c428bff1c380c2dc6d8c002dd940b}{%
+           family={Guo},
+           familyi={G\bibinitperiod},
+           given={Qian},
+           giveni={Q\bibinitperiod}}}%
+      }
+      \strng{namehash}{fd4600fa3b31706ced944abcf7b61173}
+      \strng{fullhash}{fd4600fa3b31706ced944abcf7b61173}
+      \strng{fullhashraw}{fd4600fa3b31706ced944abcf7b61173}
+      \strng{bibnamehash}{fd4600fa3b31706ced944abcf7b61173}
+      \strng{authorbibnamehash}{fd4600fa3b31706ced944abcf7b61173}
+      \strng{authornamehash}{fd4600fa3b31706ced944abcf7b61173}
+      \strng{authorfullhash}{fd4600fa3b31706ced944abcf7b61173}
+      \strng{authorfullhashraw}{fd4600fa3b31706ced944abcf7b61173}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We uncover a critical side-channel vulnerability in the Hamming QuasiCyclic (HQC) round 4 optimized implementation arising due to the use of the modulo operator. In some cases, compilers optimize uses of the modulo operator with compile-time known divisors into constant-time Barrett reductions. However, this optimization is not guaranteed: for example, when a modulo operation is used in a loop the compiler may emit division (div) instructions which have variable execution time depending on the numerator. When the numerator depends on secret data, this may yield a timing side-channel. We name vulnerabilities of this kind Divide and Surrender (DaS) vulnerabilities.}
+      \field{langid}{english}
+      \field{title}{Divide and {{Surrender}}: {{Exploiting Variable Division Instruction Timing}} in {{HQC Key Recovery Attacks}}}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/CN9ZHTDK/Schröder et al. - Divide and Surrender Exploiting Variable Division Instruction Timing in HQC Key Recovery Attacks.pdf
+      \endverb
+    \endentry
+    \entry{jin2023}{online}{}{}
+      \name{author}{6}{}{%
+        {{hash=1be87e5d8d0d2f7c36a29e129c47216a}{%
+           family={Jin},
+           familyi={J\bibinitperiod},
+           given={Yu},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=afc6767b2d7c653e25d641df3801de5e}{%
+           family={Qiu},
+           familyi={Q\bibinitperiod},
+           given={Pengfei},
+           giveni={P\bibinitperiod}}}%
+        {{hash=e3cd808b24e1ea6f356be75aa6d46a0e}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Chunlu},
+           giveni={C\bibinitperiod}}}%
+        {{hash=ec0ed2991bb0e93fcab95edd480791ef}{%
+           family={Yang},
+           familyi={Y\bibinitperiod},
+           given={Yihao},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=2549b0e8248ec03972afa4212ee9c090}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Dongsheng},
+           giveni={D\bibinitperiod}}}%
+        {{hash=962e8813ef487d437c10636f3cda834c}{%
+           family={Qu},
+           familyi={Q\bibinitperiod},
+           given={Gang},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{2cd6806f11027ba98814986252e02270}
+      \strng{fullhash}{7733e90ec3d5a198b52b83de73ff228f}
+      \strng{fullhashraw}{7733e90ec3d5a198b52b83de73ff228f}
+      \strng{bibnamehash}{7733e90ec3d5a198b52b83de73ff228f}
+      \strng{authorbibnamehash}{7733e90ec3d5a198b52b83de73ff228f}
+      \strng{authornamehash}{2cd6806f11027ba98814986252e02270}
+      \strng{authorfullhash}{7733e90ec3d5a198b52b83de73ff228f}
+      \strng{authorfullhashraw}{7733e90ec3d5a198b52b83de73ff228f}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{The transient execution attack is a type of attack leveraging the vulnerability of modern CPU optimization technologies. New attacks surface rapidly. The side-channel is a key part of transient execution attacks to leak data. In this work, we discover a vulnerability that the change of the EFLAGS register in transient execution may have a side effect on the Jcc (jump on condition code) instruction after it in Intel CPUs. Based on our discovery, we propose a new side-channel attack that leverages the timing of both transient execution and Jcc instructions to deliver data. This attack encodes secret data to the change of register which makes the execution time of context slightly slower, which can be measured by the attacker to decode data. This attack doesn’t rely on the cache system and doesn’t need to reset the EFLAGS register manually to its initial state before the attack, which may make it more difficult to detect or mitigate. We implemented this side-channel on machines with Intel Core i7-6700, i7-7700, and i9-10980XE CPUs. In the first two processors, we combined it as the side-channel of the Meltdown attack, which could achieve 100\% success leaking rate. We evaluate and discuss potential defenses against the attack. Our contributions include discovering security vulnerabilities in the implementation of Jcc instructions and EFLAGS register and proposing a new side-channel attack that does not rely on the cache system.}
+      \field{day}{21}
+      \field{eprintclass}{cs}
+      \field{eprinttype}{arXiv}
+      \field{month}{4}
+      \field{pubstate}{prepublished}
+      \field{shorttitle}{Timing the {{Transient Execution}}}
+      \field{title}{Timing the {{Transient Execution}}: {{A New Side-Channel Attack}} on {{Intel CPUs}}}
+      \field{urlday}{29}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/arXiv.2304.10877
+      \endverb
+      \verb{eprint}
+      \verb 2304.10877
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/VBADXIEQ/Jin et al. - 2023 - Timing the Transient Execution A New Side-Channel Attack on Intel CPUs.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2304.10877
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2304.10877
+      \endverb
+      \keyw{Computer Science - Cryptography and Security}
+    \endentry
+    \entry{WhatFreeRTOSFreeRTOS2026}{online}{}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{An introduction to the history and current features of FreeRTOS.}
+      \field{month}{4}
+      \field{shorttitle}{What Is {{FreeRTOS}}?}
+      \field{title}{What Is {{FreeRTOS}}? - {{FreeRTOS}}™}
+      \field{urlday}{7}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/3EK83G4I/What-is-FreeRTOS.html
+      \endverb
+      \verb{urlraw}
+      \verb https://freertos.org/Why-FreeRTOS/What-is-FreeRTOS
+      \endverb
+      \verb{url}
+      \verb https://freertos.org/Why-FreeRTOS/What-is-FreeRTOS
+      \endverb
+    \endentry
+    \entry{MemoryProtectionUnit2026}{online}{}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{month}{4}
+      \field{title}{Memory {{Protection Unit}} ({{MPU}}) {{Support}} - {{FreeRTOS}}™}
+      \field{urlday}{7}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/2ZR2CR8S/04-FreeRTOS-MPU-memory-protection-unit.html
+      \endverb
+      \verb{urlraw}
+      \verb https://freertos.org/Security/04-FreeRTOS-MPU-memory-protection-unit
+      \endverb
+      \verb{url}
+      \verb https://freertos.org/Security/04-FreeRTOS-MPU-memory-protection-unit
+      \endverb
+    \endentry
+    \entry{FreeRTOSCommunitySupportedDemosRISCV_RV32_MPU_QEMU_VIRT_GCCmain}{online}{}{}
+      \list{organization}{1}{%
+        {GitHub}%
+      }
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Contribute to FreeRTOS/FreeRTOS-Community-Supported-Demos development by creating an account on GitHub.}
+      \field{langid}{english}
+      \field{title}{{{FreeRTOS-Community-Supported-Demos}}/{{RISC-V}}\_{{RV32}}\_{{MPU}}\_{{QEMU}}\_{{VIRT}}\_{{GCC}} at Main · {{FreeRTOS}}/{{FreeRTOS-Community-Supported-Demos}}}
+      \field{urlday}{7}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/XLK86HA5/RISC-V_RV32_MPU_QEMU_VIRT_GCC.html
+      \endverb
+      \verb{urlraw}
+      \verb https://github.com/FreeRTOS/FreeRTOS-Community-Supported-Demos/tree/main/RISC-V_RV32_MPU_QEMU_VIRT_GCC
+      \endverb
+      \verb{url}
+      \verb https://github.com/FreeRTOS/FreeRTOS-Community-Supported-Demos/tree/main/RISC-V_RV32_MPU_QEMU_VIRT_GCC
+      \endverb
+    \endentry
+    \entry{FreeRTOSschedulingsinglecore2026}{online}{}{}
+      \list{organization}{2}{%
+        {FreeRTOS scheduling (single-core, AMP}%
+        {SMP)}%
+      }
+      \list{publisher}{1}{%
+        {FreeRTOS}%
+      }
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{abstract}{FreeRTOS scheduling algorithm for single-core, asymmetric multicore (AMP), and symmetric multicore (SMP) RTOS configurations}
+      \field{month}{3}
+      \field{title}{{{FreeRTOS}} Scheduling (Single-Core, {{AMP}} and {{SMP}}) - {{FreeRTOS}}™}
+      \field{urlday}{7}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/SHRZLFKL/04-Task-scheduling.html
+      \endverb
+      \verb{urlraw}
+      \verb https://freertos.org/Documentation/02-Kernel/02-Kernel-features/01-Tasks-and-co-routines/04-Task-scheduling
+      \endverb
+      \verb{url}
+      \verb https://freertos.org/Documentation/02-Kernel/02-Kernel-features/01-Tasks-and-co-routines/04-Task-scheduling
+      \endverb
+    \endentry
+    \entry{kadloor2016}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=0e0ddc373245d24ea5be122c9ee8d504}{%
+           family={Kadloor},
+           familyi={K\bibinitperiod},
+           given={Sachin},
+           giveni={S\bibinitperiod}}}%
+        {{hash=1bb3978c8e8909211de5c6d8f16b6add}{%
+           family={Kiyavash},
+           familyi={K\bibinitperiod},
+           given={Negar},
+           giveni={N\bibinitperiod}}}%
+        {{hash=416b1b821b4088b0d76ff31724f02024}{%
+           family={Venkitasubramaniam},
+           familyi={V\bibinitperiod},
+           given={Parv},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \strng{fullhash}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \strng{fullhashraw}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \strng{bibnamehash}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \strng{authorbibnamehash}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \strng{authornamehash}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \strng{authorfullhash}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \strng{authorfullhashraw}{2bffa23039508d4f3a108ad2f6bd1e41}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{In this work, we study information leakage in timing side channels that arise in the context of shared event schedulers. Consider two processes, one of them an innocuous process (referred to as Alice) and the other a malicious one (referred to as Bob), using a common scheduler to process their jobs. There are other innocuous users in addition to Alice and Bob using the scheduler to process their jobs. Based on when his jobs get processed, Bob wishes to learn about the pattern (size and timing) of Alice's jobs. Depending on the context, knowledge of this pattern could have serious implications on Alice's privacy and security. For instance, shared routers can reveal traffic patterns, shared memory access can reveal cloud usage patterns, and suchlike. We present a formal framework to study the information leakage in shared resource schedulers using the pattern estimation error as a performance metric. The first-come-first-serve (FCFS) scheduling policy and time-division-multiple-access (TDMA) are identified as two extreme policies on the privacy metric, FCFS has the least, and TDMA has the highest. However, on performance-based metrics, such as throughput and delay, it is well known that FCFS significantly outperforms TDMA. We then derive two parameterized policies, accumulate and serve, and proportional TDMA, which take two different approaches to offer a tunable trade-off between privacy and performance.}
+      \field{issn}{1558-2566}
+      \field{journaltitle}{IEEE/ACM Transactions on Networking}
+      \field{month}{6}
+      \field{number}{3}
+      \field{title}{Mitigating {{Timing Side Channel}} in {{Shared Schedulers}}}
+      \field{urlday}{9}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{volume}{24}
+      \field{year}{2016}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1562\bibrangedash 1573}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1109/TNET.2015.2418194
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/QGC36YNF/Kadloor et al. - 2016 - Mitigating Timing Side Channel in Shared Schedulers.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://ieeexplore.ieee.org/document/7089318/
+      \endverb
+      \verb{url}
+      \verb https://ieeexplore.ieee.org/document/7089318/
+      \endverb
+      \keyw{Delays,Estimation error,Forensics,privacy,Privacy,scheduling algorithms,security,Throughput,Time division multiple access}
+    \endentry
+    \entry{chen2019}{inproceedings}{}{}
+      \name{author}{5}{}{%
+        {{hash=d0774dc833271a94269a58cdeb233ab5}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Chien-Ying},
+           giveni={C\bibinithyphendelim Y\bibinitperiod}}}%
+        {{hash=6de504a4e253b754d16beaedce427ada}{%
+           family={Mohan},
+           familyi={M\bibinitperiod},
+           given={Sibin},
+           giveni={S\bibinitperiod}}}%
+        {{hash=b88109f82de8d7444477a47d1e1a487f}{%
+           family={Pellizzoni},
+           familyi={P\bibinitperiod},
+           given={Rodolfo},
+           giveni={R\bibinitperiod}}}%
+        {{hash=c50254e761a93ddbaacb573d11e43650}{%
+           family={Bobba},
+           familyi={B\bibinitperiod},
+           given={Rakesh\bibnamedelima B.},
+           giveni={R\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=1bb3978c8e8909211de5c6d8f16b6add}{%
+           family={Kiyavash},
+           familyi={K\bibinitperiod},
+           given={Negar},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{1a98453b1e4d91d41b68e19df46d99da}
+      \strng{fullhash}{3282b5037e796569e6b2b1abb41006f1}
+      \strng{fullhashraw}{3282b5037e796569e6b2b1abb41006f1}
+      \strng{bibnamehash}{3282b5037e796569e6b2b1abb41006f1}
+      \strng{authorbibnamehash}{3282b5037e796569e6b2b1abb41006f1}
+      \strng{authornamehash}{1a98453b1e4d91d41b68e19df46d99da}
+      \strng{authorfullhash}{3282b5037e796569e6b2b1abb41006f1}
+      \strng{authorfullhashraw}{3282b5037e796569e6b2b1abb41006f1}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We demonstrate the presence of a novel scheduler side-channel in preemptive, fixed-priority real-time systems (RTS); examples of such systems can be found in automotive systems, avionic systems, power plants and industrial control systems among others. This side-channel can leak important timing information such as the future arrival times of real-time tasks. This information can then be used to launch devastating attacks, two of which are demonstrated here (on real hardware platforms). Note that it is not easy to capture this timing information due to runtime variations in the schedules, the presence of multiple other tasks in the system and the typical constraints (e.g., deadlines) in the design of RTS. Our ScheduLeak algorithms demonstrate how to effectively exploit this side-channel. A complete implementation is presented on real operating systems (in Real-time Linux and FreeRTOS). Timing information leaked by ScheduLeak can significantly aid other, more advanced, attacks in better accomplishing their goals.}
+      \field{booktitle}{2019 {{IEEE Real-Time}} and {{Embedded Technology}} and {{Applications Symposium}} ({{RTAS}})}
+      \field{eventtitle}{2019 {{IEEE Real-Time}} and {{Embedded Technology}} and {{Applications Symposium}} ({{RTAS}})}
+      \field{issn}{2642-7346}
+      \field{month}{4}
+      \field{title}{A {{Novel Side-Channel}} in {{Real-Time Schedulers}}}
+      \field{urlday}{9}
+      \field{urlmonth}{2}
+      \field{urlyear}{2026}
+      \field{year}{2019}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{90\bibrangedash 102}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1109/RTAS.2019.00016
+      \endverb
+      \verb{file}
+      \verb /home/simon/Zotero/storage/7Z22IL8R/Chen et al. - 2019 - A Novel Side-Channel in Real-Time Schedulers.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://ieeexplore.ieee.org/document/8743170/
+      \endverb
+      \verb{url}
+      \verb https://ieeexplore.ieee.org/document/8743170/
+      \endverb
+      \keyw{Arrival Time Inferences,Hardware,Information Leakage,Pulse width modulation,Real-time systems,Real-Time Systems,Runtime,ScheduLeak,Schedulers,Schedules,Side-Channels,Task analysis,Timing}
+    \endentry
+    \entry{TCGInstructionCounting}{online}{}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{{{TCG Instruction Counting}} — {{QEMU}} Documentation}
+      \field{urlday}{28}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/H8P8BCM9/tcg-icount.html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.qemu.org/docs/master/devel/tcg-icount.html
+      \endverb
+      \verb{url}
+      \verb https://www.qemu.org/docs/master/devel/tcg-icount.html
+      \endverb
+    \endentry
+    \entry{CacheModellingTCG}{online}{}{}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{title}{Cache {{Modelling TCG Plugin}} - {{QEMU}}}
+      \field{urlday}{29}
+      \field{urlmonth}{4}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{file}
+      \verb /home/simon/Zotero/storage/MXNP3WRE/tcg-cache-modelling-plugin.html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.qemu.org/2021/08/19/tcg-cache-modelling-plugin/
+      \endverb
+      \verb{url}
+      \verb https://www.qemu.org/2021/08/19/tcg-cache-modelling-plugin/
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

@@ -134,7 +134,7 @@ initialization.
 
 \subsection{Implementation}
 
-\subsubsection{Extending the api}
+\subsubsection{Extending the api}\label{sec:api}
 
 To implement the domain level scheduler we have first incorporate the idea into
 the existing FreeRTOS framework. With FreeRTOS MPU, we are able to create
@@ -343,148 +343,180 @@ in FreeRTOS through the \texttt{configTICK\_RATE\_HZ}. To make this more
 flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} as to not limit the domain
 level scheduler with respect to the inter domain priority based scheduler.
 
-\subsubsection{Creating domains}
+\subsubsection{Constant time domain creation}
 To keep track of the different domains new global constants are defined:
-\begin{lstlisting}[language={c}, caption={Domains definitions}, label={lst:domain_def}]
+\begin{lstlisting}[language={c}, caption={Domain timeline}, label={lst:domain_def}]
 typedef struct DomainBlock {
   UBaseType_t uxDomainID; /* This time slices domain ID */
   size_t uxLength; /* Length of this domain */
+  size_t uxNext;
 } DomainBlock_t;
 
 /* Timeline over configNUM_TIME_SLICES, indexed by the start of a block */
 PRIVILEGED_DATA static DomainBlock_t xDomains[configNUM_TIME_SLICES] = {
-    [0] = {.uxDomainID = 0, .uxLength = configNUM_TIME_SLICES}
+    [0] = {.uxDomainID = 0, .uxLength = configNUM_TIME_SLICES, .uxNext = 0}
 };
-
-typedef struct DomainListItem {
-    size_t uxBlockStart;
-    struct DomainListItem* next;
-} DomainListItem_t;
-
-PRIVILEGED_DATA static DomainListItem_t xDomainItemPool[configNUM_TIME_SLICES] = {
-    [0] = {.uxBlockStart = 0, .next = NULL}
-};
-
-typedef struct DomainInfo {
-    TCB_t * volatile pxPreviousTCB;
-    DomainListItem_t * pxFirstBlock;  /* Singly-linked list of this domain's owned blocks */
-} DomainInfo_t;
-
-/* Timeline over Domain information indexed by the Domain ID */
-PRIVILEGED_DATA static DomainInfo_t xDomainInfo[configNUM_TIME_SLICES] = {
-    [0] = {.pxPreviousTCB = NULL, .pxFirstBlock = &xDomainItemPool[0]}
-};
-
-static DomainListItem_t * pxAllocateBlockItem( void )
-{
-    if( uxNextFreeDomainItem >= configNUM_TIME_SLICES )
-    {
-        return NULL;
-    }
-    return &( xDomainItemPool[ uxNextFreeDomainItem++ ] );
-}
 \end{lstlisting}
 
-The \texttt{xDomains} array contains the timeline of the Domains. It contains a single
-entry for every time slice that is possible. This allows for constant indexing
-as it has a fixed size. One might be able to introduce a vector based approach
-instead, but this would mean that allocation of a new domain would leak a small
-amount of information about the total number of domains when the vector has to
-expand, this is something that for now was not considered further.
+\begin{figure}
+  \begin{subfigure}{0.4\textwidth}
+  \begin{center}
+    \input{figures/example_timeline_a.tex}
+  \end{center}
+  \caption{Domain 0 owns all time slices}\label{fig:example_a}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.4\textwidth}
+  \begin{center}
+    \input{figures/example_timeline_b.tex}
+    \caption{Domain 0 is fragmented when creating another domain}\label{fig:example_b}
+  \end{center}
+  \end{subfigure}
+  \caption{Example timelines when creating domains}\label{fig:example_timeline}
+\end{figure}
 
-The \texttt{xDomainPool} contains a pool of compile time allocated
-\texttt{DomainListItem\_t}. 
+For now the main data structure introduced is an array, namely xDomains,
+storing the timeline. This array is indexable by the start time of the current
+group of time slices and contains information about the current group of domain
+slices, such as the length. Two example states of this array can be seen
+visualized in Figure~\ref{fig:example_timeline}. For the case where Domain 0
+owns all time slices xDomains would only contain a single valid index, namely
+the 0 index, which stores that it is domain 0, that owns the group of time
+slices and the group has a length of 6.
 
-The \texttt{xDomainInfo} array is indexable by the DomainID, and contains
-information about the previously running task for restoration upon a reentry of
-the domain, and a single linked list of owned blocks of time slices by the
-current domain. This information is used to check at domain creation if the
-current domain owns the time slice it is attempting to allocate. Further, it is
-created in this manner, such that the creation of a domain entirely depends on
-the owned time slices of the domain itself, and does not leak information about
-the total number of domains within the system, which would be leaked, if we
-simply loop over the \texttt{xDomains} array using the lengths. So while
-information about the total number of domains owned by this current domain
-could be leaked by attempting to create a new domain, other domains information
-should not be leaked. 
+This way, our previous domain switching can be directly indexed once we find
+that a new domain switch needs to happen providing constant time retrieval of
+the next domain.
 
-With this in place, it allows the creation of new domains as follows:
+At first glance domain creation also seems simple. In
+Figure~\ref{fig:example_a} there are three main cases for domain creation.
+Either we create domains by giving up time slices at the start or the end of
+our own time slice, which would simply create two separate domains with no
+"split" domain. If instead a domain is created in the middle of the current
+domain, then the current domain is split and might be scheduled several times
+during a single round trip of the time slices. Such an example can be seen in
+Figure~\ref{fig:example_b}, where Domain 0 runs at separate times of execution.
+This poses an issue when wanting to create yet another domain. As mentioned in
+Section~\ref{sec:api}, a user of the OS would provide the time slice for which
+to start a new domain and the length of the domain. Given that not all indices
+throughout the domain are defined, we would need to scan the array from left to
+right to figure out, if the current domain truly does "own" the given time
+slices the user is attempting to access. If a user wants to create a new domain
+from Domain 0s time slice 4-6 (0 indexed), then the naive method would loop
+from the start of the array until reaching the group of time slices, which
+contains these time slices, namely indices 4-8. This execution is not constant
+time with respect to what domain 0 should know as the execution time of the
+loop depends on how many other domains are created before no matter which
+domain owns those time slices.
+
+To solve this issue the \texttt{uxNext} field was introduced, which contains
+the index of the next group of time slices owned by the current domain. This
+field can then be used for the looping, when finding the encompassing group of
+time slices giving us execution that is only dependent on information available
+to the current domain. In the case that there is no next domain the
+\texttt{SIZE\_MAX} is used.
+
+With this in place, it allows finding the encompassing domain as follows:
 \begin{lstlisting}[language={c}, caption={Function for creating domains}, label={lst:create_domain}]
-static BaseType_t prvCreateDomain(
-    DomainParameters_t * pxParams,
-    UBaseType_t * puxNewDomainSlot)
+static BaseType_t prvFindContainingBlock(
+    size_t uxFirstBlock,
+    size_t start,
+    size_t length,
+    size_t * puxPrevBlock,
+    size_t * puxBlock)
 {
-    size_t start = pxParams->ulSliceIndex;
-    size_t length = pxParams->ulSliceLength;
+    size_t prev = SIZE_MAX;
 
-    if (length == 0)
+    for (size_t current = uxFirstBlock; current != SIZE_MAX; current = xDomains[current].uxNext)
     {
-        return pdFAIL;
+        size_t blockEnd = current + xDomains[current].uxLength;
+
+        if (start >= current && (start + length) <= blockEnd)
+        {
+            *puxPrevBlock = prev;
+            *puxBlock = current;
+            return pdTRUE;
+        }
+
+        prev = current;
     }
 
-    taskENTER_CRITICAL();
-
-    UBaseType_t uxCurrentDomainID =
-        xDomains[pxCurrentDomainIndex].uxDomainID;
-
-    DomainInfo_t * pxInfo =
-        &xDomainInfo[uxCurrentDomainID];
-
-    DomainListItem_t * pxBlock =
-        prvFindContainingBlock(pxInfo, start, length);
-
-    if (pxBlock == NULL)
-    {
-        taskEXIT_CRITICAL();
-        return pdFAIL;
-    }
-
-    size_t blockStart = pxBlock->uxBlockStart;
-    size_t blockEnd =
-        blockStart + xDomains[blockStart].uxLength;
-
-    /* reject overlap with current tick */
-    if (start <= xDomainTick &&
-        xDomainTick < start + length)
-    {
-        taskEXIT_CRITICAL();
-        return pdFAIL;
-    }
-
-    DomainListItem_t * pxChild = NULL;
-
-    if (prvSplitBlock( pxBlock,
-            blockStart,
-            blockEnd,
-            start,
-            length,
-            uxCurrentDomainID,
-            &pxChild) != pdTRUE)
-    {
-        taskEXIT_CRITICAL();
-        return pdFAIL;
-    }
-
-    UBaseType_t uxChildDomainID = uxNextDomainID++;
-
-    xDomains[start].uxDomainID = uxChildDomainID;
-    xDomains[start].uxLength = length;
-
-    xDomainInfo[uxChildDomainID].pxPreviousTCB = NULL;
-    xDomainInfo[uxChildDomainID].pxFirstBlock = pxChild;
-
-    *puxNewDomainSlot = start;
-
-    taskEXIT_CRITICAL();
-    return pdTRUE;
+    return pdFAIL;
 }
 \end{lstlisting}
 
-First, we find the containing block of the given new domain, which is to be
-created. Then, we make sure it does not overwrite the current domain tick, as
-this could cause issues with the current task. We handle splitting the block if
-needed via. the helper prvSplitBlock, and at last we update the necessary
-global items.
+Once we have found the encompassing group of time slices we have to create the
+new domain, which is done via index arithmetics as seen below: 
+
+\begin{lstlisting}[language={c}]
+...
+/* Right fragment */
+size_t rightStart = SIZE_MAX;
+if (start + length < blockEnd)
+{
+    rightStart = start + length;
+    xDomains[rightStart].uxDomainID = uxCurrentDomainID;
+    xDomains[rightStart].uxLength = blockEnd - rightStart;
+    xDomains[rightStart].uxNext = xDomains[blockStart].uxNext;
+}
+
+/* Left fragment: shrink existing block */
+if (start > blockStart)
+{
+    xDomains[blockStart].uxLength = start - blockStart;
+    if (rightStart != SIZE_MAX)
+    {
+        xDomains[blockStart].uxNext = rightStart;
+    }
+}
+else /* No left fragment: remove blockStart from parent's list */
+{
+    size_t spliceNext = (rightStart != SIZE_MAX) ? rightStart : xDomains[blockStart].uxNext;
+    if (prev == SIZE_MAX)
+    {
+        xDomainInfo[uxCurrentDomainID].uxFirstBlock = spliceNext;
+    }
+    else
+    {
+        xDomains[prev].uxNext = spliceNext;
+    }
+}
+...
+\end{lstlisting}
+
+We first check, if we would create a new right fragment of the current domain.
+It would exists if we are attempting to create a new domain, which start ends
+before the current domain. If such a fragment exists, then we update the index
+in \texttt{xDomains} to track it.
+
+Next, we can check if a left fragment is created, and simply shrink the
+encompassing time slice group and updating the \texttt{uxNext} field indicating
+that we have been split and the next block owned by the current domain is that
+of the new right fragment.
+
+If there is no left created, then we are creating a new domain at the start of
+the encompassing block, so we remove the encompassing block start from the
+linked list, and update it to point to the right fragment if it was created or
+the next block. In the case that there is no next block, then it was previously
+set to SIZE\_MAX indicating again, that there is no next block.
+
+At last, we have to update the \texttt{xDomains} to include the new created
+domain, which is simply done as follows:
+
+\begin{lstlisting}[language={c}]
+...
+UBaseType_t uxChildDomainID = uxNextDomainID++;
+xDomains[start].uxDomainID = uxChildDomainID;
+xDomains[start].uxLength = length;
+xDomains[start].uxNext = SIZE_MAX;
+
+xDomainInfo[uxChildDomainID].pxPreviousTCB = NULL;
+xDomainInfo[uxChildDomainID].uxFirstBlock = start;
+...
+\end{lstlisting}
+
+The global xDomainInfo is the array used for scheduling the TCB within each
+domains, and is indexable by the doamin id rather than the start of the time
+slice block.
 
 \subsubsection{Per domain scheduling}
 For the domain level scheduler to work with inter domain priority based
