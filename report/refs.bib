@@ -57,6 +57,13 @@
   file = {/home/simon/Zotero/storage/ZH6KIY4E/Buckley et al. - 2023 - Proving the Absence of Microarchitectural Timing Channels.pdf;/home/simon/Zotero/storage/XSWRK9NY/2310.html}
 }
 
+@online{CacheModellingTCG,
+  title = {Cache {{Modelling TCG Plugin}} - {{QEMU}}},
+  url = {https://www.qemu.org/2021/08/19/tcg-cache-modelling-plugin/},
+  urldate = {2026-04-29},
+  file = {/home/simon/Zotero/storage/MXNP3WRE/tcg-cache-modelling-plugin.html}
+}
+
 @inproceedings{cauligi2019,
   title = {{{FaCT}}: A {{DSL}} for Timing-Sensitive Computation},
   shorttitle = {{{FaCT}}},
@@ -252,6 +259,23 @@
   file = {/home/simon/Zotero/storage/9VQ5R7B7/Heiser et al. - 2025 - Fast, Secure, Adaptable LionsOS Design, Implementation and Performance.pdf}
 }
 
+@online{jin2023,
+  title = {Timing the {{Transient Execution}}: {{A New Side-Channel Attack}} on {{Intel CPUs}}},
+  shorttitle = {Timing the {{Transient Execution}}},
+  author = {Jin, Yu and Qiu, Pengfei and Wang, Chunlu and Yang, Yihao and Wang, Dongsheng and Qu, Gang},
+  date = {2023-04-21},
+  eprint = {2304.10877},
+  eprinttype = {arXiv},
+  eprintclass = {cs},
+  doi = {10.48550/arXiv.2304.10877},
+  url = {http://arxiv.org/abs/2304.10877},
+  urldate = {2026-04-29},
+  abstract = {The transient execution attack is a type of attack leveraging the vulnerability of modern CPU optimization technologies. New attacks surface rapidly. The side-channel is a key part of transient execution attacks to leak data. In this work, we discover a vulnerability that the change of the EFLAGS register in transient execution may have a side effect on the Jcc (jump on condition code) instruction after it in Intel CPUs. Based on our discovery, we propose a new side-channel attack that leverages the timing of both transient execution and Jcc instructions to deliver data. This attack encodes secret data to the change of register which makes the execution time of context slightly slower, which can be measured by the attacker to decode data. This attack doesn’t rely on the cache system and doesn’t need to reset the EFLAGS register manually to its initial state before the attack, which may make it more difficult to detect or mitigate. We implemented this side-channel on machines with Intel Core i7-6700, i7-7700, and i9-10980XE CPUs. In the first two processors, we combined it as the side-channel of the Meltdown attack, which could achieve 100\% success leaking rate. We evaluate and discuss potential defenses against the attack. Our contributions include discovering security vulnerabilities in the implementation of Jcc instructions and EFLAGS register and proposing a new side-channel attack that does not rely on the cache system.},
+  pubstate = {prepublished},
+  keywords = {Computer Science - Cryptography and Security},
+  file = {/home/simon/Zotero/storage/VBADXIEQ/Jin et al. - 2023 - Timing the Transient Execution A New Side-Channel Attack on Intel CPUs.pdf}
+}
+
 @article{kadloor2016,
   title = {Mitigating {{Timing Side Channel}} in {{Shared Schedulers}}},
   author = {Kadloor, Sachin and Kiyavash, Negar and Venkitasubramaniam, Parv},
@@ -411,6 +435,14 @@
   langid = {english},
   keywords = {Computer Science - Cryptography and Security},
   file = {/home/simon/Zotero/storage/YFRN924M/Schneider et al. - 2025 - Breaking Bad How Compilers Break Constant-Time Implementations.pdf}
+}
+
+@article{schroder,
+  title = {Divide and {{Surrender}}: {{Exploiting Variable Division Instruction Timing}} in {{HQC Key Recovery Attacks}}},
+  author = {Schröder, Robin Leander and Gast, Stefan and Guo, Qian},
+  abstract = {We uncover a critical side-channel vulnerability in the Hamming QuasiCyclic (HQC) round 4 optimized implementation arising due to the use of the modulo operator. In some cases, compilers optimize uses of the modulo operator with compile-time known divisors into constant-time Barrett reductions. However, this optimization is not guaranteed: for example, when a modulo operation is used in a loop the compiler may emit division (div) instructions which have variable execution time depending on the numerator. When the numerator depends on secret data, this may yield a timing side-channel. We name vulnerabilities of this kind Divide and Surrender (DaS) vulnerabilities.},
+  langid = {english},
+  file = {/home/simon/Zotero/storage/CN9ZHTDK/Schröder et al. - Divide and Surrender Exploiting Variable Division Instruction Timing in HQC Key Recovery Attacks.pdf}
 }
 
 @online{TCGInstructionCounting,
