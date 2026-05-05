@@ -144,3 +144,50 @@ QEMU TCG plugin was developed for emulating the cache behaviour of the program
 during execution. QEMU provides a cache modelling plugin example
 \cite{CacheModellingTCG}.
 
+\subsection{Limitations}
+FreeRTOS was not created with the MPU version in mind. This means that
+development on the MPU version of FreeRTOS is a quite recent endeavour and most
+likely still subject to change. One clear issue with the aforementioned domain
+level scheduler is the inter-domain scheduler itself. FreeRTOS provides two
+different modes for tasks, namely the Priviledge Mode and the User mode. When a
+task is in user mode, it is unable to create any other tasks, as this changes
+kernel memory and disables interrupts for the duration of the call. This poses
+an issue when wanting to implement strict boundaries between separate domains.
+When creating a new domain, if this is initialized with only a User mode task,
+then that domain will see no other tasks as the task itself can create new
+tasks. 
+
+The more subtle problem is, that Privileged Mode takes precedence over the
+domain separation. If we have two domains 0 and 1, each with a single Privilege
+mode task within, then these two tasks can always communicate with each other,
+as there are no restrictions on what a Privilege task can access. The domain
+separation is thus only for User mode tasks, and by no means does it extent to
+the Privileged mode tasks within FreeRTOS. Further, the separation itself
+requires that the privileged mode tasks within each domain explicitly run
+within the allocated time slices as they can disable interrupts via the
+FreeRTOS api. One such example is for task creation. When a Privileged mode
+task wishes to created another task, FreeRTOS enters a critical section, which
+for the RISC-V version disables all interrupts including the machine hardware
+interrupt. If the task does not do this carefully, it could delay the domain
+level scheduler, which would create a possible timing channel between this
+privileged task and a user level task in another domain. This means that the
+only cross-domain timing protection enabled via this implementation is between
+two User mode tasks running in separate domains.
+
+\subsection{The FreeRTOS kernel is vast}
+One requirement for time protection specified within \cite{ge2019} is that the
+OS must be partitioned. This includes all system calls, which must be constant
+time in regards to available information within each domain. Given that the
+domain scheduler implemented creates a copy of the priority based scheduler for
+each domain, it can be assumed that a large portion of these system calls
+indirectly become constant time in this aspect. Further, as the User mode tasks
+are unable to disable any interrupts this would indicate that the shared front
+that remains to be partitioned is anything regarding the domain level scheduler
+itself. Given that these do make use of constant time, and domain creation is
+restricted to Privileged mode, then it would seem that this requirements might
+be met to some extent. However, to truly show this partitioned OS one would
+need a full audit of all system calls available for User mode tasks, and make
+sure that they are constant time in respect to the domain available
+information. As this is something beyond the scope of this thesis, the
+implementation can provide no guarantees that it is truly implementing time
+protection.
