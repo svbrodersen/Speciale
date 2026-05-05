@@ -1,29 +1,28 @@
 \subsection{FreeRTOS}\label{sub:FreeRTOS} % (fold)
-FreeRTOS is a class of Real Time Operating Systems(RTOS), that is designed to
-be small enough for microcontrollers while not limiting its application to
-purely microcontrollers. Out of the box, FreeRTOS provides core real time
-scheduling functionality, inter-task communication, timing and synchronisation
-primitives along with other possible add on functionalities. \cite{WhatFreeRTOSFreeRTOS2026}
+FreeRTOS is a class of real-time operating systems (RTOS) designed to be small
+enough for microcontrollers, while not limiting its application to microcontrollers
+alone. Out of the box, FreeRTOS provides core real-time scheduling functionality,
+inter-task communication, timing and synchronisation primitives, along with
+other optional add-on features. \cite{WhatFreeRTOSFreeRTOS2026}
 
-FreeRTOS-MPU is a memory protected version of FreeRTOS, which as of writing is
-supported on select ARM based microcontrollers. It enables tasks to run in
-either privileged or unprivileged mode and restricts access to resources such
-as RAM, executable code, peripherals and memory beyond the limit of a task's
-stack. \cite{MemoryProtectionUnit2026}
+FreeRTOS-MPU is a memory-protected version of FreeRTOS, which at the time of
+writing is supported on select ARM-based microcontrollers. It enables tasks to
+run in either privileged or unprivileged mode and restricts access to resources
+such as RAM, executable code, peripherals, and memory beyond the limit of a
+task's stack. \cite{MemoryProtectionUnit2026}
 
-Currently there exists a third party port of this implementation to the RISC-V
-ISA \cite{FreeRTOSCommunitySupportedDemosRISCV_RV32_MPU_QEMU_VIRT_GCCmain}.
-This is what forms the basis for this thesis implementation. There are a couple
-of reason for this choice. The first and most important one is familiarity.
-Previously I have worked with the RISC-V ISA and as such this reduces the
-overhead needed on my end in regards to working with a different ISA. Second,
-the related work on timing channels generally focuses on this ISA, so future
-comparison between implementations are more relevant if all are built on the
-same platform. At last, the \texttt{fence.t} instruction introduced in
-Section~\ref{sub:temporal} is implemented with the RISC-V instruction set in
-mind. While the underlying idea could be implemented on other platforms work on
-hardware support is not as far along, so assuming this implementation will run
-on real hardware at some point in the future, then RISC-V seems like the most
+A third-party port of FreeRTOS-MPU to the RISC-V ISA currently exists
+\cite{FreeRTOSCommunitySupportedDemosRISCV_RV32_MPU_QEMU_VIRT_GCCmain}. This
+port forms the basis for this thesis's implementation. There are several reasons
+for this choice. The first and most important is familiarity: I have previously
+worked with the RISC-V ISA, which reduces the overhead of adopting a different
+ISA. Second, the related work on timing channels generally focuses on RISC-V, so
+future comparisons between implementations are more relevant if all are built on
+the same platform. Finally, the \texttt{fence.t} instruction introduced in
+Section~\ref{sub:temporal} is designed with the RISC-V instruction set in mind.
+While the underlying idea could be implemented on other platforms, work on
+hardware support for those platforms is not as far along. Therefore, assuming
+this implementation will eventually run on real hardware, RISC-V seems the most
 reasonable choice.
 
 % subsection FreeRTOS (end)
