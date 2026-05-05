@@ -1,43 +1,44 @@
 \subsection{temporal\_fence\_t}\label{sub:temporal} % (fold)
-Following the difficulties found in \cite{ge2019}, it was clear that hardware
-needs improvements before time protection truly could be achieved. In the paper
-\cite{wistoff2023} they implement such a hardware improvement. First, it is
-demonstrated that there currently exists presence of serious timing channels
-within the in-order RISC-V core and confirm that the current ISA lacks
-mechanisms to close them reliably.
+Following the difficulties identified in \cite{ge2019}, it was clear that
+hardware improvements are needed before time protection can be fully achieved.
+The paper \cite{wistoff2023} introduce one such hardware improvement. First, it
+demonstrates the presence of serious timing channels within an in-order RISC-V
+core and confirms that the current ISA lacks mechanisms to close them reliably.
 
-The initially present two versions of the \texttt{fence.t} instruction, a basic
-flush which exclusively flushes the L1 data and instruction caches, the TLBs,
-and the branch predictors. Through their evaluation they find that further
-stateful components such as the LFSR providing pseudo-random index sequence for
-the cache replacement policy and the round-robin memory arbiters of the core
-still leak data in the microarchitectural state. As such, they also implement a
-Full Flush, which clears these components along with the ones in the basic
-flush. To use this full flush efficiently the \texttt{fence.t} proceeds as follows.
+Following this, they present two versions of the \texttt{fence.t} instruction:
+a basic flush that exclusively flushes the L1 data and instruction caches, the
+TLBs, and the branch predictors. Through their evaluation they find that
+further stateful components - such as the LFSR generating a pseudo-random index
+sequence for the cache replacement policy and the round-robin memory arbiters
+of the core - still leak data through the microarchitectural state. As such,
+they also implement a Full Flush, which clears these components along with
+those covered by the basic flush. The \texttt{fence.t} instruction proceeds as
+follows:
 \begin{itemize}
   \item Save the program counter.
   \item Save locally modified (dirty) architectural state.
   \item Drain pending transactions.
   \item Clear components that are not cleared on reset.
-  \item Assert Microreset. Clearing all flip-flops containing non-architectural state.
+  \item Assert Microreset. Clearing all flip-flops containing non-architectural
+    state.
 \end{itemize}
 
 A full explanation of each step is provided in \cite{wistoff2023}.
 
-Given this implementation, they augmented the seL4 kernel to always call the
-\texttt{fence.t} instruction whenever there is a context switch, and they find
-that the overhead is around 0.7\%. It is noted, that this should be seen as a
-pessimistic result due to the use of idle tasks, and that in a setting with
-high memory contention, the latency may be almost entirely hidden.
+Given this implementation, they augmented the seL4 kernel to call the
+\texttt{fence.t} instruction on every context switch, finding an overhead of
+around 0.7\%. They note that this should be seen as a pessimistic result due to
+the use of idle tasks, and that in a setting with high memory contention the
+latency may be almost entirely hidden.
 
 \subsubsection{With software support}
-While \texttt{fence.t} was effective and inexpensive on simple in-order cores.
-However, in a follow up paper \cite{wistoff2025} argue that in out-of-order
-execution CPUs there are challenges with the implementation and address these
-challenges by presenting a SW-supported temporal fence \texttt{fence.t.s}
-methodology. They show that this software supported version is able to close
-all on-core timing channels without measurable hardware overhead at a minimal
-performance impact of 1.0\% on average.
+While \texttt{fence.t} was effective and inexpensive on simple in-order cores,
+a follow-up paper \cite{wistoff2025} argues that out-of-order execution CPUs
+introduce challenges for the implementation. They address these challenges by
+presenting a software-supported temporal fence \texttt{fence.t.s} methodology.
+They show that this software-supported version is able to close all on-core
+timing channels without measurable hardware overhead, and with a minimal
+average performance impact of 1.0\%.
 
 
 % section temporal\_fence\_t (end)
