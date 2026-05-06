@@ -32,6 +32,10 @@
   some illustration and example of why it is needed with linked lists.
 - [x] Figure out missing parts of report, and what else should be added.
 
+- [ ] Exchange the description with an abstract; Explain why I have done what I have done. Explain reasoning, 
+- [ ] Overview in each section about what is going to be presented.
+- [ ] Specify user level mitigations, that it is not the memory content, but the access address that can be leaked.
+
 - [ ] Read over current sections.
 
 - [ ] Discussion
