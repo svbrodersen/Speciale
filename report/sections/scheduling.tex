@@ -353,7 +353,7 @@ typedef struct DomainBlock {
 
 /* Timeline over configNUM_TIME_SLICES, indexed by the start of a block */
 PRIVILEGED_DATA static DomainBlock_t xDomains[configNUM_TIME_SLICES] = {
-    [0] = {.uxDomainID = 0, .uxLength = configNUM_TIME_SLICES, .uxNext = 0}
+    [0] = {.uxDomainID = 0, .uxLength = configNUM_TIME_SLICES, .uxNext = SIZE_MAX}
 };
 \end{lstlisting}
 
