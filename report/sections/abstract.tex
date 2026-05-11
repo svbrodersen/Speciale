@@ -1,0 +1,27 @@
+\begin{abstract}
+Timing channels present a significant security threat in modern computing,
+allowing unauthorized information flow through observable variations in
+execution time. Research has been made in creating secure microkernels designed
+to mitigate these channels from the ground up\cite{ge2019, karlsson2025}, while
+other research focuses on closing timing channels at the user
+level\cite{cauligi2019}. It remains an open challenge to gather these findings
+for a more general and mainstream OS, and this thesis aims to investigate the
+feasibility of integrating time protection mechanisms into the widely used
+FreeRTOS kernel.
+
+FreeRTOS provides a default priority-based preemptive scheduler, which is
+inherently vulnerable to timing channels. To address this, the project
+implements a \textbf{domain-level} scheduler that partitions execution into
+fixed time slices, ensuring that the execution of tasks in one domain does
+not affect the timing observed by another. Key to this implementation is the
+temporal fence (fence.t) instruction during domain switches to clear shared
+microarchitectural states\cite{wistoff2023, wistoff2025}. Further,
+constant-time domain creation mechanisms are introduced, allowing dynamic
+resource reconfiguration without introducing new timing channels.
+
+The implementation was evaluated using QEMU system emulation. The results
+demonstrate that the modified kernel achieves constant-time domain scheduling
+with negligible variance in regard to instruction counting. While evaluation
+on true hardware remains undone, this work provides a foundation towards
+bringing timing protection to mainstream embedded systems.
+\end{abstract}
