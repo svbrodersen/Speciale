@@ -34,17 +34,18 @@
 
 - [x] Exchange the description with an abstract; Explain why I have done what I have done. Explain reasoning, 
 - [ ] Overview in each section about what is going to be presented.
-- [ ] Specify user level mitigations, that it is not the memory content, but the access address that can be leaked.
+- [x] Specify user level mitigations, that it is not the memory content, but the access address that can be leaked.
+- [ ] Introduction read through. Present what this thesis focuses on and what has been implemented.
 
 - [ ] Read over current sections.
 
 - [ ] Discussion
-  - [ ] what is possible
-  - [ ] L2 cache 
+  - [ ] what is possible with current means
+  - [x] L2 cache 
 - [ ] Evaluation
-  - [ ] Limitation
-  - [ ] Privilege mode making isolation hard.
-  - [ ] Example of within domain communication as well as external communication.
+  - [x] Limitation
+  - [x] Privilege mode making isolation hard.
+  - [x] Example of within domain communication as well as external communication.
 
 - [ ] Future work
 - [ ] Conclusion
@@ -52,4 +53,4 @@
 
 ## Future work
 
-- [ ] Make it simple to create tasks within a domain. Currently cumbersome.
+- [x] Make it simple to create tasks within a domain. Currently cumbersome.

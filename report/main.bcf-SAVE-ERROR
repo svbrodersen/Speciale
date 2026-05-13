@@ -2376,53 +2376,45 @@
     <bcf:datasource type="file" datatype="bibtex" glob="false">refs.bib</bcf:datasource>
   </bcf:bibdata>
   <bcf:section number="0">
-    <bcf:citekey order="1" intorder="1">kocher2019</bcf:citekey>
-    <bcf:citekey order="1" intorder="2">lipp2018</bcf:citekey>
+    <bcf:citekey order="1" intorder="1">ge2019</bcf:citekey>
+    <bcf:citekey order="1" intorder="2">karlsson2025</bcf:citekey>
     <bcf:citekey order="2" intorder="1">cauligi2019</bcf:citekey>
     <bcf:citekey order="3" intorder="1">wistoff2023</bcf:citekey>
     <bcf:citekey order="3" intorder="2">wistoff2025</bcf:citekey>
-    <bcf:citekey order="4" intorder="1">ge2019</bcf:citekey>
-    <bcf:citekey order="5" intorder="1">karlsson2025</bcf:citekey>
-    <bcf:citekey order="6" intorder="1">dhem2000</bcf:citekey>
-    <bcf:citekey order="6" intorder="2">aciicmez2005</bcf:citekey>
-    <bcf:citekey order="7" intorder="1">ristenpart2009</bcf:citekey>
-    <bcf:citekey order="8" intorder="1">lipp2018</bcf:citekey>
-    <bcf:citekey order="9" intorder="1">corbet2017</bcf:citekey>
-    <bcf:citekey order="10" intorder="1">cauligi2019</bcf:citekey>
-    <bcf:citekey order="11" intorder="1">kocher2019</bcf:citekey>
-    <bcf:citekey order="12" intorder="1">karlsson2025</bcf:citekey>
-    <bcf:citekey order="12" intorder="2">ge2019</bcf:citekey>
-    <bcf:citekey order="13" intorder="1">murray2013</bcf:citekey>
-    <bcf:citekey order="14" intorder="1">buckley2023</bcf:citekey>
-    <bcf:citekey order="15" intorder="1">schneider2025</bcf:citekey>
+    <bcf:citekey order="4" intorder="1">dhem2000</bcf:citekey>
+    <bcf:citekey order="4" intorder="2">aciicmez2005</bcf:citekey>
+    <bcf:citekey order="5" intorder="1">ristenpart2009</bcf:citekey>
+    <bcf:citekey order="6" intorder="1">lipp2018</bcf:citekey>
+    <bcf:citekey order="7" intorder="1">corbet2017</bcf:citekey>
+    <bcf:citekey order="8" intorder="1">cauligi2019</bcf:citekey>
+    <bcf:citekey order="9" intorder="1">kocher2019</bcf:citekey>
+    <bcf:citekey order="10" intorder="1">karlsson2025</bcf:citekey>
+    <bcf:citekey order="10" intorder="2">ge2019</bcf:citekey>
+    <bcf:citekey order="11" intorder="1">murray2013</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">buckley2023</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">ge2019</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">schneider2025</bcf:citekey>
+    <bcf:citekey order="15" intorder="1">kocher2019</bcf:citekey>
     <bcf:citekey order="16" intorder="1">kocher2019</bcf:citekey>
-    <bcf:citekey order="17" intorder="1">kocher2019</bcf:citekey>
-    <bcf:citekey order="18" intorder="1">osvik2006</bcf:citekey>
-    <bcf:citekey order="18" intorder="2">liu2015</bcf:citekey>
-    <bcf:citekey order="19" intorder="1">murray2013</bcf:citekey>
-    <bcf:citekey order="20" intorder="1">ge2019</bcf:citekey>
-    <bcf:citekey order="21" intorder="1">rushby1999</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">osvik2006</bcf:citekey>
+    <bcf:citekey order="17" intorder="2">liu2015</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">murray2013</bcf:citekey>
+    <bcf:citekey order="19" intorder="1">rushby1999</bcf:citekey>
+    <bcf:citekey order="20" intorder="1">wistoff2023</bcf:citekey>
+    <bcf:citekey order="21" intorder="1">ge2019</bcf:citekey>
     <bcf:citekey order="22" intorder="1">wistoff2023</bcf:citekey>
-    <bcf:citekey order="23" intorder="1">ge2019</bcf:citekey>
-    <bcf:citekey order="24" intorder="1">cauligi2019</bcf:citekey>
-    <bcf:citekey order="25" intorder="1">schroder</bcf:citekey>
-    <bcf:citekey order="25" intorder="2">jin2023</bcf:citekey>
-    <bcf:citekey order="26" intorder="1">wistoff2023</bcf:citekey>
-    <bcf:citekey order="27" intorder="1">ge2019</bcf:citekey>
+    <bcf:citekey order="23" intorder="1">wistoff2023</bcf:citekey>
+    <bcf:citekey order="24" intorder="1">wistoff2025</bcf:citekey>
+    <bcf:citekey order="25" intorder="1">WhatFreeRTOSFreeRTOS2026</bcf:citekey>
+    <bcf:citekey order="26" intorder="1">MemoryProtectionUnit2026</bcf:citekey>
+    <bcf:citekey order="27" intorder="1">FreeRTOSCommunitySupportedDemosRISCV_RV32_MPU_QEMU_VIRT_GCCmain</bcf:citekey>
     <bcf:citekey order="28" intorder="1">ge2019</bcf:citekey>
-    <bcf:citekey order="29" intorder="1">wistoff2023</bcf:citekey>
-    <bcf:citekey order="30" intorder="1">wistoff2023</bcf:citekey>
-    <bcf:citekey order="31" intorder="1">wistoff2025</bcf:citekey>
-    <bcf:citekey order="32" intorder="1">karlsson2025</bcf:citekey>
+    <bcf:citekey order="29" intorder="1">cauligi2019</bcf:citekey>
+    <bcf:citekey order="30" intorder="1">schroder</bcf:citekey>
+    <bcf:citekey order="30" intorder="2">jin2023</bcf:citekey>
+    <bcf:citekey order="31" intorder="1">wistoff2023</bcf:citekey>
+    <bcf:citekey order="32" intorder="1">ge2019</bcf:citekey>
     <bcf:citekey order="33" intorder="1">karlsson2025</bcf:citekey>
     <bcf:citekey order="34" intorder="1">karlsson2025</bcf:citekey>
-    <bcf:citekey order="35" intorder="1">ge2019</bcf:citekey>
-    <bcf:citekey order="36" intorder="1">WhatFreeRTOSFreeRTOS2026</bcf:citekey>
-    <bcf:citekey order="37" intorder="1">MemoryProtectionUnit2026</bcf:citekey>
-    <bcf:citekey order="38" intorder="1">FreeRTOSCommunitySupportedDemosRISCV_RV32_MPU_QEMU_VIRT_GCCmain</bcf:citekey>
-    <bcf:citekey order="39" intorder="1">FreeRTOSschedulingsinglecore2026</bcf:citekey>
-    <bcf:citekey order="40" intorder="1">kadloor2016</bcf:citekey>
-    <bcf:citekey order="40" intorder="2">chen2019</bcf:citekey>
-    <bcf:citekey order="41" intorder="1">ge2019</bcf:citekey>
-    <bcf:citekey order="42" intorder="1">karlsson2025</bcf:citekey>
-    <bcf:citekey order="43" intorder="1">MemoryProtectionUnit2026</bcf:citekey>
+    <bcf:citekey order="35" intorder="1">karlsson2025</bcf:citekey>
+    <bcf:citekey order="36" intorder="1">ge2019</bcf:citekey>
