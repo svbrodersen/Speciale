@@ -1,1 +1,66 @@
 \section{Future work}
+
+\subsection{Timer support}
+
+\subsection{External interrupts}
+
+\subsection{Safeguarding system calls}
+With the current setup, when a new domain is created, it must be created with a
+task that is in privileged, if that domain should have more than a single task
+running. The reason for this is two fold. First, to create a task in
+FreeRTOS-MPU one must be in privileged mode. Secondly, to add a task to a
+domain with the new API presented in Section~\ref{sec:api}, one must either be
+inside the domain itself or be creating a new domain\footnote{Given the task
+  runs in privileged mode, it could technically overwrite the memory locations
+forcefully, and not make use of the api at all.}. The requirement of a single
+privileged task mainly comes from the FreeRTOS-MPU version, and to circumvent
+this issue would require significant changes from FreeRTOS itself. The larger
+issue in regards to domain creation is, that creating a new domain could delay
+scheduling. Specifically, many of the privileged functions enter a "critical"
+section within FreeRTOS. When entering such a critical section, on the RISC-V
+MPU version interrupts are disabled, including the machine timer interrupts
+which drives the domain scheduling. This poses a significant burden on the
+privileged tasks within each domain, as they can inadvertently create timing
+side-channels. The issue is not only with the domain creation, but any call to
+functions that enter the critical sections. 
+
+This issue poses a few challenges, and there are two primary solutions, which
+could be considered for future development. The first is taking inspiration
+from \cite{ge2019}. Here, they clone the shared kernel data into memory
+provided by user level tasks within each domain. The current implementation
+created within FreeRTOS does not do this, but many of the preexisting features
+of the within domain priority scheduler could be fully partitioned. For this to
+function, one would have to introduce two different kinds of critical sections.
+There is the cross-domain critical section, for which we would still have to
+disable interrupts when it occurs, and there is the within domain critical
+section. When entering a within domain critical section, then we would block
+any priority scheduling, such that the priority based scheduler is not left in
+an invalid state, but if there is a domain level interrupt, then we would save
+the context of the current execution and switch to another domain. When the old
+domain runs again, it would still be within the domain critical section at the
+same context point, allowing for a valid state of the within domain scheduler,
+while allowing the domain level scheduler to schedule other domains without
+delays. This context saving and restoration would have to be taken into account
+for the worst case analysis of the domain switching, if it can not be
+guaranteed in constant time, but should propagate well to the majority of
+FreeRTOS' standard implementation. 
+
+The next issue would be the cross-domain critical section. This part of the
+kernel is shared between all, and as such we can not simply "ignore" the
+critical section as before. Instead we would have to guarantee that any call to
+cross domain critical functions would execute within the current domain. A
+solution to this problem would be to guarantee, that any system call with such
+a cross-domain critical section runs within a single time slot, or allows for
+preemption within a time slice. Then, when entering the cross-domain critical
+section, the task would have to idle until it reaches the start of a time slice
+and then execute the system call. This would mean tat execution is guaranteed
+to finish before the scheduler would attempt to schedule the next domain. 
+
+For this to function correctly one would need proper hardware to find the
+running time of all such system calls, and make sure that the execution time is
+bounded by the time slice. It would also mean, that there has to be a hard
+requirement on the lowest possible value of the time slice duration. However,
+with these in mind truly isolated domains should be possible.
+
+%TODO: Possible this is a channel in S3k
+

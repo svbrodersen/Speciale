@@ -1,15 +1,63 @@
 \section{Discussion}\label{sec:discussion} % (fold)
 
-
 \subsection{Partitioned hardware}
-% L2 cache and so on
+While this thesis makes use of the \texttt{fence.t} instruction to clear the
+microarchitectural state on domain switch, a lot of the hardware still remains
+shared. Larger caches such as the L2 and L3 cache are too large to simply
+flush\cite{wistoff2023}. This means higher level caches need another method for
+partitioning. In \cite{ge2019} they make use of cache coloring to partition the
+higher level caches. In essence cache coloring works by using some of the bits
+in the physical address to encode a color of the page. For example, if using 2
+bits in the physical address, one can encode 4 colors, and when the application
+asks to allocate consecutive pages, then the OS makes sure to map them to the
+correct colors \cite{dinh, WhatCacheColoring}. The L1 cache is usually indexed
+directly with virtual addresses, and as such can not be colored in this manner,
+where higher level caches more often makes use of elements of the physical
+address.
 
-\subsection{External interrupts}
+Cache coloring utilises the cache in an unintended manner. In general, it
+reduces the average performance of the entire system, while for some specific
+applications it can improve performance by reducing cache interference.
+However, in truly secure kernel software partitioning is still required and as
+such it is a cost that is inevitable. The larger issue with cache coloring is
+the uncertainty that it poses. Where the Instruction Set Architecture(ISA)
+usually standardizes the architectural interface for virtual memory and the MMU
+behaviour, the same cannot be said for the underlying foundation of cache
+coloring. For example, in RISC-V the ISA specifies the programmer-visible MMU
+model, while the underlying cache implementation remains undefined. This means
+that the cache coloring implementation is CPU-specific based on things like
+cache indexing. This makes a cross platform implementation of cache coloring
+challenging, and any future development in cache architecture could break any
+such implementation\cite{WhatCacheColoring}.
 
-\subsection{Out of order execution}
+In more recent years different architectures have added support for hardware
+cache partitioning. For example, intel have added
+CAT\cite{IntroductionCacheAllocation}, ARM with the MPAM
+extension\cite{LearnarchitectureMemory} and similar work for RISC-V with the
+QoS register interfaces \cite{11IntroductionRISCV}. For a truly secure kernel,
+these items need to reach a maturity level, where domains can be guaranteed
+separate in the higher level caches that previously could not be partitioned.
 
-\subsection{Call for safe hardware interface}
+Another approach for safe OS execution is what was seen in \cite{karlsson2025}.
+Here they make use of the Scratch Pad Memory(SPM) which is a section of memory
+that is never backed up to the higher level caches. The kernel itself was then
+developed, such that all memory accesses by the kernel only left a footprint in
+the SPM, which was then flushed on a domain switch. This approach seems
+promising for the kernel data itself, assuming that the SPM is guaranteed large
+enough to hold the kernel footprint. Even when cache partitioning fully
+matures, this might still be a part of the solution, as it most likely would
+have performance improvements over cache partitioning, and would reduce the
+interference the OS would have on the user level applications using the higher
+level caches.
 
+Most likely there will never be a hardware solution which fits all. A general
+purpose operating system, where user level constant time programming can solve
+the most important issues, might not need specific domain separation and cache
+partitioning. On the other hand, in high security environments this is a must
+and something where depending on the usage case the correct solution could
+vary.
+
+\subsection{Viability of time protection}
 
 
 % section Discussion (end)
