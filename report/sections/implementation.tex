@@ -12,7 +12,7 @@ each domain, such that different domains remain partitioned.
 
 \subsection{Extending the api}\label{sec:api}
 
-To implement the domain level scheduler we have first incorporate the idea into
+To implement the domain level scheduler we must first incorporate the idea into
 the existing FreeRTOS framework. With FreeRTOS MPU, we are able to create
 unprivileged tasks which have restricted access to syscalls and provide them
 with a memory space that is partitioned. For this, the general FreeRTOS api is
@@ -215,7 +215,7 @@ based on the microarchitectural state of the previous domain.
 Note this comes with some constraints. Most notably we are defining a time
 slice in relation to the machine timer interrupt timing, which is configurable
 in FreeRTOS through the \texttt{configTICK\_RATE\_HZ}. To make this more
-flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} as to not limit the domain
+flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} so as not to limit the domain
 level scheduler with respect to the inter domain priority based scheduler.
 
 \subsection{Constant time domain creation}
@@ -359,7 +359,7 @@ else /* No left fragment: remove blockStart from parent's list */
 \end{lstlisting}
 
 We first check, if we would create a new right fragment of the current domain.
-It would exists if we are attempting to create a new domain, which start ends
+It would exist if we are attempting to create a new domain, whose start ends
 before the current domain. If such a fragment exists, then we update the index
 in \texttt{xDomains} to track it.
 
@@ -368,7 +368,7 @@ encompassing time slice group and updating the \texttt{uxNext} field indicating
 that we have been split and the next block owned by the current domain is that
 of the new right fragment.
 
-If there is no left created, then we are creating a new domain at the start of
+If no left fragment is created, then we are creating a new domain at the start of
 the encompassing block, so we remove the encompassing block start from the
 linked list, and update it to point to the right fragment if it was created or
 the next block. In the case that there is no next block, then it was previously
@@ -390,7 +390,7 @@ xDomainInfo[uxChildDomainID].uxFirstBlock = start;
 \end{lstlisting}
 
 The global xDomainInfo is the array used for scheduling the TCB within each
-domains, and is indexable by the domain id rather than the start of the time
+domain, and is indexable by the domain id rather than the start of the time
 slice block.
 
 \subsection{Per domain scheduling}

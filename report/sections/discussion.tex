@@ -1,10 +1,10 @@
 \section{Discussion}\label{sec:discussion} % (fold)
 
-\subsection{Partitioned hardware}
+\subsection{Partitioned hardware}\label{sec:hardware}
 While this thesis makes use of the \texttt{fence.t} instruction to clear the
 microarchitectural state on domain switch, a lot of the hardware still remains
 shared. Larger caches such as the L2 and L3 cache are too large to simply
-flush\cite{wistoff2023}. This means higher level caches need another method for
+flush \cite{wistoff2023}. This means higher level caches need another method for
 partitioning. In \cite{ge2019} they make use of cache coloring to partition the
 higher level caches. In essence cache coloring works by using some of the bits
 in the physical address to encode a color of the page. For example, if using 2
@@ -28,18 +28,18 @@ model, while the underlying cache implementation remains undefined. This means
 that the cache coloring implementation is CPU-specific based on things like
 cache indexing. This makes a cross platform implementation of cache coloring
 challenging, and any future development in cache architecture could break any
-such implementation\cite{WhatCacheColoring}.
+such implementation \cite{WhatCacheColoring}.
 
 In more recent years different architectures have added support for hardware
-cache partitioning. For example, intel have added
-CAT\cite{IntroductionCacheAllocation}, ARM with the MPAM
-extension\cite{LearnarchitectureMemory} and similar work for RISC-V with the
+cache partitioning. For example, Intel have added
+CAT \cite{IntroductionCacheAllocation}, ARM with the MPAM
+extension \cite{LearnarchitectureMemory} and similar work for RISC-V with the
 QoS register interfaces \cite{11IntroductionRISCV}. For a truly secure kernel,
 these items need to reach a maturity level, where domains can be guaranteed
 separate in the higher level caches that previously could not be partitioned.
 
 Another approach for safe OS execution is what was seen in \cite{karlsson2025}.
-Here they make use of the Scratch Pad Memory(SPM) which is a section of memory
+Here they make use of the Scratch Pad Memory (SPM) which is a section of memory
 that is never backed up to the higher level caches. The kernel itself was then
 developed, such that all memory accesses by the kernel only left a footprint in
 the SPM, which was then flushed on a domain switch. This approach seems
