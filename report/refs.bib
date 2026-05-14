@@ -64,6 +64,15 @@
   file = {/home/simon/Zotero/storage/ZH6KIY4E/Buckley et al. - 2023 - Proving the Absence of Microarchitectural Timing Channels.pdf;/home/simon/Zotero/storage/XSWRK9NY/2310.html}
 }
 
+@online{CacheGamesBringing,
+  title = {Cache {{Games}} -- {{Bringing Access-Based Cache Attacks}} on {{AES}} to {{Practice}}},
+  url = {https://ieeexplore.ieee.org/document/5958048},
+  urldate = {2026-03-17},
+  abstract = {Side channel attacks on cryptographic systems exploit information gained from physical implementations rather than theoretical weaknesses of a scheme. In recent years, major achievements were made for the class of so called access-driven cache attacks. Such attacks exploit the leakage of the memory locations accessed by a victim process. In this paper we consider the AES block cipher and present an attack which is capable of recovering the full secret key in almost real time for AES-128, requiring only a very limited number of observed encryptions. Unlike previous attacks, we do not require any information about the plaintext (such as its distribution, etc.). Moreover, for the first time, we also show how the plaintext can be recovered without having access to the cipher text at all. It is the first working attack on AES implementations using compressed tables. There, no efficient techniques to identify the beginning of AES rounds is known, which is the fundamental assumption underlying previous attacks. We have a fully working implementation of our attack which is able to recover AES keys after observing as little as 100 encryptions. It works against the OpenS SL 0.9.8n implementation of AES on Linux systems. Our spy process does not require any special privileges beyond those of a standard Linux user. A contribution of probably independent interest is a denial of service attack on the task scheduler of current Linux systems (CFS), which allows one to observe (on average) every single memory access of a victim process.},
+  langid = {american},
+  file = {/home/simon/Zotero/storage/MRF3ZAKX/5958048.html}
+}
+
 @online{CacheModellingTCG,
   title = {Cache {{Modelling TCG Plugin}} - {{QEMU}}},
   url = {https://www.qemu.org/2021/08/19/tcg-cache-modelling-plugin/},
@@ -374,12 +383,43 @@
   file = {/home/simon/Zotero/storage/UCGGPCKG/Liu et al. - 2015 - Last-Level Cache Side-Channel Attacks are Practical.pdf}
 }
 
+@online{lowe-powerGem5SimulatorVersion2020,
+  title = {The Gem5 {{Simulator}}: {{Version}} 20.0+},
+  shorttitle = {The Gem5 {{Simulator}}},
+  author = {Lowe-Power, Jason and Ahmad, Abdul Mutaal and Akram, Ayaz and Alian, Mohammad and Amslinger, Rico and Andreozzi, Matteo and Armejach, Adrià and Asmussen, Nils and Beckmann, Brad and Bharadwaj, Srikant and Black, Gabe and Bloom, Gedare and Bruce, Bobby R. and Carvalho, Daniel Rodrigues and Castrillon, Jeronimo and Chen, Lizhong and Derumigny, Nicolas and Diestelhorst, Stephan and Elsasser, Wendy and Escuin, Carlos and Fariborz, Marjan and Farmahini-Farahani, Amin and Fotouhi, Pouya and Gambord, Ryan and Gandhi, Jayneel and Gope, Dibakar and Grass, Thomas and Gutierrez, Anthony and Hanindhito, Bagus and Hansson, Andreas and Haria, Swapnil and Harris, Austin and Hayes, Timothy and Herrera, Adrian and Horsnell, Matthew and Jafri, Syed Ali Raza and Jagtap, Radhika and Jang, Hanhwi and Jeyapaul, Reiley and Jones, Timothy M. and Jung, Matthias and Kannoth, Subash and Khaleghzadeh, Hamidreza and Kodama, Yuetsu and Krishna, Tushar and Marinelli, Tommaso and Menard, Christian and Mondelli, Andrea and Moreto, Miquel and Mück, Tiago and Naji, Omar and Nathella, Krishnendra and Nguyen, Hoa and Nikoleris, Nikos and Olson, Lena E. and Orr, Marc and Pham, Binh and Prieto, Pablo and Reddy, Trivikram and Roelke, Alec and Samani, Mahyar and Sandberg, Andreas and Setoain, Javier and Shingarov, Boris and Sinclair, Matthew D. and Ta, Tuan and Thakur, Rahul and Travaglini, Giacomo and Upton, Michael and Vaish, Nilay and Vougioukas, Ilias and Wang, William and Wang, Zhengrong and Wehn, Norbert and Weis, Christian and Wood, David A. and Yoon, Hongil and Zulian, Éder F.},
+  date = {2020-09-30},
+  eprint = {2007.03152},
+  eprinttype = {arXiv},
+  eprintclass = {cs.AR},
+  doi = {10.48550/arXiv.2007.03152},
+  url = {http://arxiv.org/abs/2007.03152},
+  urldate = {2026-05-14},
+  abstract = {The open-source and community-supported gem5 simulator is one of the most popular tools for computer architecture research. This simulation infrastructure allows researchers to model modern computer hardware at the cycle level, and it has enough fidelity to boot unmodified Linux-based operating systems and run full applications for multiple architectures including x86, Arm, and RISC-V. The gem5 simulator has been under active development over the last nine years since the original gem5 release. In this time, there have been over 7500 commits to the codebase from over 250 unique contributors which have improved the simulator by adding new features, fixing bugs, and increasing the code quality. In this paper, we give and overview of gem5's usage and features, describe the current state of the gem5 simulator, and enumerate the major changes since the initial release of gem5. We also discuss how the gem5 simulator has transitioned to a formal governance model to enable continued improvement and community support for the next 20 years of computer architecture research.},
+  pubstate = {prepublished},
+  keywords = {Computer Science - Hardware Architecture},
+  file = {/home/simon/Zotero/storage/2YE2ITX4/Lowe-Power et al. - 2020 - The gem5 Simulator Version 20.0+.pdf;/home/simon/Zotero/storage/9Q8KIQXS/2007.html}
+}
+
+@online{MeltdownSpectre,
+  title = {Meltdown and {{Spectre}}},
+  url = {https://meltdownattack.com/},
+  urldate = {2026-02-04},
+  file = {/home/simon/Zotero/storage/WL5BCNLZ/meltdownattack.com.html}
+}
+
 @online{MemoryProtectionUnit2026,
   title = {Memory {{Protection Unit}} ({{MPU}}) {{Support}} - {{FreeRTOS}}™},
   date = {2026-04},
   url = {https://freertos.org/Security/04-FreeRTOS-MPU-memory-protection-unit},
   urldate = {2026-04-07},
   file = {/home/simon/Zotero/storage/2ZR2CR8S/04-FreeRTOS-MPU-memory-protection-unit.html}
+}
+
+@online{MipRISCVISA,
+  title = {Mip :: {{RISC-V ISA Manual}}},
+  url = {https://riscv.github.io/riscv-unified-db/manual/html/isa/isa_20240411/csrs/mip.html#udb:doc:csr_field:mip:MTIP},
+  urldate = {2026-05-14},
+  file = {/home/simon/Zotero/storage/75TZXLDD/mip.html}
 }
 
 @inproceedings{murray2013,
@@ -422,6 +462,16 @@
   isbn = {978-3-540-31033-4 978-3-540-32648-9},
   langid = {english},
   file = {/home/simon/Zotero/storage/CPQRFV6I/Osvik et al. - 2006 - Cache Attacks and Countermeasures The Case of AES.pdf}
+}
+
+@online{PDFPracticalImplementation,
+  title = {A {{Practical Implementation}} of the {{Timing Attack}}},
+  url = {https://www.researchgate.net/publication/2357530_A_Practical_Implementation_of_the_Timing_Attack},
+  urldate = {2026-02-17},
+  abstract = {PDF | . When the running time of a cryptographic algorithm is nonconstant, timing measurements can leak informations about the secret key. This idea,... | Find, read and cite all the research you need on ResearchGate},
+  langid = {english},
+  organization = {ResearchGate},
+  file = {/home/simon/Zotero/storage/VF99Q68R/2357530_A_Practical_Implementation_of_the_Timing_Attack.html}
 }
 
 @inproceedings{ristenpart2009,

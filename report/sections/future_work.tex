@@ -1,8 +1,27 @@
 \section{Future work}
 
-\subsection{Timer support}
+\subsection{Verification on cycle accurate hardware}
+This project has only been tested on the QEMU virtual system. This is clearly
+not sufficient to empirically dispute the presence of timing channels as
+mentioned in Section~\ref{sec:qemu_cycle_accuracy}. To do this a platform,
+which supports the temporal fence instruction, would be needed. During the
+evaluation phase of this thesis a QEMU TCG plugin was developed in an attempt
+to bridge this gap, and provide a cache emulation of the L1 and L2 cache with
+support of flushing the L1 cache on domain switches. While the plugin did
+seemingly function correctly in the emulation, the plugin was limited in what
+could be done. QEMU was never designed to produce cycle accurate emulation, and
+as such when a plugin attempts to update the machine timer externally it seemed
+this happened asynchronously and was affected by the host machine running QEMU.
+This meant that even if the cache emulation was correct, there would be a non
+deterministic execution from the guest OS point of view making the time control
+unusable. While significant work went into the plugin, further investigation
+into the issue found that there do exist cycle accurate emulators such as
+gem5\cite{lowe-powerGem5SimulatorVersion2020}, and while other research have
+found some pain points\cite{bossuet2023}, it could still prove interesting to
+run the implementation on such a platform in the future if real hardware is
+unavoidable. Such a simulator could significantly reduce the cost of entry and
+lead to more rapid development in the pursuit of time protection.
 
-\subsection{External interrupts}
 
 \subsection{Safeguarding system calls}
 With the current setup, when a new domain is created, it must be created with a
@@ -62,5 +81,127 @@ bounded by the time slice. It would also mean, that there has to be a hard
 requirement on the lowest possible value of the time slice duration. However,
 with these in mind truly isolated domains should be possible.
 
-%TODO: Possible this is a channel in S3k
+Note however, that this side channel would only be possible during the end of a
+domains time slice, and would only be able to convey information between the
+current domain and the domain which comes immediately after. As an example, I
+believe this could be a possible timing channel within the S3K kernel. S3K
+makes use of a global ttas lock. A lock is acquired through the following code
+snippet:
+
+\begin{lstlisting}[language=c]
+bool ttas_acquire(ttas_t *ttas, bool preemptable)
+{
+	while (__atomic_exchange_n(&ttas->lock, 1, __ATOMIC_ACQUIRE)) {
+		if (preemptable && preempt()) {
+			return false;
+		}
+	}
+	return true;
+}
+\end{lstlisting}
+
+The preemptable flag is used to flag whether or not the current lock
+acquirement will respect a preemption. The peempt function call checks if mip
+register has a bit set at (1 << 7), which corresponds to the Machine Timer
+Interrupt Pending(MTIP) bit\cite{MipRISCVISA}. This bit is what indicates that
+the machine timer is pending and should fire. In S3K this lock is grabbed in
+two important places, namely:
+
+\begin{lstlisting}[language=c]
+proc_t *syscall_handler(void)
+{
+	// The system call number.
+	word_t syscall_nr = current->regs.a0;
+
+	// If system call number is invalid, make an exception.
+	if (syscall_nr >= ARRAY_SIZE(handlers)) {
+		return exception_handler(0x8, syscall_nr);
+	}
+
+	// Try to acquire a lock. Also checks for preemption.
+	if (!lock_acquire(true)) {
+		return NULL;
+	}
+
+	// Advance the program counter.
+	current->regs.pc += 4;
+
+	// Call the system call handler
+	proc_t *next = handlers[syscall_nr](current->pid, &current->regs.a0);
+
+	// Releases the lock.
+	lock_release();
+
+	return next;
+}
+
+static proc_t *sched_next(hart_t hart, uint64_t *timeout)
+{
+	bool swapped = false;
+
+	// Lock because other processes may be accessing the schedule
+	lock_acquire(false);
+	uint64_t rtc_slot = sched_rtc_slot();
+	uint64_t offset = curr[hart] % MAX_TIME_SLOT;
+	// Advance curr if the current slot has expired
+	if (curr[hart] + schedule[hart][offset].length <= rtc_slot) {
+		curr[hart] += schedule[hart][offset].length;
+		swapped = true;
+	}
+	frame_t slot = schedule[hart][curr[hart] % MAX_TIME_SLOT];
+	*timeout = slot2time(curr[hart] + slot.length);
+	lock_release();
+	// Release lock because we do not want to block when executing temporal fence.
+
+	if (swapped) {
+		temporal_fence(); // Insert a temporal fence if we swapped slots
+	}
+
+	if (slot.pid == INVALID_PID) {
+		return NULL; // No process scheduled for this slot
+	}
+
+	// We now have a process we may schedule.
+	proc_t *proc = proc_get(slot.pid);
+	if (proc->timeout > slot2time(rtc_slot)) {
+		return NULL; // Process is sleeping or waiting
+	}
+
+	// Try to acquire the process
+	lock_acquire(false);
+	bool proc_acquired = proc_acquire(slot.pid);
+	proc->timeout = *timeout;
+	lock_release();
+	return proc_acquired ? proc : NULL;
+}
+\end{lstlisting}
+
+That is, when we attempt to do a system call we acquire the ttas lock, and when
+we attempt to schedule a new task we also grab the same lock. Now while the
+preemptable flag is true for the syscall, it simply checks that no preemption
+is pending while gathering the lock, once it has the lock, then it will delay
+scheduling if the scheduler runs while the syscall holds the lock. The syscalls
+in S3K attempt to rectify this by checking for preemption at after a constant
+amount of work as to not block the scheduler for too long, but if this constant
+time varies one could assume that these syscalls could be used nefariously and
+a domain could in theory cause predictable scheduling delay and relay
+information to the following domain. Now this analysis is purely theoretical,
+and would require access to hardware to fully test and as such should mainly be
+seen as some of the multitude of challenges a truly time protected kernel will
+face. 
+
+\subsection{Remaining timing channels}
+While scheduling timing channels are a significant vulnerability, they are far
+from the only timing channel present in modern kernels. As such, the provided
+port of the FreeRTOS kernel is by no means time protected. One significant form
+of timing channel still available within the kernel is that of interrupts.
+During development it was assumed that the only interrupt is that of the
+preemption timer used for scheduling. In a real system this is not the case.
+Here, one would have to handle the external interrupts in a deterministic
+manner, without breaking the scheduling guarantees put forth during the time
+slot based scheduling. It might also be desired that some domains are not
+interrupted during execution, as this gives information about the availability
+of some external service that in it self might be deemed an information leak.
+It is up to future work to determine a method for handling these external
+interrupts in a manner where they uphold both of the aforementioned issues.
 
