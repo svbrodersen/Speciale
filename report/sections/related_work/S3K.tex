@@ -82,7 +82,7 @@ for our work being scheduling jitter and side-channels. They first find that
 Inter-Process Communication (IPC) operations have the highest recorded
 non-preemptable cost of 1,195 CPU cycles. Together with an estimated 16,000
 cycles for data cache write-back during the temporal fence, they set the CSPAD
-to 18,000 cycles for the \texttt{fence.t} instruction. The make use of these
+to 18,000 cycles for the \texttt{fence.t} instruction. They make use of these
 findings for the WCET padding throughout the codebase.
 
 \paragraph{Scheduling Jitter:} A measurer process, scheduled once per major

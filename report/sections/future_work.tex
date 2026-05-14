@@ -17,7 +17,7 @@ deterministic execution from the guest OS point of view making the time control
 unusable. While significant work went into the plugin, further investigation
 into the issue found that there do exist cycle accurate emulators such as
 gem5\cite{lowe-powerGem5SimulatorVersion2020}, and while other research have
-found some pain points\cite{bossuet2023}, it could still prove interesting to
+found some pain points \cite{bossuet2023}, it could still prove interesting to
 run the implementation on such a platform in the future if real hardware is
 unavoidable. Such a simulator could significantly reduce the cost of entry and
 lead to more rapid development in the pursuit of time protection.
@@ -25,7 +25,7 @@ lead to more rapid development in the pursuit of time protection.
 
 \subsection{Safeguarding system calls}
 With the current setup, when a new domain is created, it must be created with a
-task that is in privileged, if that domain should have more than a single task
+task that is in privileged mode, if that domain should have more than a single task
 running. The reason for this is two fold. First, to create a task in
 FreeRTOS-MPU one must be in privileged mode. Secondly, to add a task to a
 domain with the new API presented in Section~\ref{sec:api}, one must either be
@@ -72,7 +72,7 @@ solution to this problem would be to guarantee, that any system call with such
 a cross-domain critical section runs within a single time slot, or allows for
 preemption within a time slice. Then, when entering the cross-domain critical
 section, the task would have to idle until it reaches the start of a time slice
-and then execute the system call. This would mean tat execution is guaranteed
+and then execute the system call. This would mean that execution is guaranteed
 to finish before the scheduler would attempt to schedule the next domain. 
 
 For this to function correctly one would need proper hardware to find the
@@ -101,9 +101,9 @@ bool ttas_acquire(ttas_t *ttas, bool preemptable)
 \end{lstlisting}
 
 The preemptable flag is used to flag whether or not the current lock
-acquirement will respect a preemption. The peempt function call checks if mip
+acquisition will respect a preemption. The preempt function call checks if mip
 register has a bit set at (1 << 7), which corresponds to the Machine Timer
-Interrupt Pending(MTIP) bit\cite{MipRISCVISA}. This bit is what indicates that
+Interrupt Pending (MTIP) bit \cite{MipRISCVISA}. This bit is what indicates that
 the machine timer is pending and should fire. In S3K this lock is grabbed in
 two important places, namely:
 
@@ -201,7 +201,7 @@ Here, one would have to handle the external interrupts in a deterministic
 manner, without breaking the scheduling guarantees put forth during the time
 slot based scheduling. It might also be desired that some domains are not
 interrupted during execution, as this gives information about the availability
-of some external service that in it self might be deemed an information leak.
+of some external service that in itself might be deemed an information leak.
 It is up to future work to determine a method for handling these external
 interrupts in a manner where they uphold both of the aforementioned issues.
 

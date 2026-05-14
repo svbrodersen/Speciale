@@ -1,9 +1,9 @@
 \section{Scheduling analysis}\label{sec:Scheduling} % (fold)
-One inherint timing channel within FreeRTOS is the scheduling policy itself.
-This section examines the default fixed-priority preemptive shceduler within
+One inherent timing channel within FreeRTOS is the scheduling policy itself.
+This section examines the default fixed-priority preemptive scheduler within
 FreeRTOS and explores various theoretical approaches for closing scheduler
 based timing channels. By evaluating the tradeoffs between the different
-apporaches, this analysis provides the foundation for the implementation of the
+approaches, this analysis provides the foundation for the implementation of the
 domain-level scheduler proposed in this thesis.
 
 \subsection{The FreeRTOS scheduler} % (fold)
@@ -34,7 +34,7 @@ based scheduling is infeasible.
 \paragraph{Removing time:} One approach to solve a lot of the timing channels
 would be to disallow tasks to read the current time. This in theory would
 remove the scheduling based timing channel, but this solution would most likely
-attributed quite a significant decrease in the possibilities of tasks, as any
+entail quite a significant decrease in the possibilities of tasks, as any
 action, which could leak time information to the tasks would need to be
 prohibited. As such, this approach was not considered further.
 
@@ -70,7 +70,7 @@ and Low priorities, and we would not be able to fill more than these 4 time
 slices as we would then change the total time slice when running a specific
 priority and thus a task within the given priority could gather information
 about the total number of time slices. Another issue would be, that we can't
-simply give up CPU time. When a given tasks wishes to sleep for a short
+simply give up CPU time. When a given task wishes to sleep for a short
 duration, we must replace the time slice with idle time, which significantly
 reduces overall CPU utilization. Once a task is completely finished it is
 possible to then take back the time slice, but the new task that would be

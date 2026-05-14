@@ -24,15 +24,16 @@ in the snippet below:
 \end{algorithm}
 
 This algorithm is a naive example, where we simply branch on some secret, and
-the execution time of the program. If for example this algorithm was part of
-some library, then an attacker could infer information about the secret by
-simply measuring the execution time of the call to the algorithm. This example
-is quite naive, and is one of the side channels constant time programming at
-the user level can prevent, such that we might do an equally long computation
-in both of the branches of the if statement. However, this still comes with
-some precautions, because even though the original program might seem sensibly
-constant time, some compilers might try to optimise the code, which could
-introduce new side-channel attacks such as the one seen in \cite{schneider2025}.
+the execution time of the program reveals the secret. If for example this
+algorithm was part of some library, then an attacker could infer information
+about the secret by simply measuring the execution time of the call to the
+algorithm. This example is quite naive, and is one of the side channels
+constant time programming at the user level can prevent, such that we might do
+an equally long computation in both of the branches of the if statement.
+However, this still comes with some precautions, because even though the
+original program might seem sensibly constant time, some compilers might try to
+optimise the code, which could introduce new side-channel attacks such as the
+one seen in \cite{schneider2025}.
 
 Further, more complex examples of side channels includes those specified within
 \cite{kocher2019}, where speculative execution can be used to leak information
@@ -48,7 +49,7 @@ about an otherwise safe algorithm. An example from the paper is the following:
   \end{algorithmic}
 \end{algorithm}
 
-This function could again be part of some library of system call, which
+This function could again be part of some library or system call, which
 receives an unsigned integer x from the user. The process, which runs this
 library code or system call has access to both array1 and array2. It does a
 bounds check on x, to make sure we have no out of bounds access, which could
@@ -66,7 +67,7 @@ provided in \cite{kocher2019}, but this small example shows how seemingly safe
 code, might still leak secret information.
 
 A multitude of such attacks, which make use of these side-channels are
-presented in\cite{osvik2006, liu2015}.
+presented in \cite{osvik2006, liu2015}.
 
 \subsection{Covert channels}
 While side-channels are passive and exploit unintended leakage, covert channels
@@ -81,7 +82,7 @@ it could measure the execution time of a cache access on the shared resource,
 and depending on how long this access takes gather if the Trojan was sending a
 "1" where a cache hit would occur or a "0" if a cache miss occurred.
 
-Generally two main categories of covert channels exists; \textbf{Storage
+Generally two main categories of covert channels exist; \textbf{Storage
 channels:} which modify some stored object, e.g. a file or some metadata;
 \textbf{Timing channels:} which change the time of different observable events
 for the receiver. For this thesis storage channels are not referenced, as
@@ -113,7 +114,7 @@ The latter isolation type, namely temporal isolation, must ensure that the
 service received from shared resources by the software in one domain cannot be
 affected by the software in another domain \cite{rushby1999}. An example, which
 would require such isolation is any shared part of the OS between different
-domains. Calling shared OS code should not have any measurable timing affect
+domains. Calling shared OS code should not have any measurable timing effect
 for another domain calling the same OS code. The solution is often to reset the
 shared resource back to a known default before any partitioned item is run.
 This guarantees that each process runs from a clean state which is unaffected

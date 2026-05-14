@@ -14,7 +14,7 @@ One such example is the FaCT DSL \cite{cauligi2019}. FaCT sought to address the
 challenges of writing constant-time cryptographic code, which does not depend
 on "secret" information. That is, instead of treating all information as
 possible leakage, one indicates what information must not be leaked through a
-timing channels, and the FaCT type system guarantees that in isolated execution
+timing channel, and the FaCT type system guarantees that in isolated execution
 this will not leak. FaCT works by making the code constant time in regards to
 the sensitive information, and any branching is only dependent on non-sensitive
 information. The idea being, that any attack can not measure the execution time
@@ -24,20 +24,20 @@ but compiler introduced and variable execution time of instructions based on
 inputs can still leak sensitive information. For example, the division operator
 is notoriously known to have its execution dependent on the numerator
 \cite{schroder, jin2023}. Mitigations against these attacks would still require
-help from hardware, and make use of a specific instructions that guarantee a
+help from hardware, and make use of specific instructions that guarantee a
 constant execution time.
 
 Furthermore, information that the operating system holds about a given process
 could also be deemed sensitive. For example, in highly secure environments the
-runability of a task could be deemed sensitive, and no changes on the user
-level side will ever close such a timing channels, as the OS scheduler will
+runnability of a task could be deemed sensitive, and no changes on the user
+level side will ever close such timing channels, as the OS scheduler will
 unknowingly always leak this information through its scheduling decisions.
 Therefore, while user level implementations do help significantly, the issue
 can not be fully closed without both the support of the OS and hardware.
 
 As such, even though user level mitigations can close some timing channels it
 is far from everything and a reset of shared resources through instructions
-such as the temporal fence fence\cite{wistoff2023} are still needed even if the
+such as the temporal fence \cite{wistoff2023} are still needed even if the
 C code itself seems "safe".
 
 

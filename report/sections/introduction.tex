@@ -28,12 +28,12 @@ implementations of secure microkernels \cite{karlsson2025, ge2019} attempt to
 guarantee security through the OS. The operating system would then be in charge
 of partitioning domains in regards to the microarchitectural state, such that
 no channel between domains is possible. This is already done for memory, and
-examples of formally proven memory safe kernels are available\cite{murray2013}.
+examples of formally proven memory safe kernels are available \cite{murray2013}.
 Attempts to create similar proof against the presence of timing channels have
 been carried out \cite{buckley2023}, but as far as this paper is aware no
 kernel is formally verified against timing channels.
 
-Many of these attempts are focussed on the creation of a highly secure OS from
+Many of these attempts are focused on the creation of a highly secure OS from
 the ground up, providing timing protection as a foundation of the OS. While
 this is a more robust solution for a truly safe OS the authors of \cite{ge2019}
 hint that "there is no reason time protection cannot be implemented in other
