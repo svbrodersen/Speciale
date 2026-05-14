@@ -1,4 +1,4 @@
-\section{Scheduling analysis}\label{sec:Scheduling} % (fold)
+\section{Scheduling analysis and Design}\label{sec:Scheduling} % (fold)
 One inherent timing channel within FreeRTOS is the scheduling policy itself.
 This section examines the default fixed-priority preemptive scheduler within
 FreeRTOS and explores various theoretical approaches for closing scheduler
@@ -40,7 +40,7 @@ prohibited. As such, this approach was not considered further.
 
 \begin{figure}
   \begin{center}
-    \include{figures/priority_sched}
+    \input{figures/priority_sched}
   \end{center}
   \caption{Time protection within same priority}\label{fig:prio_sched}
 \end{figure}
