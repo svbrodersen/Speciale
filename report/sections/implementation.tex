@@ -12,8 +12,8 @@ each domain, such that different domains remain partitioned.
 
 \subsection{Extending the api}\label{sec:api}
 
-To implement the domain level scheduler we must first incorporate the idea into
-the existing FreeRTOS framework. With FreeRTOS MPU, we are able to create
+To implement the domain level scheduler I must first incorporate the idea into
+the existing FreeRTOS framework. With FreeRTOS MPU, I am able to create
 unprivileged tasks which have restricted access to syscalls and provide them
 with a memory space that is partitioned. For this, the general FreeRTOS api is
 extended with a multitude of new functions most importantly for this project is
@@ -54,7 +54,7 @@ BaseType_t xTaskCreateRestricted(
 ) PRIVILEGED_FUNCTION;
 \end{lstlisting}
 
-That is, we can create a task which has access to a number of memory regions
+That is, one can create a task which has access to a number of memory regions
 defined by the region start address (pvBaseAddress), the region size in bytes
 (ulLengthInBytes) and the access permissions for the region (ulParameters). The
 function parameter uxPriority is also of importance. By default this function
@@ -144,10 +144,10 @@ freertos_risc_v_mtimer_interrupt_handler:
 
 It increments a global tick, and switches the task context. However, FreeRTOS
 only increments the global \texttt{xTickCount} if the priority based scheduler
-is running and not suspended for critical handling. This means, we have to
-introduce our own proxy for Ticks, as the per domain \texttt{xTickCount} would
+is running and not suspended for critical handling. This means, I have to
+introduce my own proxy for Ticks, as the per domain \texttt{xTickCount} would
 leak information about other scheduler states and possibly delay the domain
-switching. For our purposes we can hook into the pre-existing
+switching. For our purposes I can hook into the pre-existing
 \texttt{xTaskIncrementTick} function, and check for a domain switch.
 
 \begin{lstlisting}[language={c}, caption={Custom hook for xTaskIncrementTick}, label={lst:inc_tick}]
@@ -202,17 +202,17 @@ if( xDomainTick >= pxCurrentDomainIndex + xDomains[pxCurrentDomainIndex].uxLengt
 }
 \end{lstlisting}
 
-As such, whenever there is a machine timer tick, we calculate in constant time
-the time slice (xDomainTick) and check if we should do a domain switch. If we
-find that we should schedule a new domain, then we switch the data to the new
-domain and perform a temporal flush to clear the microarchitectural state. The
+As such, whenever there is a machine timer tick, the code calculates in constant time
+the time slice (xDomainTick) and checks whether a domain switch should occur. If
+the check finds that a new domain should be scheduled, then the data is switched to the new
+domain and a temporal flush is performed to clear the microarchitectural state. The
 flush happens in such a manner, that any data accessed in regards to the new
-domain is non-interfering with the previous domain. Once we have decided that a
-switch should occur, only data that is within the incoming domain is retrieved
+domain is non-interfering with the previous domain. Once a switch has been decided,
+only data that is within the incoming domain is retrieved
 following the flush, this means that the new domains execution will not be
 based on the microarchitectural state of the previous domain.
 
-Note this comes with some constraints. Most notably we are defining a time
+Note this comes with some constraints. Most notably the implementation defines a time
 slice in relation to the machine timer interrupt timing, which is configurable
 in FreeRTOS through the \texttt{configTICK\_RATE\_HZ}. To make this more
 flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} so as not to limit the domain
@@ -258,14 +258,14 @@ owns all time slices xDomains would only contain a single valid index, namely
 the 0 index, which stores that it is domain 0, that owns the group of time
 slices and the group has a length of 6.
 
-This way, our previous domain switching can be directly indexed once we find
-that a new domain switch needs to happen providing constant time retrieval of
+This way, the domain switching can be directly indexed once a new domain switch
+is needed, providing constant time retrieval of
 the next domain.
 
 At first glance domain creation also seems simple. In
 Figure~\ref{fig:example_a} there are three main cases for domain creation.
-Either we create domains by giving up time slices at the start or the end of
-our own time slice, which would simply create two separate domains with no
+Either domains are created by giving up time slices at the start or the end of
+the current time slice, which would simply create two separate domains with no
 "split" domain. If instead a domain is created in the middle of the current
 domain, then the current domain is split and might be scheduled several times
 during a single round trip of the time slices. Such an example can be seen in
@@ -273,7 +273,7 @@ Figure~\ref{fig:example_b}, where Domain 0 runs at separate times of execution.
 This poses an issue when wanting to create yet another domain. As mentioned in
 Section~\ref{sec:api}, a user of the OS would provide the time slice for which
 to start a new domain and the length of the domain. Given that not all indices
-throughout the domain are defined, we would need to scan the array from left to
+throughout the domain are defined, the array would need to be scanned from left to
 right to figure out, if the current domain truly does "own" the given time
 slices the user is attempting to access. If a user wants to create a new domain
 from Domain 0s time slice 4-6 (0 indexed), then the naive method would loop
@@ -286,7 +286,7 @@ domain owns those time slices.
 To solve this issue the \texttt{uxNext} field was introduced, which contains
 the index of the next group of time slices owned by the current domain. This
 field can then be used for the looping, when finding the encompassing group of
-time slices giving us execution that is only dependent on information available
+time slices giving execution that is only dependent on information available
 to the current domain. In the case that there is no next domain the
 \texttt{SIZE\_MAX} is used.
 
@@ -319,8 +319,8 @@ static BaseType_t prvFindContainingBlock(
 }
 \end{lstlisting}
 
-Once we have found the encompassing group of time slices we have to create the
-new domain, which is done via index arithmetic as seen below: 
+Once the encompassing group of time slices is found, the
+new domain must be created, which is done via index arithmetic as seen below: 
 
 \begin{lstlisting}[language={c}]
 ...
@@ -358,23 +358,23 @@ else /* No left fragment: remove blockStart from parent's list */
 ...
 \end{lstlisting}
 
-We first check, if we would create a new right fragment of the current domain.
-It would exist if we are attempting to create a new domain, whose start ends
-before the current domain. If such a fragment exists, then we update the index
-in \texttt{xDomains} to track it.
+First, the code checks whether a new right fragment of the current domain would be created.
+It would exist if the code is attempting to create a new domain whose start ends
+before the current domain. If such a fragment exists, then the index
+in \texttt{xDomains} is updated to track it.
 
-Next, we can check if a left fragment is created, and simply shrink the
-encompassing time slice group and updating the \texttt{uxNext} field indicating
-that we have been split and the next block owned by the current domain is that
+Next, a check determines if a left fragment is created, and simply shrinks the
+encompassing time slice group, updating the \texttt{uxNext} field to indicate
+that the domain has been split and the next block owned by the current domain is that
 of the new right fragment.
 
-If no left fragment is created, then we are creating a new domain at the start of
-the encompassing block, so we remove the encompassing block start from the
-linked list, and update it to point to the right fragment if it was created or
+If no left fragment is created, then a new domain is being created at the start of
+the encompassing block, so the encompassing block start is removed from the
+linked list, and updated to point to the right fragment if one was created or
 the next block. In the case that there is no next block, then it was previously
-set to SIZE\_MAX indicating again, that there is no next block.
+set to SIZE\_MAX, indicating again that there is no next block.
 
-At last, we have to update the \texttt{xDomains} to include the newly created
+At last, the \texttt{xDomains} array must be updated to include the newly created
 domain, which is simply done as follows:
 
 \begin{lstlisting}[language={c}]
@@ -395,7 +395,7 @@ slice block.
 
 \subsection{Per domain scheduling}
 For the domain level scheduler to work with inter domain priority based
-schedulers, we need to add another dimension to all of the items. That is, all
+schedulers, another dimension must be added to all of the items. That is, all
 variables that previously were a constant would have to be an array with length
 equal to the number of time slices and same extension for previous arrays. All
 accesses to these constants/arrays would have to follow a similar
@@ -460,7 +460,7 @@ scheduler suspension before moving into the true ready list. If the new task
 was found to have a higher priority, then notify that there should be a context
 switch.
 
-This is where we have to make changes to allow for cross-domain communication.
+This is where changes must be made to allow for cross-domain communication.
 First, each task needs some way of tracking the domain it resides within, which
 is easily done by extending the \texttt{TCB\_t} struct with an extra field:
 \begin{lstlisting}[language={c}]
@@ -478,7 +478,7 @@ typedef tskTCB TCB_t;
 The Queue can now reference this DomainID when modifying the
 priority-schedulers and as such adds the tasks to the correct arrays.
 
-Given this communication, we can now create the \texttt{mpu\_blinky.c} example
+Given this communication, the \texttt{mpu\_blinky.c} example can now be created
 with different domains communicating. It is important to note here, that there
 of course is introduced some timing leakage between these two domains, as they
 can time the response time of different messages. Here it is up to the

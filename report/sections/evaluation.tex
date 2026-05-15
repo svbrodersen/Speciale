@@ -13,7 +13,6 @@ functionality of the within-domain priority scheduler is unaffected.
   \caption{Timeline of the Blinky Domain Scheduling}\label{fig:blinky_timeline}
 \end{figure}
 
-
 The RISC-V mpu port includes a standard \texttt{mpu\_blinky.c} example. The
 example program creates two tasks, a sender and a receiver. The sender adds a
 message to a \texttt{Queue} at a set interval, and the receiver reads from the
@@ -24,16 +23,17 @@ communication, a similar approach can be used to check that the tasks are still
 capable of passing messages to each other. The domain level scheduler is setup
 such, that the main function is called with elevated privilege and it is
 capable of creating queues and new tasks. The tasks creation is modified to
-make use of the new api, such that we create two new tasks, each in a separate
+make use of the new api, such that it creates two new tasks, each in a separate
 domain. The scheduling timeline of this modified example is provided in
 Figure~\ref{fig:blinky_timeline}.
 
-That is, when the initial program is started and we are within domain 0, then
-domain 0 has given up 2 time slices for the Sender (domain 2), and 2 time
+That is, when the initial program is started and execution is within domain 0,
+then domain 0 has given up 2 time slices for the Sender (domain 2), and 2 time
 slices for the Receiver domain (Domain 1). As it itself finishes execution, the
 rest of its time slices will simply be used by the idle task. Each task is
 capable of reading the current domain tick, and the demo simply prints this,
-when execution starts. Running the demo, we get the following snippet of output:
+when execution starts. Running the demo produces the following snippet of
+output:
 \begin{lstlisting}[language={c}]
 Sending to task, DomainTick: 4
 Message received from task, DomainTick: 2
@@ -59,7 +59,7 @@ system halted.
 The output does show some interesting properties with regards to the domain
 scheduler. First, although the receive task is scheduled before the sender
 task, given that there is no message to read in the Queue, it simply sleeps for
-its very first execution scheduling the Idle task. Next, we see that the
+its very first execution scheduling the Idle task. Next, one can see that the
 sending happens always at the specified DomainTick 4, and that the Receiving
 also happens within the expected domain tick 2. Another interesting note is,
 that in the very last iteration before the access fault, the receiver task is
@@ -71,25 +71,25 @@ While the previous example shows, that the Domain Tick seems constant for
 both\footnote{If it varies then the likely culprit is the priority based
 scheduler within each domain.}, it does not show that each domain runs for a
 constant amount of time before interruptions. To truly show that this runs in
-constant time, we are limited with the tools available. QEMU does not provide
-cycle-accurate emulation, and by default makes use of the host system clock for
-interrupts, meaning that the demo's execution is dependent on the rest of the
-host system. This issue is something that will be discussed later in
-Section~\ref{sec:qemu_cycle_accuracy}. QEMU does however provide a flag known as
-\texttt{-icount}, which provides deterministic execution from the guest point
-of view. Instead of making use of the host interrupt, QEMU instead makes use of
-instruction counting to determine elapsed time \cite{TCGInstructionCounting}.
-While this by no means is cycle accurate and does not take into account any
-microarchitectural state, it can be used to approximate the time each domain is
-allowed to run before a scheduling occurs.
+constant time, the evaluation is limited by the tools available. QEMU does not
+provide cycle-accurate emulation, and by default makes use of the host system
+clock for interrupts, meaning that the demo's execution is dependent on the
+rest of the host system. This issue is something that will be discussed later
+in Section~\ref{sec:qemu_cycle_accuracy}. QEMU does however provide a flag
+known as \texttt{-icount}, which provides deterministic execution from the
+guest point of view. Instead of making use of the host interrupt, QEMU instead
+makes use of instruction counting to determine elapsed time
+\cite{TCGInstructionCounting}. While this by no means is cycle accurate and
+does not take into account any microarchitectural state, it can be used to
+approximate the time each domain is allowed to run before a scheduling occurs.
 
 In RISC-V the \texttt{rdcycle} instruction reads XLEN bits of the
 \texttt{cycle} counter, which holds a count of the number of clock cycles
 executed by the processor core on which the hart is running from an arbitrary
-start time in the past. Given FreeRTOS runs with XLEN 32-bit, we have to also
-make use of the \texttt{rdcycleh} instruction, to read the upper 32 bits of the
-cycle counter, to get the true cycle count. This means, that we can find a
-round trip time of the domain switch in the following fashion:
+start time in the past. Given FreeRTOS runs with XLEN 32-bit, it is necessary
+to also make use of the \texttt{rdcycleh} instruction, to read the upper 32
+bits of the cycle counter, to get the true cycle count. This means, that one
+can find a round trip time of the domain switch in the following fashion:
 \begin{lstlisting}[language={c}]
 static uint64_t ullPrevMtime = 0;
 
@@ -101,9 +101,9 @@ asm volatile ("rdtimeh %0" : "=r"(ullMtimeHigh));
 ullMtime = ((ullMtimeHigh << 32) | ullMtime);
 \end{lstlisting}
 
-By saving the previous cycle count from when we last reached this and
-calculating the round trip time, we can make the demo print this round trip
-time for each domain, giving us output like the following:
+By saving the previous cycle count from when this point was last reached and
+calculating the round trip time, the demo can be made to print this round trip
+time for each domain, producing output like the following:
 
 \begin{verbatim}
 ...
@@ -147,7 +147,15 @@ on the platform is a constant time execution path as shown with the previous
 domain level scheduler. In an attempt to gain more true cycle estimations a
 QEMU TCG plugin was developed for emulating the cache behaviour of the program
 during execution. QEMU provides a cache modelling plugin example
-\cite{CacheModellingTCG}.
+\cite{CacheModellingTCG}. The developed plugin emulated the L1 and L2 cache
+with support for flushing the L1 cache on domain switches. While the plugin
+functioned correctly in emulation, QEMU was never designed to produce cycle
+accurate emulation. When the plugin attempted to update the machine timer
+externally, this happened asynchronously and was affected by the host machine
+running QEMU, meaning that even with correct cache emulation, the guest OS
+would experience non-deterministic execution. The limitations of this approach
+and potential alternatives are discussed in
+Section~\ref{sec:cycle_accurate_hw}.
 
 \subsection{Limitations}
 FreeRTOS was not created with the MPU version in mind. This means that
@@ -163,7 +171,7 @@ then that domain will see no other tasks as the task itself cannot create new
 tasks. 
 
 The more subtle problem is, that Privileged Mode takes precedence over the
-domain separation. If we have two domains 0 and 1, each with a single Privileged
+domain separation. Given two domains 0 and 1, each with a single Privileged
 mode task within, then these two tasks can always communicate with each other,
 as there are no restrictions on what a Privilege task can access. The domain
 separation is thus only for User mode tasks, and by no means does it extend to
