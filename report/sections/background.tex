@@ -23,12 +23,12 @@ in the snippet below:
   \end{algorithmic}
 \end{algorithm}
 
-This algorithm is a naive example, where we simply branch on some secret, and
+This algorithm is a naive example, which simply branches on some secret, and
 the execution time of the program reveals the secret. If for example this
 algorithm was part of some library, then an attacker could infer information
 about the secret by simply measuring the execution time of the call to the
 algorithm. This example is quite naive, and is one of the side channels
-constant time programming at the user level can prevent, such that we might do
+constant time programming at the user level can prevent, such that one might do
 an equally long computation in both of the branches of the if statement.
 However, this still comes with some precautions, because even though the
 original program might seem sensibly constant time, some compilers might try to
@@ -52,7 +52,7 @@ about an otherwise safe algorithm. An example from the paper is the following:
 This function could again be part of some library or system call, which
 receives an unsigned integer x from the user. The process, which runs this
 library code or system call has access to both array1 and array2. It does a
-bounds check on x, to make sure we have no out of bounds access, which could
+bounds check on x, to ensure there is no out of bounds access, which could
 trigger an exception or access sensitive memory. If this algorithm was called
 multiple times, with correct input, i.e. where $x < array1\_size$, then an
 attacker could train the branch predictor on modern CPUS making the CPU
@@ -91,7 +91,7 @@ kernels such as seL4 have already formally proven the absence of them
 
 Covert timing channels work through the same mechanisms as the aforementioned
 side channel, but pose as a worst case, where the sender can make use of any
-and all leakage methods to convey the information. This way, we are not limited
+and all leakage methods to convey the information. This way, one is not limited
 to the visible gadgets that might exist in a vulnerable program, but the
 information might also be conveyed through repeated use of non-constant time
 system calls, that depend on some shared resource, or as the aforementioned

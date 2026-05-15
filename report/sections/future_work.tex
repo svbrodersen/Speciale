@@ -1,26 +1,26 @@
 \section{Future work}
 
-\subsection{Verification on cycle accurate hardware}
-This project has only been tested on the QEMU virtual system. This is clearly
+\subsection{Verification on cycle accurate hardware}\label{sec:cycle_accurate_hw}
+This project has only been tested on the QEMU virtual system, which is clearly
 not sufficient to empirically dispute the presence of timing channels as
-mentioned in Section~\ref{sec:qemu_cycle_accuracy}. To do this a platform,
-which supports the temporal fence instruction, would be needed. During the
-evaluation phase of this thesis a QEMU TCG plugin was developed in an attempt
-to bridge this gap, and provide a cache emulation of the L1 and L2 cache with
-support of flushing the L1 cache on domain switches. While the plugin did
-seemingly function correctly in the emulation, the plugin was limited in what
-could be done. QEMU was never designed to produce cycle accurate emulation, and
-as such when a plugin attempts to update the machine timer externally it seemed
+discussed in Section~\ref{sec:qemu_cycle_accuracy}. During the evaluation phase
+of this thesis a QEMU TCG plugin was developed in an attempt to bridge this
+gap. The plugin provided a cache emulation of the L1 and L2 cache with support
+for flushing the L1 cache on domain switches, and it functioned correctly in
+emulation. However, QEMU was never designed to produce cycle accurate
+emulation, and when the plugin attempted to update the machine timer externally,
 this happened asynchronously and was affected by the host machine running QEMU.
-This meant that even if the cache emulation was correct, there would be a non
-deterministic execution from the guest OS point of view making the time control
-unusable. While significant work went into the plugin, further investigation
-into the issue found that there do exist cycle accurate emulators such as
-gem5\cite{lowe-powerGem5SimulatorVersion2020}, and while other research have
-found some pain points \cite{bossuet2023}, it could still prove interesting to
-run the implementation on such a platform in the future if real hardware is
-unavoidable. Such a simulator could significantly reduce the cost of entry and
-lead to more rapid development in the pursuit of time protection.
+This meant that even though the cache emulation was correct, there would be a
+non-deterministic execution from the guest OS point of view, making time
+control unusable. While significant work went into the plugin, it ultimately
+proved unable to provide the cycle accurate emulation necessary for timing
+channel analysis. To properly evaluate the implementation, a hardware platform
+that supports the temporal fence instruction would be ideal. As an alternative,
+cycle accurate simulators such as gem5 \cite{lowe-powerGem5SimulatorVersion2020}
+could prove valuable for future evaluation. While other research has identified
+some challenges with gem5 \cite{bossuet2023}, such a simulator could
+significantly reduce the barrier to entry and lead to more rapid development in
+the pursuit of time protection.
 
 
 \subsection{Safeguarding system calls}
@@ -50,24 +50,24 @@ provided by user level tasks within each domain. The current implementation
 created within FreeRTOS does not do this, but many of the preexisting features
 of the within domain priority scheduler could be fully partitioned. For this to
 function, one would have to introduce two different kinds of critical sections.
-There is the cross-domain critical section, for which we would still have to
-disable interrupts when it occurs, and there is the within domain critical
-section. When entering a within domain critical section, then we would block
-any priority scheduling, such that the priority based scheduler is not left in
-an invalid state, but if there is a domain level interrupt, then we would save
-the context of the current execution and switch to another domain. When the old
-domain runs again, it would still be within the domain critical section at the
-same context point, allowing for a valid state of the within domain scheduler,
-while allowing the domain level scheduler to schedule other domains without
-delays. This context saving and restoration would have to be taken into account
-for the worst case analysis of the domain switching, if it can not be
-guaranteed in constant time, but should propagate well to the majority of
-FreeRTOS' standard implementation. 
+There is the cross-domain critical section, for which it would still be
+necessary to disable interrupts when it occurs, and there is the within domain
+critical section. When entering a within domain critical section, then the
+priority scheduling would be blocked such that the priority based scheduler is
+not left in an invalid state, but if there is a domain level interrupt, then
+the context would be saved of the current execution and switch to another
+domain. When the old domain runs again, it would still be within the domain
+critical section at the same context point, allowing for a valid state of the
+within domain scheduler, while allowing the domain level scheduler to schedule
+other domains without delays. This context saving and restoration would have to
+be taken into account for the worst case analysis of the domain switching, if
+it can not be guaranteed in constant time, but should propagate well to the
+majority of FreeRTOS' standard implementation. 
 
 The next issue would be the cross-domain critical section. This part of the
-kernel is shared between all, and as such we can not simply "ignore" the
-critical section as before. Instead we would have to guarantee that any call to
-cross domain critical functions would execute within the current domain. A
+kernel is shared between all, and as such one cannot simply "ignore" the
+critical section as before. Instead one would have to guarantee that any call
+to cross domain critical functions would execute within the current domain. A
 solution to this problem would be to guarantee, that any system call with such
 a cross-domain critical section runs within a single time slot, or allows for
 preemption within a time slice. Then, when entering the cross-domain critical
@@ -82,7 +82,7 @@ requirement on the lowest possible value of the time slice duration. However,
 with these in mind truly isolated domains should be possible.
 
 Note however, that this side channel would only be possible during the end of a
-domains time slice, and would only be able to convey information between the
+domain's time slice, and would only be able to convey information between the
 current domain and the domain which comes immediately after. As an example, I
 believe this could be a possible timing channel within the S3K kernel. S3K
 makes use of a global ttas lock. A lock is acquired through the following code
@@ -100,12 +100,12 @@ bool ttas_acquire(ttas_t *ttas, bool preemptable)
 }
 \end{lstlisting}
 
-The preemptable flag is used to flag whether or not the current lock
-acquisition will respect a preemption. The preempt function call checks if mip
-register has a bit set at (1 << 7), which corresponds to the Machine Timer
-Interrupt Pending (MTIP) bit \cite{MipRISCVISA}. This bit is what indicates that
-the machine timer is pending and should fire. In S3K this lock is grabbed in
-two important places, namely:
+The preemptable flag is used to indicate whether the current lock acquisition
+will respect a preemption. The preempt function call checks if the mip register
+has a bit set at (1 << 7), which corresponds to the Machine Timer Interrupt
+Pending (MTIP) bit \cite{MipRISCVISA}. This bit indicates that the machine
+timer is pending and should fire. In S3K this lock is acquired in two important
+places, namely:
 
 \begin{lstlisting}[language=c]
 proc_t *syscall_handler(void)
@@ -176,18 +176,18 @@ static proc_t *sched_next(hart_t hart, uint64_t *timeout)
 }
 \end{lstlisting}
 
-That is, when we attempt to do a system call we acquire the ttas lock, and when
-we attempt to schedule a new task we also grab the same lock. Now while the
-preemptable flag is true for the syscall, it simply checks that no preemption
-is pending while gathering the lock, once it has the lock, then it will delay
+That is, when a system call is made the ttas lock is acquired, and when
+a new task is scheduled the same lock is also acquired. Now while the
+preemptable flag is true for the syscall, it checks that no preemption
+is pending while gathering the lock, but once it has the lock, it will delay
 scheduling if the scheduler runs while the syscall holds the lock. The syscalls
-in S3K attempt to rectify this by checking for preemption at after a constant
-amount of work as to not block the scheduler for too long, but if this constant
-time varies one could assume that these syscalls could be used nefariously and
-a domain could in theory cause predictable scheduling delay and relay
-information to the following domain. Now this analysis is purely theoretical,
-and would require access to hardware to fully test and as such should mainly be
-seen as some of the multitude of challenges a truly time protected kernel will
+in S3K attempt to rectify this by checking for preemption after a constant
+amount of work so as not to block the scheduler for too long, but if this
+constant time varies one could assume that these syscalls could be used
+nefariously and a domain could in theory cause predictable scheduling delay and
+relay information to the following domain. This analysis is purely theoretical
+and would require access to hardware to fully test, and as such should mainly be
+seen as one of the multitude of challenges a truly time protected kernel will
 face. 
 
 \subsection{Remaining timing channels}

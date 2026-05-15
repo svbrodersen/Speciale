@@ -48,30 +48,30 @@ prohibited. As such, this approach was not considered further.
 \paragraph{Protection within priority:} If the goal is to keep a sense of
 priority based scheduling, then it should be possible to guarantee timing
 protection for tasks of same priority or tasks of different priorities. Say for
-example, we for each priority have a known array which constitutes the time
-slices for the given priority. When the scheduler attempts to schedule a task,
-then it prioritizes the higher priority array if a task is ready within, and
-uses time slice based scheduling within the priority. An example of this can be
-seen visualized in Figure~\ref{fig:prio_sched}, where tasks A and B are within
-the same priority. Here, if we assume that A and B are runnable, then they
-would be scheduled before the lower priority C and D. This would allow C and D
-to gather information about the runnability of the entire High priority noting
-that either A or B was runnable if C or D are delayed. However, within the same
+example, each priority has a known array which constitutes the time slices for
+the given priority. When the scheduler attempts to schedule a task, then it
+prioritizes the higher priority array if a task is ready within, and uses time
+slice based scheduling within the priority. An example of this can be seen
+visualized in Figure~\ref{fig:prio_sched}, where tasks A and B are within the
+same priority. Here, if A and B are assumed runnable, then they would be
+scheduled before the lower priority C and D. This would allow C and D to gather
+information about the runnability of the entire High priority noting that
+either A or B was runnable if C or D are delayed. However, within the same
 domain tasks A and B can not gather information about each other. Say for
 example A gets to run, then it does not know whether task B is runnable or not,
-as we are always running the entire time slice given defined by the
+as the domain is always running the entire time slice defined by the
 aforementioned array.
 
 This approach would by no means close all timing channels, as mentioned cross
 priorities could still leak timing information. Other constraints with this
-approach is, that we are limiting the number of possible tasks for given
+approach is, that it limits the number of possible tasks for given
 priorities. In the previous example 4 time slices were provided within the High
-and Low priorities, and we would not be able to fill more than these 4 time
-slices as we would then change the total time slice when running a specific
+and Low priorities, and one would not be able to fill more than these 4 time
+slices as this would then change the total time slice when running a specific
 priority and thus a task within the given priority could gather information
-about the total number of time slices. Another issue would be, that we can't
+about the total number of time slices. Another issue is that one cannot
 simply give up CPU time. When a given task wishes to sleep for a short
-duration, we must replace the time slice with idle time, which significantly
+duration, the time slice must be replaced with idle time, which significantly
 reduces overall CPU utilization. Once a task is completely finished it is
 possible to then take back the time slice, but the new task that would be
 scheduled in this slot would then gather the information that the previous task
@@ -96,12 +96,12 @@ finished its execution.
 \paragraph{Domain scheduling:}
 Another approach is the one seen in \cite{ge2019}, which is the domain level
 scheduler. The general idea is quite similar to the approach seen before, but
-the idea of priorities is removed entirely and instead we focus on
-domains. Each domain can have multiple tasks within, where we do not care about
-timing channels and only between different domains do we care about timing
+the idea of priorities is removed entirely and instead the focus is on
+domains. Each domain can have multiple tasks within, where timing channels are
+not a concern, and timing protection is only needed between different
 protection. In Figure~\ref{fig:static_domain_sched} an illustration of this
-scheduler can be seen. The idea is, that at compile time, we know the different
-domains and attribute to each some amount of time slices (in the example that
+scheduler can be seen. The idea is, that at compile time, the different
+domains and their respective time slice allocations are known (in the example that
 would be 4 for both domain 1 and 2). The domain scheduler then takes care of
 scheduling the domain, and guarantees timing protection only between the
 different domains. This approach is still inhibited by the need to know the
@@ -115,7 +115,7 @@ within this specific domain and less unused resources.
 An extension of this approach would be the one seen in
 Figure~\ref{fig:dynamic_domain_sched}, which closely follows the capability
 based scheduler in \cite{karlsson2025}. The idea is, that within a specific
-domain, we can give up some of the attributed time to create a new subdomain.
+domain, one can give up some of the attributed time to create a new subdomain.
 This would mean that there is timing protection between subdomain 1 and the
 rest of domain 1\footnote{Other than creation and finishing assuming a domain
   is allowed to give back the time slices upon finishing, which would leak
@@ -130,10 +130,10 @@ scheduler within the FreeRTOS kernel.
 
 It is important to note, that this approach does not remove all timing
 channels. Each domain uses a round robin scheduler, which as mentioned
-previously is susceptible to timing channels. The idea is instead, that we
-allow such channels in tasks where it is not relevant for protection and
-throughput is valued higher. Instead, when we explicitly want a safe execution
-environment we can create a domain for this, which is then protected after
+previously is susceptible to timing channels. The idea is instead, that such
+channels are allowed in tasks where protection is not relevant and throughput
+is valued higher. Instead, when one explicitly wants a safe execution
+environment a domain can be created for this, which is then protected after
 initialization.
 
 % subsection The FreeRTOS scheduler (end)
