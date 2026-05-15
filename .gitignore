@@ -18,6 +18,7 @@ litterature
 *.cb
 *.cb2
 .*.lb
+*SAVE-ERROR*
 
 ## Intermediate documents:
 *.dvi
