@@ -9,9 +9,7 @@ Further, specifics about how constant-time domain creation was implemented
 along with keeping the functionality of the priority based scheduler within
 each domain, such that different domains remain partitioned.
 
-
 \subsection{Extending the api}\label{sec:api}
-
 To implement the domain level scheduler I must first incorporate the idea into
 the existing FreeRTOS framework. With FreeRTOS MPU, I am able to create
 unprivileged tasks which have restricted access to syscalls and provide them
