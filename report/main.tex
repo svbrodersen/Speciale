@@ -16,6 +16,7 @@
 \usepackage{hyphenat} % Allow break in config flags
 \usepackage{algorithm,algorithmicx,algpseudocode}
 \usepackage[style=ieee, backend=biber]{biblatex}
+\usepackage{calc} 
 
 \lstdefinelanguage[RISC-V]{Assembler}
 {
@@ -78,6 +79,17 @@
 
 \usetikzlibrary{shapes, positioning, decorations.pathreplacing}
 
+
+% Save original fbox
+\let\oldfbox\fbox
+
+% Redefine fbox to allow wrapping
+\renewcommand{\fbox}[1]{%
+  \oldfbox{%
+    \parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{#1}%
+  }%
+}
+
 \addbibresource{refs.bib}
 
 \title{Eliminating Timing Channels in Microkernels \\
@@ -88,11 +100,15 @@
 
 \begin{document}
 
+
 \maketitle
+\fbox{Perhaps a missing Methodology section? Also want to add appendices with
+how to download and use the github project for reproduction.}
 \input{sections/abstract}
 \newpage
 
 \tableofcontents
+
 
 \input{sections/introduction}
 \input{sections/background}
