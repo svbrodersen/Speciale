@@ -1,5 +1,12 @@
 \section{Future work}
-\fbox{Missing section overview}
+While the implementation does show promise, there are still significant items
+that are left for future work. There are both questions about the verification
+on true hardware, and a question about the broader scope of safe system calls.
+Further, while the domain scheduler removes a lot of microarchitectural side
+channels, through the use of temporal\_fence, and removes scheduler based
+timing channels this is far from all possible timing channels. This section
+attempts to address these issues, and how future work can overcome these
+issues.
 
 \subsection{Verification on cycle accurate hardware}\label{sec:cycle_accurate_hw}
 This project has only been tested on the QEMU virtual system, which is clearly
