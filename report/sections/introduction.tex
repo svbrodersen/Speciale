@@ -1,7 +1,4 @@
 \section{Introduction}
-\fbox{Missing research questions, thesis outline and contribution statements.
-Introduce Threat model, either here or with the background of covert channels.}
-
 Information channels are methods of communication in an unintended manner. One
 such example is timing channels, which occur when a tasks execution time varies
 based on the execution of another task in the system. Whether inadvertently,
@@ -41,4 +38,21 @@ the ground up, providing timing protection as a foundation of the OS. While
 this is a more robust solution for a truly safe OS the authors of \cite{ge2019}
 hint that "there is no reason time protection cannot be implemented in other
 systems...", something which could bring timing protection to more main stream
-applications and something this thesis will attempt to investigate further.
+applications. 
+
+FreeRTOS is an example of such a mainstream system, which provides a default
+priority-based preemptive scheduler, which is inherently vulnerable to timing
+channels. While ground up microkernels have proven effective against timing
+channels, adding these time protection mechanisms into existing operating
+systems remains an open issue. To address this gap, this thesis adds the
+following contributions.
+
+\begin{itemize}
+  \item A domain level scheduler that partitions execution into fixed time
+    slices, ensuring execution of tasks in one domain does not affect the
+    schedulability of a task in another domain.
+  \item Temporal isolation with the use of temporal fence instruction during
+    domain switches to clear shared microarchitectural state.
+  \item Evaluation using the QEMU system emulation, demonstrating constant-time
+    domain scheduling within the limitations of virtual emulation.
+\end{itemize}

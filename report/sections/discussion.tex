@@ -1,5 +1,4 @@
 \section{Discussion}\label{sec:discussion} % (fold)
-\fbox{Missing section overview}
 
 \subsection{Partitioned hardware}\label{sec:hardware}
 While this thesis makes use of the \texttt{fence.t} instruction to clear the
@@ -58,8 +57,22 @@ partitioning. On the other hand, in high security environments this is a must
 and something where depending on the usage case the correct solution could
 vary.
 
-\subsection{Viability of time protection}
-While time protection seems to be a reachable goal, it comes with significant
+\subsection{Reflection}
+The underlying implementation is functional and via the evaluation seems to
+provide the correct time slice based scheduling. However, the implementation
+adds a significant amount of complexity to the FreeRTOS kernel, and this new
+domain level scheduler seems far distant from the general FreeRTOS scheduler.
+The domain level scheduler also changes some fundamental items of the priority
+based scheduler. Take for example the \texttt{vTaskDelayUntil} function from
+FreeRTOS. This function takes the number of ticks the current task should wait
+until it can be scheduled again. This works via the global \textt{xTicks},
+which is now domain specific in the domain scheduler. This means, that if a
+task attempts to sleep for 2 ticks, those two ticks are only counted when the
+tasks own domain is running. This is breaks a lot of assumptions one might have
+coming from the standard FreeRTOS implementation, and changes how some of the
+fundamental timing based items function within FreeRTOS. 
+
+So while time protection seems to be a reachable goal, it comes with significant
 drawbacks. It adds to the complexity of the kernel, hinders the average
 performance and restricts how the kernel operates significantly. As such, it
 seems unreasonable to aim for time protection across all future kernels, and a

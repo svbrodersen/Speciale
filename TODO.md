@@ -4,7 +4,7 @@
 
 - [ ] **Conclusion** (`sections/conclusion.tex`): Currently empty — only
   `\section{Conclusion}` with no text.
-- [ ] **Introduction rework**: Add research questions, problem statement,
+- [x] **Introduction rework**: Add research questions, problem statement,
   thesis outline, and contribution statement. Currently ends abruptly without
   transitions.
 - [ ] **Threat model**: Define a formal threat model for FreeRTOS domains
@@ -28,16 +28,15 @@
 - [ ] **Evaluation — more workloads**: The only workload is the 2-task blinky
   example. Missing: stress tests, multi-domain scenarios, jitter measurements,
   comparison with baseline FreeRTOS.
-- [ ] **Discussion — underdeveloped**: "Partitioned hardware" and "Viability of
+- [x] **Discussion — underdeveloped**: "Partitioned hardware" and "Viability of
   time protection" subsections exist. Missing: reflection on what worked vs.
   didn't, gap between QEMU and real hardware, when domain scheduling is
   appropriate.
-- [ ] **Appendices**: Add full code listings (domain creation, QEMU plugin,
-  config flags), and build/reproduction instructions.
+- [ ] **Appendices**: Add full code listings and build/reproduction instructions.
 
 ## Report — Structural / Polish
 
-- [ ] Section overviews: Each section should open with a brief overview of what
+- [x] Section overviews: Each section should open with a brief overview of what
   will be presented.
 - [ ] Add List of Figures, List of Tables, List of Listings, and
   Glossary/Abbreviations.
