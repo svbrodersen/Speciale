@@ -59,3 +59,16 @@ To address this question, this thesis adds the following contributions.
     with instruction-based time counting, showing constant-time domain
     scheduling.
 \end{itemize}
+
+The remainder of this thesis is organized as follows. Section~2 provides the
+technical background on timing channels, the \texttt{fence.t} instruction, and
+the FreeRTOS kernel. Section~3 surveys related work on user-level mitigations,
+the seL4 time-protection kernel, and the S3K real-time operating system.
+Section~4 analyses the FreeRTOS scheduler's vulnerability to timing channels
+and explores different methods for closing them, and introducing the
+domian-level scheduler. Section~5 details the implementation of this scheduler
+within the FreeRTOS-MPU RISC-V port. Section~6 presents the evaluation using
+QEMU system emulation with two workloads and shows a constant round trip using
+the cycle-count. Section~7 outlines directions for future work, and Section~8
+discusses the broader implications of partitioned hardware and time protection.
+Finally, Section~9 concludes the thesis.
