@@ -1,5 +1,5 @@
 \section{Implementation}
-Moving from theoretical analysis to a functional secure systems requires
+Moving from theoretical analysis to a functional secure system requires
 changes within the existing FreeRTOS framework. This section provides an
 in-depth explanation of the specific architectural modifications required to
 provide the domain-level scheduler discussed in the previous section. It aims
@@ -117,7 +117,7 @@ equal to $\text{TIME\_SLICE} = \frac{1s}{1000} \cdot 5 = 5ms$.
 
 \subsection{Domain switching}
 
-To keep with the fundamentals of FreeRTOS the idea is to keep the functionality
+To keep to the fundamentals of FreeRTOS the idea is to keep the functionality
 of the priority based scheduler within FreeRTOS but internally in a domain.
 That is, within a specific domain the same priority based scheduler is
 available. This in turn means that if no new domains are created, then the
@@ -205,7 +205,7 @@ As such, whenever there is a machine timer tick, the code calculates in constant
 the time slice (xDomainTick) and checks whether a domain switch should occur. If
 the check finds that a new domain should be scheduled, then the data is switched to the new
 domain and a temporal flush is performed to clear the microarchitectural state. The
-flush happens in such a manner, that any data accessed in regards to the new
+flush happens in such a manner that any data accessed in regard to the new
 domain is non-interfering with the previous domain. Once a switch has been decided,
 only data that is within the incoming domain is retrieved
 following the flush, this means that the new domains execution will not be
@@ -214,7 +214,7 @@ based on the microarchitectural state of the previous domain.
 Note this comes with some constraints. Most notably the implementation defines a time
 slice in relation to the machine timer interrupt timing, which is configurable
 in FreeRTOS through the \texttt{configTICK\_RATE\_HZ}. To make this more
-flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} so as not to limit the domain
+flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} flag is introduced so as not to limit the domain
 level scheduler with respect to the inter domain priority based scheduler.
 
 \subsection{Constant time domain creation}
@@ -273,7 +273,7 @@ This poses an issue when wanting to create yet another domain. As mentioned in
 Section~\ref{sec:api}, a user of the OS would provide the time slice for which
 to start a new domain and the length of the domain. Given that not all indices
 throughout the domain are defined, the array would need to be scanned from left to
-right to figure out, if the current domain truly does "own" the given time
+right to figure out if the current domain truly does "own" the given time
 slices the user is attempting to access. If a user wants to create a new domain
 from Domain 0s time slice 4-6 (0 indexed), then the naive method would loop
 from the start of the array until reaching the group of time slices, which
@@ -373,7 +373,7 @@ linked list, and updated to point to the right fragment if one was created or
 the next block. In the case that there is no next block, then it was previously
 set to SIZE\_MAX, indicating again that there is no next block.
 
-At last, the \texttt{xDomains} array must be updated to include the newly created
+Finally, the \texttt{xDomains} array must be updated to include the newly created
 domain, which is simply done as follows:
 
 \begin{lstlisting}[language={c}]
@@ -411,7 +411,7 @@ PRIVILEGED_DATA static volatile BaseType_t xSchedulerRunning[configNUM_TIME_SLIC
 PRIVILEGED_DATA static volatile TickType_t xPendedTicks[configNUM_TIME_SLICES] = {( TickType_t ) 0U};
 \end{lstlisting}
 
-Note, that while the first element is initialized here, the initialization of
+Note that while the first element is initialized here, the initialization of
 the full items are moved to a separate function, as all of the schedulers would
 have to be initialized in the same fashion as the default scheduler.
 
@@ -478,10 +478,10 @@ The Queue can now reference this DomainID when modifying the
 priority-schedulers and as such adds the tasks to the correct arrays.
 
 Given this communication, the \texttt{mpu\_blinky.c} example can now be created
-with different domains communicating. It is important to note here, that there
-of course is introduced some timing leakage between these two domains, as they
+with different domains communicating. It is important to note here that there
+is, of course, some timing leakage introduced between these two domains, as they
 can time the response time of different messages. Here it is up to the
-individual domains to respond in a deterministic manner as to not leak any
+individual domains to respond in a deterministic manner so as not to leak any
 secret information.
 
 

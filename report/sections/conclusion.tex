@@ -7,7 +7,7 @@ types of timing channels, and can be used to leak information by two
 collaborating tasks in an unintended way. Prior work exists in creating secure
 microkernels \cite{ge2019, karlsson2025} as well as promising developments in
 the user-level mitigations \cite{cauligi2019}. However, there still exists a
-gap in what time protection can be implemented in a reasonable manner in the
+gap in how time protection can be implemented in a reasonable manner in the
 existing OSes instead of rebuilding from scratch.
 
 This thesis attempts to bridge this gap, by implementing a domain-level
@@ -17,7 +17,7 @@ scheduler within each of these domains. On a given domain switch, the domain
 level scheduler makes use of the temporal fence instruction \cite{wistoff2023,
 wistoff2025} to clear the microarchitectural state eliminating side-channels in
 lower level caches and other microarchitectural timing channels. Further, a
-focus was placed on the domain creation to be constant time as to not
+focus was placed on the domain creation to be constant-time, so as not to
 inadvertently leak information. Further, this was implemented as a modification
 of the FreeRTOS RISC-V MPU port, such that the MPU protections can be used to
 completely separate the domains. 
@@ -25,24 +25,24 @@ completely separate the domains.
 The evaluation shows that the implementation is functional, and that in regards
 to the QEMU specific system emulation it has constant-time time slices. The
 round trip times have a cycle count of 50000 with a variance of just 1.
-Further, support for cross-domain communication via the built in Queue
+Further, support for cross-domain communication via the built-in Queue
 structure was added, such that different domains have an intended communication
 channel.
 
 The implementation is not without its limitations. Notably it changes some of
 the fundamental expectations in FreeRTOS. As an example the vTaskDelayUntil
-function is only relative to within a domain as it depends on a within domain
-xTicks that is only increment when the domain is run. Further, due to the
+function is only relative to within a domain as it depends on a within-domain
+xTicks that is only incremented when the domain is run. Further, due to the
 constraints of the current MPU port, any privileged task can break all
 partitioning and access data across domains without restrictions, meaning that
 only User mode to user mode cross-domain protection is enforced. Due to the
 large code base, not all of the system calls are vetted for information
-leakage, and as such it could be possible there exists unknown channels here.
-At last, higher level caches are not cleared with the temporal fence
+leakage, and as such it could be possible there exist unknown channels here.
+Lastly, higher-level caches are not cleared with the temporal fence
 instruction and remain vulnerable and given that the implementation does not
 use a scratchpad memory the kernel memory itself might also be vulnerable here.
 
-Further, the evaluation itself was significantly limited with the lack of real
+Further, the evaluation itself was significantly limited by the lack of real
 world hardware. The evaluation does not take into account the underlying
 microarchitectural state. Further, the implementation focused on scheduling
 based timing channels and significant other timing channels still remain
@@ -53,26 +53,26 @@ can be added into an existing mainstream kernel and within the limitations of
 the QEMU system emulation shown correct behaviour. It shows that time
 protection is achievable, but comes with significant trade-offs in complexity,
 performance and usability. So while it is possible, a full domain-level
-scheduler is most likely not suitable for the more generic operating systems,
+scheduler is most likely not suitable for more generic operating systems,
 but would remain viable for environments where a specialized microkernel with
 security is needed. 
 
 There are still aspects of time protection that could be used in the more
 generic cases. For example, given the low performance overhead of the temporal
-fence instruction (approximately 1\%), it could remain a flag for used for
+fence instruction (approximately 1\%), it could remain a flag used for
 sensitive task creation, where the operating system would flush the
 microarchitectural state for specific tasks upon a context switch. It might
 also be an idea to introduce hardware features such as cache partitioning
 extensions and scratchpad memory to the masses, such that these elements can be
-brought to the masses and create for a more complete implementation of time
+brought to the masses and contribute to a more complete implementation of time
 protection.
 
 This work provides a step toward time protection aspects in more general OS
 kernels, while still acknowledging that significant gaps remain. The immediate
-next step is to verify the implementation on cycle-accurate hardware/simulator
+next step is to verify the implementation on cycle-accurate hardware/simulator and
 probe for possible time channels beyond what is possible with the QEMU system
 emulation. Next, items such as system call portioning and safe interrupt
 handling are known to still be needed for true time protection, and formal
 verification of all aspects still remain an open challenge within the field
-itself. At last, a clear boundary between what is feasible within more generic
+itself. Lastly, a clear boundary between what is feasible within more generic
 operating systems as opposed to specialized microkernels remains undefined.

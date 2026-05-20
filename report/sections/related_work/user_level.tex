@@ -1,12 +1,12 @@
 \subsection{User-level mitigations}
-This gives way to what is known as time protection. Time protection is defined
+This gives rise to what is known as time protection. Time protection is defined
 within \cite{ge2019} as "A collection of OS mechanisms which jointly prevent
 interference between security domains that would make execution speed in one
 domain dependent on the activities of another". An OS, which implements Time
-protection must make it such, that all execution within partitioned parts does
+protection must ensure that all execution within partitioned parts does
 not depend on each other making both covert channels and side-channels
 infeasible. This is quite a strict version of time protection, and to close
-covert channels it must be, but quite a significant amount of timing channels
+covert channels it must be, but quite a significant number of timing channels
 can be closed at the user-level if one allows a distinction between different
 information types.
 
@@ -15,12 +15,12 @@ challenges of writing constant-time cryptographic code, which does not depend
 on "secret" information. That is, instead of treating all information as
 possible leakage, one indicates what information must not be leaked through a
 timing channel, and the FaCT type system guarantees that in isolated execution
-this will not leak. FaCT works by making the code constant time in regards to
+this will not leak. FaCT works by making the code constant time in regard to
 the sensitive information, and any branching is only dependent on non-sensitive
-information. The idea being, that any attack can not measure the execution time
+information. The idea being that any attack can not measure the execution time
 of the encryption code to gather information about sensitive information. This
 does work to an extent, by guaranteeing constant time at the C program level,
-but compiler introduced and variable execution time of instructions based on
+but compiler-introduced and variable execution times of instructions based on
 inputs can still leak sensitive information. For example, the division operator
 is notoriously known to have its execution dependent on the numerator
 \cite{schroder, jin2023}. Mitigations against these attacks would still require

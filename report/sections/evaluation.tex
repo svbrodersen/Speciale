@@ -3,7 +3,7 @@
 To verify the effectiveness and performance of the domain-level scheduler,
 different simulated environments were created. This section presents an
 evaluation of the system using QEMU system emulation, focusing on the kernel's
-ability to maintain constant time domain scheduling while still showing, that
+ability to maintain constant time domain scheduling while still showing that
 functionality of the within-domain priority scheduler is unaffected. 
 
 \subsection{The blinky example}
@@ -21,8 +21,8 @@ message to a \texttt{Queue} at a set interval, and the receiver reads from the
 message passing, the sender reads from a restricted memory address causing a
 pmp fault that gets handled by a custom exception handler. For cross-domain
 communication, a similar approach can be used to check that the tasks are still
-capable of passing messages to each other. The domain-level scheduler is setup
-such, that the main function is called with elevated privilege and it is
+capable of passing messages to each other. The domain-level scheduler is set up
+such that the main function is called with elevated privilege and it is
 capable of creating queues and new tasks. The tasks creation is modified to
 make use of the new api, such that it creates two new tasks, each in a separate
 domain. The scheduling timeline of this modified example is provided in
@@ -60,15 +60,15 @@ system halted.
 The output does show some interesting properties with regards to the domain
 scheduler. First, although the receive task is scheduled before the sender
 task, given that there is no message to read in the Queue, it simply sleeps for
-its very first execution scheduling the Idle task. Next, one can see that the
-sending happens always at the specified DomainTick 4, and that the Receiving
+its very first execution, scheduling the idle task. Next, one can see that the
+sending happens always at the specified DomainTick 4, and that the receiving
 also happens within the expected domain tick 2. Another interesting note is,
 that in the very last iteration before the access fault, the receiver task is
 never able to receive the final message, as the sender continues uninterrupted
 before causing the fault.
 
 \subsubsection{Constant time}
-While the previous example shows, that the Domain Tick seems constant for
+While the previous example shows that the Domain Tick seems constant for
 both\footnote{If it varies then the likely culprit is the priority based
 scheduler within each domain.}, it does not show that each domain runs for a
 constant amount of time before interruptions. To truly show that this runs in
@@ -80,7 +80,7 @@ in Section~\ref{sec:qemu_cycle_accuracy}. QEMU does however provide a flag
 known as \texttt{-icount}, which provides deterministic execution from the
 guest point of view. Instead of making use of the host interrupt, QEMU instead
 makes use of instruction counting to determine elapsed time
-\cite{TCGInstructionCounting}. While this by no means is cycle accurate and
+\cite{TCGInstructionCounting}. While this by no means is cycle-accurate and
 does not take into account any microarchitectural state, it can be used to
 approximate the time each domain is allowed to run before a scheduling occurs.
 
@@ -89,7 +89,7 @@ In RISC-V the \texttt{rdcycle} instruction reads XLEN bits of the
 executed by the processor core on which the hart is running from an arbitrary
 start time in the past. Given FreeRTOS runs with XLEN 32-bit, it is necessary
 to also make use of the \texttt{rdcycleh} instruction, to read the upper 32
-bits of the cycle counter, to get the true cycle count. This means, that one
+bits of the cycle counter, to get the true cycle count. This means that one
 can find a round trip time of the domain switch in the following fashion:
 \begin{lstlisting}[language={c}]
 static uint64_t ullPrevMtime = 0;
@@ -149,7 +149,7 @@ interrupt.
 A more complex example was also developed to show the capability of creating
 tasks within each newly generated domain. The initial setup of the demo can be
 seen in Figure~\ref{fig:domain_full}. That is, domain 0 creates 4 new domains
-each of which with a single privileged task. Once domain 0 has created these
+each with a single privileged task. Once domain 0 has created these
 tasks, it starts the scheduler and idles. Each domain runs the same privileged task, which can be seen below:
 \begin{lstlisting}[language=c]
 static void domainPrivileged(void* pvParameters) {
@@ -229,7 +229,7 @@ before going into an infinite loop. Within this infinite loop, it checks if a
 new tick occurred, and prints its own domain along with the domain tick. The
 overall demo is quite simple, but shows the functionality of creating a new
 task within a created domain, and one would expect that the provided domain
-ticks are constant for each domains. Running this demo with the '-icount' QEMU
+ticks are constant for each domain. Running this demo with the '-icount' QEMU
 flag gives the following output:
 
 \begin{verbatim}
@@ -262,7 +262,7 @@ the priority based scheduler within domain 1 switches out the privileged task
 with the unprivileged task all within the same tick. The unprivileged task
 reaches the infinite loop, and prints that the domain tick incremented to two,
 before looping until its time slice is up. The same sequence follows for the
-other domains, before all the unprivileged tasks are the only one producing
+other domains, before all the unprivileged tasks are the only ones producing
 output, where we can see the two time slices given to each of the domains and
 how the scheduler is upholding the number of time slices for each domain.
 
@@ -270,7 +270,7 @@ how the scheduler is upholding the number of time slices for each domain.
 As mentioned previously, the QEMU virtual machine does not provide cycle
 accurate emulation. The closest provided is the instruction-based time counting
 as described in \cite{TCGInstructionCounting}. This means that any timing
-channel that arises from the microarchitectural shared state can not be
+channel that arises from the microarchitectural shared state cannot be
 emulated or diagnosed on the QEMU platform. What can be empirically evaluated
 on the platform is a constant time execution path as shown with the previous
 domain-level scheduler. In an attempt to gain more true cycle estimations a
@@ -288,7 +288,7 @@ Section~\ref{sec:cycle_accurate_hw}.
 
 \subsection{Limitations}
 FreeRTOS was not created with the MPU version in mind. This means that
-development on the MPU version of FreeRTOS is a quite recent endeavour and most
+development on the MPU version of FreeRTOS is quite a recent endeavour and most
 likely still subject to change. One clear issue with the aforementioned domain
 level scheduler is the inter-domain scheduler itself. FreeRTOS provides two
 different modes for tasks, namely the Privileged Mode and the User mode. When a
@@ -299,10 +299,10 @@ When creating a new domain, if this is initialized with only a User mode task,
 then that domain will see no other tasks as the task itself cannot create new
 tasks. 
 
-The more subtle problem is, that Privileged Mode takes precedence over the
+The more subtle problem is that Privileged Mode takes precedence over the
 domain separation. Given two domains 0 and 1, each with a single Privileged
 mode task within, then these two tasks can always communicate with each other,
-as there are no restrictions on what a Privilege task can access. The domain
+as there are no restrictions on what a Privileged task can access. The domain
 separation is thus only for User mode tasks, and by no means does it extend to
 the Privileged mode tasks within FreeRTOS. Further, the separation itself
 requires that the privileged mode tasks within each domain explicitly run
@@ -319,17 +319,17 @@ two User mode tasks running in separate domains.
 \subsection{The FreeRTOS kernel is vast}
 One requirement for time protection specified within \cite{ge2019} is that the
 OS must be partitioned. This includes all system calls, which must be constant
-time in regards to available information within each domain. Given that the
+time in regard to available information within each domain. Given that the
 domain scheduler implemented creates a copy of the priority based scheduler for
 each domain, it can be assumed that a large portion of these system calls
 indirectly become constant time in this aspect. Further, as the User mode tasks
 are unable to disable any interrupts this would indicate that the shared front
 that remains to be partitioned is anything regarding the domain-level scheduler
-itself. Given that these do make use of constant time, and domain creation is
+itself. Given that these do make use of constant-time operations, and domain creation is
 restricted to Privileged mode, then it would seem that this requirement might
 be met to some extent. However, to truly show this partitioned OS one would
 need a full audit of all system calls available for User mode tasks, and make
-sure that they are constant time in respect to the domain available
+sure that they are constant time with respect to the domain available
 information. As this is something beyond the scope of this thesis, the
 implementation can provide no guarantees that it is truly implementing time
 protection.
