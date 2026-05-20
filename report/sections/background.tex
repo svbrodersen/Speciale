@@ -7,7 +7,7 @@ technical foundation for the work that follows and aims to build a foundational
 understanding about what channels are and how isolation can be used as a means
 for protection. 
 
-\subsection{Side-channels}
+\subsection{Side-channels}\label{sec:side-channel}
 Side-channels are unintended information channels, that leak information about
 the process. These channels infer secret data often through observable
 execution time of a process. The general case of such a channel can be seen
@@ -98,8 +98,45 @@ information might also be conveyed through repeated use of non-constant time
 system calls, that depend on some shared resource, or as the aforementioned
 example shared use of the cache.
 
-\subsection{Timing channels}
+\subsection{Timing channels}\label{sub:timing_channels}
+Both side-channels and covert channels rely on some shared resource whose state
+or timing can be observed by a receiver. In the context of an operating system
+kernel, these shared resources take several distinct forms. This subsection
+presents some of the timing channels an OS kernel could face, categorising the
+items that enable the channel.
 
+\paragraph{Scheduler-based channels} The OS scheduler itself can function as
+an unintended information channel. The scheduler controls which tasks get to
+run and might inadvertently leak important information about the schedulability
+of a task through this behaviour. Examples of a side-channel in the priority
+based real time schedulers can be seen in \cite{chen2019}, and other timing
+side channels in more general shared schedulers can be seen in
+\cite{kadloor2016}.
+
+Further, it can easily be seen, that the schedulability can be used as a covert
+channel as two collaborating tasks can communicate by either sleeping or not.
+
+\paragraph{Shared state channels}
+Microarchitectural resources such as caches, TLBs, and branch predictors are
+typically shared across tasks executing on a core. As demonstrated in
+Section~\ref{sec:side-channel}, the state left in these components by one task
+can be observed by another through timing measurements, creating a class of
+channels that is both broad and difficult to eliminate in software alone. These
+are the channels that often require explicit help from hardware mechanisms such
+as the temporal fence instruction \cite{wistoff2023, wistoff2025}, which are
+investigated further in Section~\ref{sub:temporal}
+
+\paragraph{Interrupt-based channels}
+Many shared resources in an OS are protected by locks or critical sections. The
+interrupt mechanism itself, as well as the latency it introduces, can carry
+timing information. A task could trigger different interrupts, which would
+delay another task leading to another timing channel. A task could also simply
+hold a lock and in doing so preventing another task from gathering the same
+lock, which again would delay execution and transferring information between
+the two tasks.
+
+Mitigating these channels requires a combination of mechanism to provide true
+\emph{time protection}.
 
 \subsection{Isolation}
 Throughout many timing channel mitigations, isolation is a common factor.
@@ -200,7 +237,6 @@ While the underlying idea could be implemented on other platforms, work on
 hardware support for those platforms is not as far along. Therefore, assuming
 this implementation will eventually run on real hardware, RISC-V seems the most
 reasonable choice.
-
 
 % subsection FreeRTOS (end)
 
