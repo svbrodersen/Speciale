@@ -50,11 +50,12 @@ into a mainstream OS to mitigate timing channels?}
 
 To address this question, this thesis adds the following contributions.
 \begin{itemize}
-  \item A domain level scheduler that partitions execution into fixed time
+  \item A domain-level scheduler that partitions execution into fixed time
     slices, ensuring execution of tasks in one domain does not affect the
     schedulability of a task in another domain.
   \item Temporal isolation with the use of temporal fence instruction during
     domain switches to clear shared microarchitectural state.
-  \item Evaluation using the QEMU system emulation, demonstrating constant-time
-    domain scheduling within the limitations of virtual emulation.
+  \item An evaluation of the domain-level scheduler using QEMU system emulation
+    with instruction-based time counting, showing constant-time domain
+    scheduling.
 \end{itemize}

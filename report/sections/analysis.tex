@@ -6,7 +6,7 @@ based timing channels. By evaluating the tradeoffs between the different
 approaches, this analysis provides the foundation for the implementation of the
 domain-level scheduler proposed in this thesis.
 
-\subsection{The FreeRTOS scheduler} % (fold)
+\subsection{The FreeRTOS scheduler}\label{sub:freertos_sched} % (fold)
 FreeRTOS provides different scheduling algorithms based on configurations and
 number of cores available on the system. By default on a single core FreeRTOS
 makes use of a fixed-priority preemptive scheduling policy, with round-robin
@@ -26,7 +26,7 @@ modifications.
 
 \subsection{Closing Scheduling Based Timing Channels}
 
-There are a few approaches to closing the different side channels each with
+There are a few approaches to closing the different side-channels each with
 their own pros and cons. A general attribute among all of them is, that
 starvation must not be possible, and as such the current approach to priority
 based scheduling is infeasible. 
@@ -94,8 +94,9 @@ finished its execution.
 \end{figure}
 
 \paragraph{Domain scheduling:}
-Another approach is the one seen in \cite{ge2019}, which is the domain level
-scheduler. The general idea is quite similar to the approach seen before, but
+Another approach is the one seen in \cite{ge2019}, which is the domain-level
+scheduler. The general idea is quite similar to the protection-within-priority
+approach discussed above, but
 the idea of priorities is removed entirely and instead the focus is on
 domains. Each domain can have multiple tasks within, where timing channels are
 not a concern, and timing protection is only needed between different
@@ -120,7 +121,7 @@ This would mean that there is timing protection between subdomain 1 and the
 rest of domain 1\footnote{Other than creation and finishing assuming a domain
   is allowed to give back the time slices upon finishing, which would leak
 timing information}. In theory it should be possible to give up these time
-slices back to the domain level scheduler, which would then treat this as a new
+slices back to the domain-level scheduler, which would then treat this as a new
 domain. Whether or not some timing channels persists after creation remains to
 be seen.
 
@@ -129,8 +130,8 @@ world applications. As such, this thesis attempts to implement this domain
 scheduler within the FreeRTOS kernel.
 
 It is important to note, that this approach does not remove all timing
-channels. Each domain uses a round robin scheduler, which as mentioned
-previously is susceptible to timing channels. The idea is instead, that such
+channels. Each domain uses a round robin scheduler, which as discussed in Section~\ref{sub:freertos_sched}
+is susceptible to timing channels. The idea is instead, that such
 channels are allowed in tasks where protection is not relevant and throughput
 is valued higher. Instead, when one explicitly wants a safe execution
 environment a domain can be created for this, which is then protected after

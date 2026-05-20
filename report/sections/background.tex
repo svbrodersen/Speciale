@@ -1,6 +1,6 @@
 \section{Background}
 \fbox{Missing description of scheduling timing channels specifically.}
-To address the challenges of Time Protection, it is essential to first
+To address the challenges of time protection, it is essential to first
 establish a general understanding of how these vulnerabilities manifest and key
 elements used when explaining timing channels. This section provides the
 technical foundation for the work that follows and aims to build a foundational
@@ -28,7 +28,7 @@ This algorithm is a naive example, which simply branches on some secret, and
 the execution time of the program reveals the secret. If for example this
 algorithm was part of some library, then an attacker could infer information
 about the secret by simply measuring the execution time of the call to the
-algorithm. This example is quite naive, and is one of the side channels
+algorithm. This example is quite naive, and is one of the side-channels
 constant time programming at the user level can prevent, such that one might do
 an equally long computation in both of the branches of the if statement.
 However, this still comes with some precautions, because even though the
@@ -36,7 +36,7 @@ original program might seem sensibly constant time, some compilers might try to
 optimise the code, which could introduce new side-channel attacks such as the
 one seen in \cite{schneider2025}.
 
-Further, more complex examples of side channels includes those specified within
+Further, more complex examples of side-channels includes those specified within
 \cite{kocher2019}, where speculative execution can be used to leak information
 about an otherwise safe algorithm. An example from the paper is the following:
 
@@ -91,7 +91,7 @@ kernels such as seL4 have already formally proven the absence of them
 \cite{murray2013}.
 
 Covert timing channels work through the same mechanisms as the aforementioned
-side channel, but pose as a worst case, where the sender can make use of any
+side-channel, but pose as a worst case, where the sender can make use of any
 and all leakage methods to convey the information. This way, one is not limited
 to the visible gadgets that might exist in a vulnerable program, but the
 information might also be conveyed through repeated use of non-constant time
