@@ -4,27 +4,27 @@ that are left for future work. There are both questions about the verification
 on true hardware, and a question about the broader scope of safe system calls.
 Further, while the domain scheduler removes a lot of microarchitectural side
 channels, through the use of temporal\_fence, and removes scheduler based
-timing channels this is far from all possible timing channels. This section
+timing channels these are far from all possible timing channels. This section
 attempts to address these issues, and how future work can overcome these
 issues.
 
-\subsection{Verification on cycle accurate hardware}\label{sec:cycle_accurate_hw}
+\subsection{Verification on cycle-accurate hardware}\label{sec:cycle_accurate_hw}
 This project has only been tested on the QEMU virtual system, which is clearly
 not sufficient to empirically dispute the presence of timing channels as
 discussed in Section~\ref{sec:qemu_cycle_accuracy}. During the evaluation phase
 of this thesis a QEMU TCG plugin was developed in an attempt to bridge this
 gap. The plugin provided a cache emulation of the L1 and L2 cache with support
 for flushing the L1 cache on domain switches, and it functioned correctly in
-emulation. However, QEMU was never designed to produce cycle accurate
+emulation. However, QEMU was never designed to produce cycle-accurate
 emulation, and when the plugin attempted to update the machine timer externally,
 this happened asynchronously and was affected by the host machine running QEMU.
 This meant that even though the cache emulation was correct, there would be a
 non-deterministic execution from the guest OS point of view, making time
 control unusable. While significant work went into the plugin, it ultimately
-proved unable to provide the cycle accurate emulation necessary for timing
+proved unable to provide the cycle-accurate emulation necessary for timing
 channel analysis. To properly evaluate the implementation, a hardware platform
 that supports the temporal fence instruction would be ideal. As an alternative,
-cycle accurate simulators such as gem5 \cite{lowe-powerGem5SimulatorVersion2020}
+cycle-accurate simulators such as gem5 \cite{lowe-powerGem5SimulatorVersion2020}
 could prove valuable for future evaluation. While other research has identified
 some challenges with gem5 \cite{bossuet2023}, such a simulator could
 significantly reduce the barrier to entry and lead to more rapid development in
@@ -34,7 +34,7 @@ the pursuit of time protection.
 \subsection{Safeguarding system calls}
 With the current setup, when a new domain is created, it must be created with a
 task that is in privileged mode, if that domain should have more than a single task
-running. The reason for this is two fold. First, to create a task in
+running. The reason for this is twofold. First, to create a task in
 FreeRTOS-MPU one must be in privileged mode. Secondly, to add a task to a
 domain with the new API presented in Section~\ref{sec:api}, one must either be
 inside the domain itself or be creating a new domain\footnote{Given the task
@@ -42,10 +42,10 @@ inside the domain itself or be creating a new domain\footnote{Given the task
 forcefully, and not make use of the api at all.}. The requirement of a single
 privileged task mainly comes from the FreeRTOS-MPU version, and to circumvent
 this issue would require significant changes from FreeRTOS itself. The larger
-issue in regards to domain creation is, that creating a new domain could delay
+issue in regard to domain creation is that creating a new domain could delay
 scheduling. Specifically, many of the privileged functions enter a "critical"
 section within FreeRTOS. When entering such a critical section, on the RISC-V
-MPU version interrupts are disabled, including the machine timer interrupts
+MPU version interrupts are disabled, including the machine timer interrupt,
 which drives the domain scheduling. This poses a significant burden on the
 privileged tasks within each domain, as they can inadvertently create timing
 side-channels. The issue is not only with the domain creation, but any call to
@@ -76,7 +76,7 @@ The next issue would be the cross-domain critical section. This part of the
 kernel is shared between all, and as such one cannot simply "ignore" the
 critical section as before. Instead one would have to guarantee that any call
 to cross domain critical functions would execute within the current domain. A
-solution to this problem would be to guarantee, that any system call with such
+solution to this problem would be to guarantee that any system call with such
 a cross-domain critical section runs within a single time slot, or allows for
 preemption within a time slice. Then, when entering the cross-domain critical
 section, the task would have to idle until it reaches the start of a time slice
@@ -85,7 +85,7 @@ to finish before the scheduler would attempt to schedule the next domain.
 
 For this to function correctly one would need proper hardware to find the
 running time of all such system calls, and make sure that the execution time is
-bounded by the time slice. It would also mean, that there has to be a hard
+bounded by the time slice. It would also mean that there has to be a hard
 requirement on the lowest possible value of the time slice duration. However,
 with these in mind truly isolated domains should be possible.
 
@@ -93,7 +93,7 @@ Note however, that this side-channel would only be possible during the end of a
 domain's time slice, and would only be able to convey information between the
 current domain and the domain which comes immediately after. As an example, I
 believe this could be a possible timing channel within the S3K kernel. S3K
-makes use of a global ttas lock. A lock is acquired through the following code
+makes use of a global TTAS lock. A lock is acquired through the following code
 snippet:
 
 \begin{lstlisting}[language=c]
@@ -184,7 +184,7 @@ static proc_t *sched_next(hart_t hart, uint64_t *timeout)
 }
 \end{lstlisting}
 
-That is, when a system call is made the ttas lock is acquired, and when
+That is, when a system call is made the TTAS lock is acquired, and when
 a new task is scheduled the same lock is also acquired. Now while the
 preemptable flag is true for the syscall, it checks that no preemption
 is pending while gathering the lock, but once it has the lock, it will delay

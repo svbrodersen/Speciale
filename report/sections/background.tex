@@ -1,5 +1,4 @@
 \section{Background}
-\fbox{Missing description of scheduling timing channels specifically.}
 To address the challenges of time protection, it is essential to first
 establish a general understanding of how these vulnerabilities manifest and key
 elements used when explaining timing channels. This section provides the
@@ -8,7 +7,7 @@ understanding about what channels are and how isolation can be used as a means
 for protection. 
 
 \subsection{Side-channels}\label{sec:side-channel}
-Side-channels are unintended information channels, that leak information about
+Side-channels are unintended information channels that leak information about
 the process. These channels infer secret data often through observable
 execution time of a process. The general case of such a channel can be seen
 in the snippet below:
@@ -95,7 +94,7 @@ side-channel, but pose as a worst case, where the sender can make use of any
 and all leakage methods to convey the information. This way, one is not limited
 to the visible gadgets that might exist in a vulnerable program, but the
 information might also be conveyed through repeated use of non-constant time
-system calls, that depend on some shared resource, or as the aforementioned
+system calls that depend on some shared resource, or as the aforementioned
 example shared use of the cache.
 
 \subsection{Timing channels}\label{sub:timing_channels}
@@ -113,7 +112,7 @@ based real time schedulers can be seen in \cite{chen2019}, and other timing
 side channels in more general shared schedulers can be seen in
 \cite{kadloor2016}.
 
-Further, it can easily be seen, that the schedulability can be used as a covert
+Further, it can easily be seen that the schedulability can be used as a covert
 channel as two collaborating tasks can communicate by either sleeping or not.
 
 \paragraph{Shared state channels}
@@ -131,20 +130,20 @@ Many shared resources in an OS are protected by locks or critical sections. The
 interrupt mechanism itself, as well as the latency it introduces, can carry
 timing information. A task could trigger different interrupts, which would
 delay another task leading to another timing channel. A task could also simply
-hold a lock and in doing so preventing another task from gathering the same
+hold a lock and in doing so prevent another task from gathering the same
 lock, which again would delay execution and transferring information between
 the two tasks.
 
-Mitigating these channels requires a combination of mechanism to provide true
+Mitigating these channels requires a combination of mechanisms to provide true
 \emph{time protection}.
 
 \subsection{Isolation}
 Throughout many timing channel mitigations, isolation is a common factor.
-Generally there exists two types of isolation, namely \textbf{spatial} and
+Generally there exist two types of isolation, namely \textbf{spatial} and
 \textbf{temporal} isolation. Spatial isolation partitions software into
 distinct memory spaces, which prevents separate domains from sharing the same
 underlying hardware. This separation is most commonly used for DRAM memory,
-where the OS kernel rely on hardware support like the memory management units
+where the OS kernel relies on hardware support like the memory management units
 (MMUs) or memory protection units (MPUs). The MMU translates virtual memory
 addresses into physical addresses in main memory and the OS can separate
 different processes usage entirely. It also generally provides memory
@@ -156,7 +155,7 @@ service received from shared resources by the software in one domain cannot be
 affected by the software in another domain \cite{rushby1999}. An example, which
 would require such isolation is any shared part of the OS between different
 domains. Calling shared OS code should not have any measurable timing effect
-for another domain calling the same OS code. The solution is often to reset the
+on another domain calling the same OS code. The solution is often to reset the
 shared resource back to a known default before any partitioned item is run.
 This guarantees that each process runs from a clean state which is unaffected
 by previous use.
