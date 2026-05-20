@@ -69,7 +69,7 @@ protect a process's user-level state. Each process is responsible for protecting
 its own user-level execution from side-channels in higher level caches. This is
 different from the approach in \cite{ge2019}, where cache coloring guarantees
 that processes in different domains never access the same parts of the cache,
-thereby preventing side channels even in larger caches.
+thereby preventing side-channels even in larger caches.
 
 All system calls are designed to be non-interfering and constant-time with
 respect to the invoking process's authorized observations; that is, all control

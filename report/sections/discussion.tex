@@ -61,8 +61,8 @@ vary.
 The underlying implementation is functional and via the evaluation seems to
 provide the correct time slice based scheduling. However, the implementation
 adds a significant amount of complexity to the FreeRTOS kernel, and this new
-domain level scheduler seems far distant from the general FreeRTOS scheduler.
-The domain level scheduler also changes some fundamental items of the priority
+domain-level scheduler seems far distant from the general FreeRTOS scheduler.
+The domain-level scheduler also changes some fundamental items of the priority
 based scheduler. Take for example the \texttt{vTaskDelayUntil} function from
 FreeRTOS. This function takes the number of ticks the current task should wait
 until it can be scheduled again. This works via the global \texttt{xTicks},
@@ -79,7 +79,7 @@ seems unreasonable to aim for time protection across all future kernels, and a
 general operating system should most likely not strive towards full time
 protection. However, some aspects of the work done could translate. As an
 example, one might want to create a single task for handling encryption, where
-the micro architectural state is cleared before scheduling the next task.
+the microarchitectural state is cleared before scheduling the next task.
 Seeing that such an operation would on average only add 1\% to the scheduling,
 as seen with the temporal fence instruction, this could be worth it for the
 extra security. Together with user level mitigations most items deemed

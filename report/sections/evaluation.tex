@@ -1,7 +1,6 @@
 \section{Evaluation}
-\fbox{I would want one more workload with multiple domains with both inter domain communication and cross-domain communication. This would be shorter, as the current demo would still be used to describe the setup. Should reference items that should be covered in the Introduction.}
 
-To verify the effectiveness and performance of the domain level scheduler,
+To verify the effectiveness and performance of the domain-level scheduler,
 different simulated environments were created. This section presents an
 evaluation of the system using QEMU system emulation, focusing on the kernel's
 ability to maintain constant time domain scheduling while still showing, that
@@ -22,7 +21,7 @@ message to a \texttt{Queue} at a set interval, and the receiver reads from the
 message passing, the sender reads from a restricted memory address causing a
 pmp fault that gets handled by a custom exception handler. For cross-domain
 communication, a similar approach can be used to check that the tasks are still
-capable of passing messages to each other. The domain level scheduler is setup
+capable of passing messages to each other. The domain-level scheduler is setup
 such, that the main function is called with elevated privilege and it is
 capable of creating queues and new tasks. The tasks creation is modified to
 make use of the new api, such that it creates two new tasks, each in a separate
@@ -274,7 +273,7 @@ as described in \cite{TCGInstructionCounting}. This means that any timing
 channel that arises from the microarchitectural shared state can not be
 emulated or diagnosed on the QEMU platform. What can be empirically evaluated
 on the platform is a constant time execution path as shown with the previous
-domain level scheduler. In an attempt to gain more true cycle estimations a
+domain-level scheduler. In an attempt to gain more true cycle estimations a
 QEMU TCG plugin was developed for emulating the cache behaviour of the program
 during execution. QEMU provides a cache modelling plugin example
 \cite{CacheModellingTCG}. The developed plugin emulated the L1 and L2 cache
@@ -325,7 +324,7 @@ domain scheduler implemented creates a copy of the priority based scheduler for
 each domain, it can be assumed that a large portion of these system calls
 indirectly become constant time in this aspect. Further, as the User mode tasks
 are unable to disable any interrupts this would indicate that the shared front
-that remains to be partitioned is anything regarding the domain level scheduler
+that remains to be partitioned is anything regarding the domain-level scheduler
 itself. Given that these do make use of constant time, and domain creation is
 restricted to Privileged mode, then it would seem that this requirement might
 be met to some extent. However, to truly show this partitioned OS one would

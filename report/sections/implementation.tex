@@ -2,15 +2,15 @@
 Moving from theoretical analysis to a functional secure systems requires
 changes within the existing FreeRTOS framework. This section provides an
 in-depth explanation of the specific architectural modifications required to
-provide the domain level scheduler discussed in the previous section. It aims
+provide the domain-level scheduler discussed in the previous section. It aims
 to cover the extensions of the FreeRTOS-MPU API, the introduction of new
-configuration flags, and the core logic behind the domain level scheduler.
+configuration flags, and the core logic behind the domain-level scheduler.
 Further, specifics about how constant-time domain creation was implemented
 along with keeping the functionality of the priority based scheduler within
 each domain, such that different domains remain partitioned.
 
 \subsection{Extending the api}\label{sec:api}
-To implement the domain level scheduler I must first incorporate the idea into
+To implement the domain-level scheduler I must first incorporate the idea into
 the existing FreeRTOS framework. With FreeRTOS MPU, I am able to create
 unprivileged tasks which have restricted access to syscalls and provide them
 with a memory space that is partitioned. For this, the general FreeRTOS api is
@@ -97,16 +97,17 @@ scheduler.
 With this, no more of the external api has to be changed.
 
 \subsection{New configuration flags}
-To enable the functionality of domain level scheduling, a few new compile flags
+To enable the functionality of domain-level scheduling, a few new compile flags
 need to be introduced.
 
 \paragraph{configENABLE\_DOMAINS} A binary flag to indicate whether or not to
-use the domain level scheduler alongside the default priority based scheduler.
+use the domain-level scheduler alongside the default priority based scheduler.
 
 \paragraph{configNUM\_TIME\_SLICES} The total number of time slices for the
-domain scheduler to take into account. As mentioned before this flag also
-constitutes the maximum number of possible domains, such that any domain
-scheduling decisions can be done in constant time.
+domain scheduler to take into account. As discussed in
+Section~\ref{sec:Scheduling}, this flag also constitutes the maximum number of
+possible domains, such that any domain scheduling decisions can be done in
+constant time.
 
 \paragraph{configNUM\_TICKS\_PER\_SLICE} The number of timer interrupt ticks to
 constitute a single time slice. Say that the ticks is defined as
@@ -392,7 +393,7 @@ domain, and is indexable by the domain id rather than the start of the time
 slice block.
 
 \subsection{Per domain scheduling}
-For the domain level scheduler to work with inter domain priority based
+For the domain-level scheduler to work with inter domain priority based
 schedulers, another dimension must be added to all of the items. That is, all
 variables that previously were a constant would have to be an array with length
 equal to the number of time slices and same extension for previous arrays. All
@@ -414,7 +415,7 @@ Note, that while the first element is initialized here, the initialization of
 the full items are moved to a separate function, as all of the schedulers would
 have to be initialized in the same fashion as the default scheduler.
 
-With this, the general foundation of the domain level scheduler is functional,
+With this, the general foundation of the domain-level scheduler is functional,
 and the standard \texttt{mpu\_blinky.c} example works given all tasks run
 within the same domain.
 

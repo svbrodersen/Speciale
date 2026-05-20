@@ -62,11 +62,11 @@ There is the cross-domain critical section, for which it would still be
 necessary to disable interrupts when it occurs, and there is the within domain
 critical section. When entering a within domain critical section, then the
 priority scheduling would be blocked such that the priority based scheduler is
-not left in an invalid state, but if there is a domain level interrupt, then
+not left in an invalid state, but if there is a domain-level interrupt, then
 the context would be saved of the current execution and switch to another
 domain. When the old domain runs again, it would still be within the domain
 critical section at the same context point, allowing for a valid state of the
-within domain scheduler, while allowing the domain level scheduler to schedule
+within domain scheduler, while allowing the domain-level scheduler to schedule
 other domains without delays. This context saving and restoration would have to
 be taken into account for the worst case analysis of the domain switching, if
 it can not be guaranteed in constant time, but should propagate well to the
@@ -89,7 +89,7 @@ bounded by the time slice. It would also mean, that there has to be a hard
 requirement on the lowest possible value of the time slice duration. However,
 with these in mind truly isolated domains should be possible.
 
-Note however, that this side channel would only be possible during the end of a
+Note however, that this side-channel would only be possible during the end of a
 domain's time slice, and would only be able to convey information between the
 current domain and the domain which comes immediately after. As an example, I
 believe this could be a possible timing channel within the S3K kernel. S3K

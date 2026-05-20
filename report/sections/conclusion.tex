@@ -10,12 +10,12 @@ the user-level mitigations \cite{cauligi2019}. However, there still exists a
 gap in what time protection can be implemented in a reasonable manner in the
 existing OSes instead of rebuilding from scratch.
 
-This thesis attempts to bridge this gap, by implementing a domain level
+This thesis attempts to bridge this gap, by implementing a domain-level
 scheduler within the existing framework of the FreeRTOS kernel. It does so,
 while keeping true to the foundation of FreeRTOS and keeping the priority-based
 scheduler within each of these domains. On a given domain switch, the domain
 level scheduler makes use of the temporal fence instruction \cite{wistoff2023,
-wistoff2025} to clear the microarchitectural state eliminating side channels in
+wistoff2025} to clear the microarchitectural state eliminating side-channels in
 lower level caches and other microarchitectural timing channels. Further, a
 focus was placed on the domain creation to be constant time as to not
 inadvertently leak information. Further, this was implemented as a modification
