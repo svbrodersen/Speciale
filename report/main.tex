@@ -1,5 +1,6 @@
 %! TeX program = lualatex
 \documentclass[12pt]{article}
+\usepackage[english, science, dropcaps, hyperref]{ku-frontpage}
 
 \usepackage{amsmath}
 \usepackage{url}
@@ -79,7 +80,6 @@
 
 \usetikzlibrary{shapes, positioning, decorations.pathreplacing}
 
-
 % Save original fbox
 \let\oldfbox\fbox
 
@@ -92,16 +92,19 @@
 
 \addbibresource{refs.bib}
 
-\title{Eliminating Timing Channels in Microkernels \\
-  \large Master's Thesis 
-}
+\assignment{Master's Thesis}
+\title{Eliminating Timing Channels \\in Microkernels}
+\subtitle{Integrating Time Protection Mechanisms into FreeRTOS}
 \author{Simon Vinding Brodersen(rzn875)}
-\date{\today}
+\date{Submitted: \today}
+\advisor{Advisor: Thomas Philip Jensen}
 
 \begin{document}
+\begingroup
+  \fontencoding{T1}\fontfamily{LinuxLibertineT-OsF}\selectfont
+  \maketitle
+\endgroup
 
-
-\maketitle
 \fbox{Also want to add appendices with how to download and use the github project for reproduction.}
 \input{sections/abstract}
 \newpage
