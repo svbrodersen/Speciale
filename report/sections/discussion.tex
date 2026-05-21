@@ -1,5 +1,23 @@
 \section{Discussion}\label{sec:discussion} % (fold)
 
+\subsection{The FreeRTOS kernel is vast}
+One requirement for time protection specified within \cite{ge2019} is that the
+OS must be partitioned. This includes all system calls, which must be constant
+time in regard to available information within each domain. Given that the
+domain scheduler implemented creates a copy of the priority based scheduler for
+each domain, it can be assumed that a large portion of these system calls
+indirectly become constant time in this aspect. Further, as the User mode tasks
+are unable to disable any interrupts this would indicate that the shared front
+that remains to be partitioned is anything regarding the domain-level scheduler
+itself. Given that these do make use of constant-time operations, and domain creation is
+restricted to Privileged mode, then it would seem that this requirement might
+be met to some extent. However, to truly show this partitioned OS one would
+need a full audit of all system calls available for User mode tasks, and make
+sure that they are constant time with respect to the domain available
+information. As this is something beyond the scope of this thesis, the
+implementation can provide no guarantees that it is truly implementing time
+protection.
+
 \subsection{Partitioned hardware}\label{sec:hardware}
 While this thesis makes use of the \texttt{fence.t} instruction to clear the
 microarchitectural state on a domain switch, a lot of the hardware still remains
