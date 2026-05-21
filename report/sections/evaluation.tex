@@ -9,7 +9,7 @@ functionality of the within-domain priority scheduler is unaffected.
 \subsection{The blinky example}
 \begin{figure}
   \begin{center}
-    \include{figures/blinky_timeline}
+    \input{figures/blinky_timeline}
   \end{center}
   \caption{Timeline of the Blinky Domain Scheduling}\label{fig:blinky_timeline}
 \end{figure}
@@ -134,13 +134,13 @@ Message received from task, DomainTick: 2
 
 Which shows that each domain runs in the same number of cycles
 with a variance of 1. This variance seems negligible, and could most likely be
-attributed in some small discrepancy in how QEMU handles the machine timer
+attributed to some small discrepancy in how QEMU handles the machine timer
 interrupt.
 
 \subsection{Larger Demo}
 \begin{figure}
   \begin{center}
-    \include{figures/domain_full}
+    \input{figures/domain_full}
   \end{center}
   \caption{Initial domain full setup. P denotes that it is created with a
   single privileged task within.}\label{fig:domain_full}
@@ -164,8 +164,8 @@ static void domainPrivileged(void* pvParameters) {
         .pcName         = "Rx",
         .usStackDepth   = configMINIMAL_STACK_SIZE,
         .pvParameters   = (void* ) dom_num,
-        .uxPriority     = mainUNPRIVILEDGE_PRIORITY,
-        .puxStackBuffer = xPrivilegedUnStack[dom_num],
+        .uxPriority     = mainUNPRIVILEGED_PRIORITY,
+        .puxStackBuffer = xPrivilegedUnStack[dom_num - 1],
         .xRegions       =
         {
             { &_text, _erodata - _text, portMPU_REGION_READ | portMPU_REGION_EXECUTE },

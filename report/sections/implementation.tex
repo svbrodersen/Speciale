@@ -15,7 +15,7 @@ the existing FreeRTOS framework. With FreeRTOS MPU, I am able to create
 unprivileged tasks which have restricted access to syscalls and provide them
 with a memory space that is partitioned. For this, the general FreeRTOS api is
 extended with a multitude of new functions most importantly for this project is
-the \texttt{xTaskCreateRestricted}.\cite{MemoryProtectionUnit2026} The idea
+the \texttt{xTaskCreateRestricted}\cite{MemoryProtectionUnit2026}. The idea
 behind the domain scheduling fits with the purpose of memory protection, and as
 such it seems the obvious choice for modification to extend it with the domain
 functionality. The signature of the aforementioned function is provided in the
@@ -76,7 +76,7 @@ typedef struct xDOMAIN_PARAMETERS
 typedef struct xTASK_PARAMETERS
 {
   ...
-    #if ( configENABLED_DOMAINS == 1 )
+    #if ( configENABLE_DOMAINS == 1 )
         DomainParameters_t * xDomainParameters; 
     #endif
 } TaskParameters_t;
@@ -235,13 +235,13 @@ PRIVILEGED_DATA static DomainBlock_t xDomains[configNUM_TIME_SLICES] = {
 \begin{figure}
   \begin{subfigure}{0.4\textwidth}
   \begin{center}
-    \input{figures/example_timeline_a.tex}
+    \input{figures/example_timeline_a}
   \end{center}
   \caption{Domain 0 owns all time slices}\label{fig:example_a}
   \end{subfigure}\hfill
   \begin{subfigure}{0.4\textwidth}
   \begin{center}
-    \input{figures/example_timeline_b.tex}
+    \input{figures/example_timeline_b}
     \caption{Domain 0 is fragmented when creating another domain}\label{fig:example_b}
   \end{center}
   \end{subfigure}
@@ -314,7 +314,7 @@ static BaseType_t prvFindContainingBlock(
         prev = current;
     }
 
-    return pdFAIL;
+    return pdFALSE;
 }
 \end{lstlisting}
 
@@ -393,7 +393,7 @@ domain, and is indexable by the domain id rather than the start of the time
 slice block.
 
 \subsection{Per domain scheduling}
-For the domain-level scheduler to work with inter domain priority based
+For the domain-level scheduler to work with intra-domain priority based
 schedulers, another dimension must be added to all of the items. That is, all
 variables that previously were a constant would have to be an array with length
 equal to the number of time slices and same extension for previous arrays. All

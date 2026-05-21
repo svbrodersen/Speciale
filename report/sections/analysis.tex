@@ -10,13 +10,13 @@ domain-level scheduler proposed in this thesis.
 FreeRTOS provides different scheduling algorithms based on configurations and
 number of cores available on the system. By default on a single core FreeRTOS
 makes use of a fixed-priority preemptive scheduling policy, with round-robin
-time-slicing of equal priority tasks. \cite{FreeRTOSschedulingsinglecore2026}
+time-slicing of equal priority tasks \cite{FreeRTOSschedulingsinglecore2026}.
 
 As such, FreeRTOS always attempts to schedule the highest priority task and
 possibly starves lower priority tasks. Items of the same priority run until a
 tick interrupt at which point the time slice is up. This type of scheduling
 inherently includes timing side-channels as the higher priority tasks inhibit
-lower priority tasks from running. \cite{kadloor2016, chen2019} This could be
+lower priority tasks from running \cite{kadloor2016, chen2019}. This could be
 used as a covert channel, where the higher priority task could signal either a
 0 or 1 by simply going to sleep and the lower priority task measures its own
 execution time.
@@ -80,12 +80,12 @@ finished its execution.
 \begin{figure}
   \begin{center}
     \begin{subfigure}[b]{0.45\textwidth}
-      \include{figures/static_domain_sched}
+      \input{figures/static_domain_sched}
       \caption{Static domain scheduler}
     \label{fig:static_domain_sched}
     \end{subfigure}
     \begin{subfigure}[b]{0.45\textwidth}
-      \include{figures/dynamic_domain_sched}
+      \input{figures/dynamic_domain_sched}
     \caption{Dynamic domain scheduler}
     \label{fig:dynamic_domain_sched}
     \end{subfigure}
