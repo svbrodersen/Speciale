@@ -44,9 +44,11 @@ FreeRTOS is an example of such a mainstream system, which provides a default
 priority-based preemptive scheduler, which is inherently vulnerable to timing
 channels. While ground up microkernels have proven effective against timing
 channels, adding these time protection mechanisms into existing operating
-systems remains an open issue. To address this gap, this thesis adds the
-following contributions.
+systems remains an open issue. To investigate this, the thesis addresses the
+following research question: \emph{Can time protection mechanisms be integrated
+into a mainstream OS to mitigate timing channels?}
 
+To address this question, this thesis adds the following contributions.
 \begin{itemize}
   \item A domain level scheduler that partitions execution into fixed time
     slices, ensuring execution of tasks in one domain does not affect the

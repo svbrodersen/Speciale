@@ -2,7 +2,7 @@
 
 ## Report — Critical, Must Complete
 
-- [ ] **Conclusion** (`sections/conclusion.tex`): Currently empty — only
+- [x] **Conclusion** (`sections/conclusion.tex`): Currently empty — only
   `\section{Conclusion}` with no text.
 - [x] **Introduction rework**: Add research questions, problem statement,
   thesis outline, and contribution statement. Currently ends abruptly without
@@ -25,7 +25,7 @@
 
 ## Report — Content Gaps
 
-- [ ] **Evaluation — more workloads**: The only workload is the 2-task blinky
+- [x] **Evaluation — more workloads**: The only workload is the 2-task blinky
   example. Missing: stress tests, multi-domain scenarios, jitter measurements,
   comparison with baseline FreeRTOS.
 - [x] **Discussion — underdeveloped**: "Partitioned hardware" and "Viability of
