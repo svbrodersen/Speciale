@@ -5,7 +5,7 @@ temporal isolation\footnote{Spatial isolation means separation of memory,
 whereas temporal isolation means that the failure of one component should not
 affect the schedulability of another.}, time protection, and dynamic resource
 reconfiguration. Furthermore, S3K's scheduler guarantees deterministic process
-dispatch, free from microarchitectural interference. \cite{karlsson2025}
+dispatch, free from microarchitectural interference \cite{karlsson2025}.
 
 It achieves this through three main attributes:
 \begin{itemize}
@@ -24,7 +24,7 @@ operating systems or applications, with the kernel acting as a bare-metal
 hypervisor. The number of processes is statically defined at compile time.
 Processes use \emph{monitor capabilities} and capability revocation to manage
 other processes, reclaim resources, and repurpose existing processes for new
-tasks. \cite{karlsson2025}
+tasks \cite{karlsson2025}.
 
 \paragraph{Capabilities:}
 Every S3K capability operation has a bounded worst-case execution time (WCET)
@@ -36,7 +36,7 @@ allocated capability table (ctable) in memory.
 S3K's scheduler is a partitioned scheduler that divides time into \emph{major
 frames}, which are further partitioned into \emph{minor frames}. S3K treats
 minor frames as first-class capabilities, enabling dynamic reconfiguration of
-computing resources while maintaining process isolation. \cite{karlsson2025}
+computing resources while maintaining process isolation \cite{karlsson2025}.
 
 A major frame is divided into a fixed number of equal duration time slots. A
 single time slot represents the smallest scheduling unit. A time slice

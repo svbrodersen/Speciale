@@ -86,7 +86,7 @@ FreeRTOS. This function takes the number of ticks the current task should wait
 until it can be scheduled again. This works via the global \texttt{xTicks},
 which is now domain specific in the domain scheduler. This means that if a
 task attempts to sleep for 2 ticks, those two ticks are only counted when the
-tasks own domain is running. This breaks a lot of assumptions one might have
+task's own domain is running. This breaks a lot of assumptions one might have
 coming from the standard FreeRTOS implementation, and changes how some of the
 fundamental timing based items function within FreeRTOS. 
 
