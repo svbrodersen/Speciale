@@ -68,7 +68,7 @@ that in the very last iteration before the access fault, the receiver task is
 never able to receive the final message, as the sender continues uninterrupted
 before causing the fault.
 
-\subsection{Constant time}
+\subsubsection{Constant time}
 While the previous example shows, that the Domain Tick seems constant for
 both\footnote{If it varies then the likely culprit is the priority based
 scheduler within each domain.}, it does not show that each domain runs for a
@@ -138,6 +138,134 @@ with a variance of 1. This variance seems negligible, and could most likely be
 attributed in some small discrepancy in how QEMU handles the machine timer
 interrupt.
 
+\subsection{Larger Demo}
+\begin{figure}
+  \begin{center}
+    \include{figures/domain_full}
+  \end{center}
+  \caption{Initial domain full setup. P denotes that it is created with a
+  single privileged task within.}\label{fig:domain_full}
+\end{figure}
+
+A more complex example was also developed to show the capability of creating
+tasks within each newly generated domain. The initial setup of the demo can be
+seen in Figure~\ref{fig:domain_full}. That is, domain 0 creates 4 new domains
+each of which with a single privileged task. Once domain 0 has created these
+tasks, it starts the scheduler and idles. Each domain runs the same privileged task, which can be seen below:
+\begin{lstlisting}[language=c]
+static void domainPrivileged(void* pvParameters) {
+    uint32_t dom_num = (uint32_t) pvParameters;
+    TickType_t domain_tick = xTaskGetDomainTick();
+    printf ( "Privileged task: %d, DomainTick: %d\n", dom_num, domain_tick);
+    static StackType_t xPrivilegedUnStack[ NUM_DOMAINS ][ configMINIMAL_STACK_SIZE ] __attribute__((aligned( configMINIMAL_STACK_SIZE * sizeof(StackType_t) )));
+
+    TaskParameters_t xDomainTaskParameters =
+    {
+        .pvTaskCode     = domainUnPrivileged,
+        .pcName         = "Rx",
+        .usStackDepth   = configMINIMAL_STACK_SIZE,
+        .pvParameters   = (void* ) dom_num,
+        .uxPriority     = mainUNPRIVILEDGE_PRIORITY,
+        .puxStackBuffer = xPrivilegedUnStack[dom_num],
+        .xRegions       =
+        {
+            { &_text, _erodata - _text, portMPU_REGION_READ | portMPU_REGION_EXECUTE },
+            { &_data, _ebss - _data, portMPU_REGION_READ | portMPU_REGION_WRITE },
+            /* NS16550 */
+            { (void *)0x10000000UL, 0x1000, portMPU_REGION_READ | portMPU_REGION_WRITE },
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+            /* *MUST* reserve one entry for stack */
+            { 0, 0, 0 },
+        }
+        #if ( configENABLE_DOMAINS == 1 )
+        ,.pxDomainParameters  = NULL,
+        #endif
+    };
+
+    TaskHandle_t xDomTask;
+
+    BaseType_t ret = pdFAIL;
+    while (ret != pdPASS) {
+        ret = xTaskCreateRestricted( &( xDomainTaskParameters ), &xDomTask );
+    }
+
+    // This is never reached, Privileged has lower priority than UnPrivileged
+    for( ; ; )
+    {
+    }
+}
+\end{lstlisting}
+
+Each of the privileged tasks start by printing their domain number and the
+current domain tick. Once that is done, they create a new unprivileged task
+with a higher priority than themselves. This then immediately schedules the new
+task, and the privileged task is never scheduled again. The unprivileged task
+that is created is defined as follows:
+
+\begin{lstlisting}[language=c]
+static void domainUnPrivileged(void* pvParameters) {
+    uint32_t dom_num = (uint32_t) pvParameters;
+    TickType_t domain_tick = xTaskGetDomainTick();
+    printf ( "UnPrivileged task: %d, DomainTick: %d\n", dom_num, domain_tick);
+
+    TickType_t prev_tick = xTaskGetTickCount();
+    TickType_t cur_tick = xTaskGetTickCount();
+
+    for( ; ; )
+    {
+        cur_tick = xTaskGetTickCount();
+        TickType_t domain_tick = xTaskGetDomainTick();
+        if (prev_tick != cur_tick) {
+            printf ( "Domain %d, Domain Tick %d\n", dom_num, domain_tick);
+            prev_tick = cur_tick;
+        }
+    }
+}
+\end{lstlisting}
+This unprivileged task again starts by printing its domain and the domain tick,
+before going into an infinite loop. Within this infinite loop, it checks if a
+new tick occurred, and prints its own domain along with the domain tick. The
+overall demo is quite simple, but shows the functionality of creating a new
+task within a created domain, and one would expect that the provided domain
+ticks are constant for each domains. Running this demo with the '-icount' QEMU
+flag gives the following output:
+
+\begin{verbatim}
+Privileged task: 1, DomainTick: 1
+UnPrivileged task: 1, DomainTick: 1
+Domain 1, Domain Tick 2
+Privileged task: 2, DomainTick: 3
+UnPrivileged task: 2, DomainTick: 3
+Domain 2, Domain Tick 4
+Privileged task: 3, DomainTick: 5
+UnPrivileged task: 3, DomainTick: 5
+Domain 3, Domain Tick 6
+Privileged task: 4, DomainTick: 7
+UnPrivileged task: 4, DomainTick: 7
+Domain 4, Domain Tick 8
+Domain 1, Domain Tick 1
+Domain 1, Domain Tick 2
+Domain 2, Domain Tick 3
+Domain 2, Domain Tick 4
+Domain 3, Domain Tick 5
+Domain 3, Domain Tick 6
+Domain 4, Domain Tick 7
+Domain 4, Domain Tick 8
+\end{verbatim}
+
+First, we see that the privileged task from domain 1 runs at the expected
+domain tick 1. It then creates the unprivileged task within the same tick, and
+because the unprivileged task has a higher priority than the privileged task
+the priority based scheduler within domain 1 switches out the privileged task
+with the unprivileged task all within the same tick. The unprivileged task
+reaches the infinite loop, and prints that the domain tick incremented to two,
+before looping until its time slice is up. The same sequence follows for the
+other domains, before all the unprivileged tasks are the only one producing
+output, where we can see the two time slices given to each of the domains and
+how the scheduler is upholding the number of time slices for each domain.
 
 \subsection{QEMU cycle accuracy}\label{sec:qemu_cycle_accuracy}
 As mentioned previously, the QEMU virtual machine does not provide cycle

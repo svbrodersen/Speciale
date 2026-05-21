@@ -1,0 +1,60 @@
+\begin{tikzpicture}[font=\ttfamily]
+
+    % Style for general text nodes
+    \tikzset{lbl/.style={inner sep=1pt, align=center}}
+
+    % Define vertical coordinates for rows and labels
+    \def\barheight{0.6} % Height of each bar
+    \def\vtopprio{1.5}   % Vertical center of the top bar row
+    \def\ytimeline{\vtopprio - \barheight} % Vertical position of the minor frames timeline
+
+    % Define standard tick positions
+    \def\timeslice{1.5}
+
+    % Domain 0
+    \def\tstart{0}
+    \def\tend{\timeslice*1}
+    \path[draw, decorate, decoration=brace] (\tstart, \vtopprio + 0.5) -- (\tend, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 0};
+    \draw (\tstart, \vtopprio-\barheight/2) rectangle (\tend, \vtopprio+\barheight/2) 
+      node[lbl, midway]{Idle};
+
+    % Domain 1
+    \def\tstart{\timeslice*1}
+    \def\tend{\timeslice*3}
+    \path[draw, decorate, decoration=brace] (\tstart, \vtopprio + 0.5) -- (\tend, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 1};
+    \draw (\tstart, \vtopprio-\barheight/2) rectangle (\tend, \vtopprio+\barheight/2) 
+      node[lbl, midway]{P};
+
+    % Domain 2
+    \def\tstart{\timeslice*3}
+    \def\tend{\timeslice*5}
+    \path[draw, decorate, decoration=brace] (\tstart, \vtopprio + 0.5) -- (\tend, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 2};
+    \draw (\tstart, \vtopprio-\barheight/2) rectangle (\tend, \vtopprio+\barheight/2) 
+      node[lbl, midway]{P};
+
+    % Domain 3
+    \def\tstart{\timeslice*5}
+    \def\tend{\timeslice*7}
+    \path[draw, decorate, decoration=brace] (\tstart, \vtopprio + 0.5) -- (\tend, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 3};
+    \draw (\tstart, \vtopprio-\barheight/2) rectangle (\tend, \vtopprio+\barheight/2) 
+      node[lbl, midway]{P};
+
+    % Domain 4
+    \def\tstart{\timeslice*7}
+    \def\tend{\timeslice*9}
+    \path[draw, decorate, decoration=brace] (\tstart, \vtopprio + 0.5) -- (\tend, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 4};
+    \draw (\tstart, \vtopprio-\barheight/2) rectangle (\tend, \vtopprio+\barheight/2) 
+      node[lbl, midway]{P};
+
+    % Main timeline axis
+    \draw[thick] (0, \ytimeline) -- (9*\timeslice, \ytimeline);
+
+    % Intermediate ticks (not all but to give structure)
+    \foreach \x in {0, ..., 9} {
+         \draw (\x*\timeslice, \ytimeline-0.05) -- (\x*\timeslice, \ytimeline+0.05);
+    }
+
+    % Central label below the timeline
+    \node[lbl] at ( { 4.5 * \timeslice }, \ytimeline-0.5 ) {Time Slices};
+
+\end{tikzpicture}

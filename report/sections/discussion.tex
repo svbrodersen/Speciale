@@ -65,7 +65,7 @@ domain level scheduler seems far distant from the general FreeRTOS scheduler.
 The domain level scheduler also changes some fundamental items of the priority
 based scheduler. Take for example the \texttt{vTaskDelayUntil} function from
 FreeRTOS. This function takes the number of ticks the current task should wait
-until it can be scheduled again. This works via the global \textt{xTicks},
+until it can be scheduled again. This works via the global \texttt{xTicks},
 which is now domain specific in the domain scheduler. This means, that if a
 task attempts to sleep for 2 ticks, those two ticks are only counted when the
 tasks own domain is running. This is breaks a lot of assumptions one might have
