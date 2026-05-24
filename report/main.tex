@@ -80,16 +80,6 @@
 
 \usetikzlibrary{shapes, positioning, decorations.pathreplacing}
 
-% Save original fbox
-\let\oldfbox\fbox
-
-% Redefine fbox to allow wrapping
-\renewcommand{\fbox}[1]{%
-  \oldfbox{%
-    \parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{#1}%
-  }%
-}
-
 \addbibresource{refs.bib}
 
 \assignment{Master's Thesis}
@@ -105,12 +95,16 @@
   \maketitle
 \endgroup
 
-\fbox{Also want to add appendices with how to download and use the github project for reproduction.}
+\clearpage
+\pagenumbering{roman}
+
 \input{sections/abstract}
-\newpage
+\clearpage
 
 \tableofcontents
+\clearpage
 
+\pagenumbering{arabic}
 
 \input{sections/introduction}
 \input{sections/background}
@@ -125,6 +119,7 @@
 \input{sections/discussion}
 \input{sections/conclusion}
 
+\addcontentsline{toc}{section}{References}
 {
 	\emergencystretch=1em
 	\printbibliography
