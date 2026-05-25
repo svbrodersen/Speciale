@@ -1,11 +1,17 @@
 \section{Evaluation}
-%TODO: More text about how and what I will evaluate in this section. What will
-% be measured, and how will I evaluate correctness.
-To verify the effectiveness and performance of the domain-level scheduler,
-different simulated environments were created. This section presents an
-evaluation of the system using QEMU system emulation, focusing on the kernel's
-ability to maintain constant time domain scheduling while still showing that
-functionality of the within-domain priority scheduler is unaffected. 
+To verify the effectiveness and performance of the domain-level scheduler, two
+primary scenarios were simulated. The first example is a blinky demo, where two
+tasks are created in separate domains. The two tasks are given access to a
+Queue object, which they can use for communication. The demo is meant to
+demonstrate proper means of cross domain communication. The second scenario is
+a larger demo, which create 4 different domains, each with a single privileged
+task. This task then creates a new user level task with a higher priority than
+itself. The idea here is to show how the functionality of the within domain
+priority based scheduler still functions as expected, while the domain-level
+scheduler keeps a deterministic scheduling between the domains. These scenarios
+are evaluated using the QEMU system emulation with instruction based counting
+to provide for deterministic for the guest system, which in this case is the
+modified FreeRTOS kernel.
 
 \subsection{The blinky example}
 \begin{figure}
