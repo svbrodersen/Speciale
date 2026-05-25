@@ -16,7 +16,6 @@ shared microarchitectural state.
 | `src/qemu/`     | QEMU fork used for emulation (submodule)                     |
 | `src/qemu_timing_plugin/` | QEMU TCG plugin for cache modelling experiments  |
 | `src/s3k/`      | S3K real-time operating system (related work, submodule)     |
-| `src/sentry-kernel/` | Sentry microkernel (related work, submodule)             |
 | `notes/`        | Meeting notes and background research                        |
 | `podman.sh`     | Container setup script (see below)                           |
 
