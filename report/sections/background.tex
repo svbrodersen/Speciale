@@ -1,10 +1,10 @@
 \section{Background}
 To address the challenges of time protection, it is essential to first
 establish a general understanding of how these vulnerabilities manifest and key
-elements used when explaining timing channels. This section provides the
-technical foundation for the work that follows and aims to build a foundational
+terms used when explaining timing channels. This section provides the technical
+foundation for the work that follows and aims to build a foundational
 understanding about what channels are and how isolation can be used as a means
-for protection. 
+for protection.
 
 \subsection{Side-channels}\label{sec:side-channel}
 Side-channels are unintended information channels that leak information about
@@ -29,11 +29,11 @@ algorithm was part of some library, then an attacker could infer information
 about the secret by simply measuring the execution time of the call to the
 algorithm. This example is quite naive, and is one of the side-channels
 constant time programming at the user level can prevent, such that one might do
-an equally long computation in both of the branches of the if statement.
-However, this still comes with some precautions, because even though the
-original program might seem sensibly constant time, some compilers might try to
-optimise the code, which could introduce new side-channel attacks such as the
-one seen in \cite{schneider2025}.
+an equally long computation in both branches of the if statement. However, this
+still comes with some precautions, because even though the original program
+might seem sensibly constant time, some compilers might try to optimise the
+code, which could introduce new side-channel attacks such as the one seen in
+\cite{schneider2025}.
 
 Further, more complex examples of side-channels includes those specified within
 \cite{kocher2019}, where speculative execution can be used to leak information
@@ -70,18 +70,13 @@ A multitude of such attacks, which make use of these side-channels are
 presented in \cite{osvik2006, liu2015}.
 
 \subsection{Covert channels}
-%TODO Make it more explicit that they try and break by all means possible.
 While side-channels are passive and exploit unintended leakage, covert channels
-involve two processes working together. This usually revolves around a sender
+involve two processes working together.  This usually revolves around a sender
 (Trojan) and a receiver (spy), where the sender has access to high security
 data but is restricted in its communication with the receiver. To bypass this,
-the sender could make use of some resource which it shares with the receiver.
-This could be anything from microarchitectural state to some higher level
-cache, which is not partitioned. For example, the Trojan could use the shared
-resource to indicate a "1" and do nothing to indicate a "0". When the spy runs,
-it could measure the execution time of a cache access on the shared resource,
-and depending on how long this access takes gather if the Trojan was sending a
-"1" where a cache hit would occur or a "0" if a cache miss occurred.
+the sender and receiver collude by any means possible to share information.
+This could be via the same techniques as the side-channels, but it could also
+be any use of shared state between the two processes.
 
 Generally two main categories of covert channels exist; \textbf{Storage
 channels:} which modify some stored object, e.g. a file or some metadata;
@@ -130,12 +125,12 @@ Many shared resources in an OS are protected by locks or critical sections. The
 interrupt mechanism itself, as well as the latency it introduces, can carry
 timing information. A task could trigger different interrupts, which would
 delay another task leading to another timing channel. A task could also simply
-hold a lock and in doing so prevent another task from gathering the same
-lock, which again would delay execution and transferring information between
-the two tasks.
+hold a lock and in doing so prevent another task from gathering the same lock,
+which again would delay execution and transfer information between the two
+tasks.
 
 Mitigating these channels requires a combination of mechanisms to provide true
-\emph{time protection}.
+time protection.
 
 \subsection{Isolation}
 Throughout many timing channel mitigations, isolation is a common factor.
