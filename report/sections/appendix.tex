@@ -1,0 +1,24 @@
+\appendix
+
+\section{Getting the source code}
+The code for this thesis is hosted on github at
+\url{https://github.com/svbrodersen/Speciale}. This repository contains the
+work done for the thesis including the report itself, and the different
+submodule projects used throughout the thesis. Further, to reproduce the
+results a podman image is provided to get a container capable of building and
+running the demo examples. The container is hosted at
+\url{ghcr.io/svbrodersen/speciale:latest}. To help with the setup, the root of
+the repository contains a README.md file with instructions on how to build and
+run the demos along with how to setup the container. To clone the repository
+run the following commands:
+
+\begin{lstlisting}[language=bash]
+git clone https://github.com/svbrodersen/Speciale.git
+git submodule update --init --recursive
+\end{lstlisting}
+As the project has quite some large submodules, beware that this might take up
+a significant amount of space, and could take some time.
+
+The primary source code for the modified FreeRTOS kernel is hosted at:
+https://github.com/svbrodersen/FreeRTOS-Kernel/tree/main, and it should be
+pulled automatically following the submodule recursive update.
