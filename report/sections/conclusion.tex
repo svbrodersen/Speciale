@@ -1,37 +1,36 @@
 \section{Conclusion}
 It is clear that timing channels pose a security threat in modern operating
 systems. As more of the low hanging fruit gets patched, these advanced methods
-of breaking intended OS barriers become the go to. The FreeRTOS default
+of breaking intended OS barriers become more prevalent. The FreeRTOS default
 priority-based scheduler is inherently vulnerable to these types of timing
 channels, and can be used to leak information via timing channels by two
-collaborating. Prior work exists in creating secure microkernels \cite{ge2019,
-karlsson2025} as well as promising developments in the user-level mitigations
-\cite{cauligi2019}. However, there still exists a gap in how time protection
-can be implemented in a reasonable manner in existing operating systems.
+collaborating tasks. Prior work exists in creating secure microkernels
+\cite{ge2019, karlsson2025} as well as promising developments in the user-level
+mitigations \cite{cauligi2019}. However, there still exists a gap in how time
+protection can be implemented in a reasonable manner in existing operating
+systems.
 
 This thesis attempts to bridge this gap, by implementing a domain-level
 scheduler within the existing framework of the FreeRTOS kernel. It does so,
 while keeping true to the foundation of FreeRTOS and keeping the priority-based
 scheduler within each of these domains. On a given domain switch, the domain
 level scheduler makes use of the temporal fence instruction \cite{wistoff2023,
-wistoff2025} to clear the microarchitectural state eliminating side-channels in
-lower level caches and other microarchitectural timing channels. Further, a
-focus was placed on the domain creation to be constant-time, so as not to
-inadvertently leak information. Further, this was implemented as a modification
-of the FreeRTOS RISC-V MPU port, such that the MPU protections can be used to
-completely separate domains.
+wistoff2025} to clear the microarchitectural state eliminating. Another focus
+was placed on the domain creation to be constant-time, so as not to
+inadvertently leak information. This was all implemented as a modification of
+the FreeRTOS RISC-V MPU port, such that the MPU protections can be used to
+completely separate domains. Further, an intended communication channel was
+added between domains by modifying the Queue message passing native to
+FreeRTOS, so that it functions both cross-domain and within domain.
 
 The evaluation shows that the implementation is functional, and that in regards
 to the QEMU specific system emulation it has constant-time time slices. The
 round trip times have a cycle count of 50000 with a variance of just 1 cycle.
-Further, support for cross-domain communication via the built-in Queue
-structure was added, such that different domains have an intended communication
-channel.
 
 The implementation is not without its limitations. Notably it changes some of
 the fundamental expectations in FreeRTOS. As an example the vTaskDelayUntil
 function is only relative to within a domain as it depends on a within-domain
-xTicks that is only incremented when the domain is run. Further, due to the
+xTicks that is only incremented when the domain is run. Due to the
 constraints of the current MPU port, any privileged task can break all
 partitioning and access data across domains without restrictions, meaning that
 only user mode to user mode cross-domain protection is enforced. Due to the
