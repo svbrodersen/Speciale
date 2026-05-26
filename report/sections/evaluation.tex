@@ -10,8 +10,8 @@ itself. The idea here is to show how the functionality of the within domain
 priority based scheduler still functions as expected, while the domain-level
 scheduler keeps a deterministic scheduling between the domains. These scenarios
 are evaluated using the QEMU system emulation with instruction based counting
-to provide for deterministic for the guest system, which in this case is the
-modified FreeRTOS kernel.
+to provide for deterministic execution for the guest system, which in this case
+is the modified FreeRTOS kernel.
 
 \subsection{The blinky example}
 \begin{figure}
@@ -272,54 +272,3 @@ before looping until its time slice is up. The same sequence follows for the
 other domains, before all the unprivileged tasks are the only ones producing
 output, where we can see the two time slices given to each of the domains and
 how the scheduler is upholding the number of time slices for each domain.
-
-\subsection{QEMU cycle accuracy}\label{sec:qemu_cycle_accuracy}
-As mentioned previously, the QEMU virtual machine does not provide cycle
-accurate emulation. The closest provided is the instruction-based time counting
-as described in \cite{TCGInstructionCounting}. This means that any timing
-channel that arises from the microarchitectural shared state cannot be
-emulated or diagnosed on the QEMU platform. What can be empirically evaluated
-on the platform is a constant time execution path as shown with the previous
-domain-level scheduler. In an attempt to gain more true cycle estimations a
-QEMU TCG plugin was developed for emulating the cache behaviour of the program
-during execution. QEMU provides a cache modelling plugin example
-\cite{CacheModellingTCG}. The developed plugin emulated the L1 and L2 cache
-with support for flushing the L1 cache on domain switches. While the plugin
-functioned correctly in emulation, QEMU was never designed to produce cycle
-accurate emulation. When the plugin attempted to update the machine timer
-externally, this happened asynchronously and was affected by the host machine
-running QEMU, meaning that even with correct cache emulation, the guest OS
-would experience non-deterministic execution. The limitations of this approach
-and potential alternatives are discussed in
-Section~\ref{sec:cycle_accurate_hw}.
-
-\subsection{Limitations}
-FreeRTOS was not created with the MPU version in mind. This means that
-development on the MPU version of FreeRTOS is quite a recent endeavour and most
-likely still subject to change. One clear issue with the aforementioned domain
-level scheduler is the inter-domain scheduler itself. FreeRTOS provides two
-different modes for tasks, namely the Privileged Mode and the User mode. When a
-task is in user mode, it is unable to create any other tasks, as this changes
-kernel memory and disables interrupts for the duration of the call. This poses
-an issue when wanting to implement strict boundaries between separate domains.
-When creating a new domain, if this is initialized with only a User mode task,
-then that domain will see no other tasks as the task itself cannot create new
-tasks. 
-
-The more subtle problem is that Privileged Mode takes precedence over the
-domain separation. Given two domains 0 and 1, each with a single Privileged
-mode task within, then these two tasks can always communicate with each other,
-as there are no restrictions on what a Privileged task can access. The domain
-separation is thus only for User mode tasks, and by no means does it extend to
-the Privileged mode tasks within FreeRTOS. Further, the separation itself
-requires that the privileged mode tasks within each domain explicitly run
-within the allocated time slices as they can disable interrupts via the
-FreeRTOS api. One such example is for task creation. When a Privileged mode
-task wishes to create another task, FreeRTOS enters a critical section, which
-for the RISC-V version disables all interrupts including the machine hardware
-interrupt. If the task does not do this carefully, it could delay the domain
-level scheduler, which would create a possible timing channel between this
-privileged task and a user level task in another domain. This means that the
-only cross-domain timing protection enabled via this implementation is between
-two User mode tasks running in separate domains.
-
