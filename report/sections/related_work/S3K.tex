@@ -1,11 +1,9 @@
 \subsection{S3K}
 S3K is a real-time operating system that provides a capability-based multicore
 partitioning kernel for embedded RISC-V systems. It provides spatial and
-temporal isolation\footnote{Spatial isolation means separation of memory,
-whereas temporal isolation means that the failure of one component should not
-affect the schedulability of another.}, time protection, and dynamic resource
-reconfiguration. Furthermore, S3K's scheduler guarantees deterministic process
-dispatch, free from microarchitectural interference \cite{karlsson2025}.
+temporal isolation, time protection, and dynamic resource reconfiguration.
+Furthermore, S3K's scheduler guarantees deterministic process dispatch, free
+from microarchitectural interference \cite{karlsson2025}.
 
 It achieves this through three main attributes:
 \begin{itemize}
@@ -21,10 +19,11 @@ isolation and security guarantees. The basic execution unit in S3K is a
 \emph{process}, a self-contained entity whose resources are defined by its
 capabilities. These processes are designed to host bare-metal real-time
 operating systems or applications, with the kernel acting as a bare-metal
-hypervisor. The number of processes is statically defined at compile time.
-Processes use \emph{monitor capabilities} and capability revocation to manage
-other processes, reclaim resources, and repurpose existing processes for new
-tasks \cite{karlsson2025}.
+hypervisor. The maximum number of processes is statically defined at compile
+time, which is the foundation of the time slices in the kernel. Processes use
+\emph{monitor capabilities} and capability revocation to manage other
+processes, reclaim resources, and repurpose existing processes for new tasks
+\cite{karlsson2025}.
 
 \paragraph{Capabilities:}
 Every S3K capability operation has a bounded worst-case execution time (WCET)
@@ -78,7 +77,7 @@ to observe.
 
 \subsubsection{Evaluation}
 They evaluate the implementation across several factors, the most significant
-for our work being scheduling jitter and side-channels. They first find that
+for this thesis being scheduling jitter and side-channels. They first find that
 Inter-Process Communication (IPC) operations have the highest recorded
 non-preemptable cost of 1,195 CPU cycles. Together with an estimated 16,000
 cycles for data cache write-back during the temporal fence, they set the CSPAD

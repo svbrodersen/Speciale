@@ -1,14 +1,14 @@
 \subsection{User-level mitigations}
-This gives rise to what is known as time protection. Time protection is defined
-within \cite{ge2019} as "A collection of OS mechanisms which jointly prevent
-interference between security domains that would make execution speed in one
-domain dependent on the activities of another". An OS, which implements Time
-protection must ensure that all execution within partitioned parts does
-not depend on each other making both covert channels and side-channels
-infeasible. This is quite a strict version of time protection, and to close
-covert channels it must be, but quite a significant number of timing channels
-can be closed at the user-level if one allows a distinction between different
-information types.
+The argument for using user level mitigations stems from the definition of time
+protection. Time protection is defined within \cite{ge2019} as "A collection of
+OS mechanisms which jointly prevent interference between security domains that
+would make execution speed in one domain dependent on the activities of
+another". An OS, which implements Time protection must ensure that all
+execution within partitioned parts does not depend on each other making both
+covert channels and side-channels infeasible. This is quite a strict version of
+time protection, and to close covert channels it must be, but quite a
+significant number of timing channels can be closed at the user-level if one
+allows a distinction between different information types.
 
 One such example is the FaCT DSL \cite{cauligi2019}. FaCT sought to address the
 challenges of writing constant-time cryptographic code, which does not depend
@@ -35,9 +35,8 @@ unknowingly always leak this information through its scheduling decisions.
 Therefore, while user level implementations do help significantly, the issue
 can not be fully closed without both the support of the OS and hardware.
 
-As such, even though user level mitigations can close some timing channels it
-is far from everything and a reset of shared resources through instructions
-such as the temporal fence \cite{wistoff2023} are still needed even if the
-C code itself seems "safe".
-
-
+So while user level mitigations are effective at closing a significant amount
+of timing channels, it is not capable of providing complete time protection by
+itself, and still requires help from the OS and hardware to do so. The user
+level mitigations are thus not useable in the context of full time protection,
+but could be used in cases where restrictions are more lenient.

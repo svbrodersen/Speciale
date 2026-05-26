@@ -1,13 +1,13 @@
 \section{Implementation}
-Moving from theoretical analysis to a functional secure system requires
-changes within the existing FreeRTOS framework. This section provides an
-in-depth explanation of the specific architectural modifications required to
-provide the domain-level scheduler discussed in the previous section. It aims
-to cover the extensions of the FreeRTOS-MPU API, the introduction of new
-configuration flags, and the core logic behind the domain-level scheduler.
-Further, specifics about how constant-time domain creation was implemented
-along with keeping the functionality of the priority based scheduler within
-each domain, such that different domains remain partitioned.
+Moving from theoretical analysis to a functional secure system requires changes
+within the existing FreeRTOS framework. This section provides an in-depth
+explanation of the specific architectural modifications required to provide the
+domain-level scheduler discussed in the previous section. It aims to cover the
+extensions of the FreeRTOS-MPU API, the introduction of new configuration
+flags, and the core logic behind the domain-level scheduler. The specifics
+about how constant-time domain creation was implemented, while keeping the
+functionality of the priority based scheduler within each domain, is also
+presented.
 
 \subsection{Extending the api}\label{sec:api}
 To implement the domain-level scheduler I must first incorporate the idea into
@@ -55,12 +55,9 @@ BaseType_t xTaskCreateRestricted(
 That is, one can create a task which has access to a number of memory regions
 defined by the region start address (pvBaseAddress), the region size in bytes
 (ulLengthInBytes) and the access permissions for the region (ulParameters). The
-function parameter uxPriority is also of importance. By default this function
-creates tasks running in user mode, which restricts access to specific system
-calls and any task created running in privileged mode is able to access the
-entire RAM. By default, tasks running in user mode are able to create other
-tasks running in user mode, and this is the desired behaviour for domain
-scheduling.
+function parameter uxPriority is also of importance. This function is only
+callable by privileged tasks, which restricts the freedom when creating new
+domains, something which will be referenced in future sections.
 
 The idea is to extend this function signature as follows:
 
@@ -120,7 +117,7 @@ equal to $\text{TIME\_SLICE} = \frac{1s}{1000} \cdot 5 = 5ms$.
 To keep to the fundamentals of FreeRTOS the idea is to keep the functionality
 of the priority based scheduler within FreeRTOS but internally in a domain.
 That is, within a specific domain the same priority based scheduler is
-available. This in turn means that if no new domains are created, then the
+available. This in turn means that if no new domains are created, the
 functionality of the scheduler should be nearly unchanged\footnote{There will
 be some overhead with the implementation of course.}.
 
@@ -146,7 +143,7 @@ only increments the global \texttt{xTickCount} if the priority based scheduler
 is running and not suspended for critical handling. This means, I have to
 introduce my own proxy for Ticks, as the per domain \texttt{xTickCount} would
 leak information about other scheduler states and possibly delay the domain
-switching. For our purposes I can hook into the pre-existing
+switching. For this purposes I can hook into the pre-existing
 \texttt{xTaskIncrementTick} function, and check for a domain switch.
 
 \begin{lstlisting}[language={c}, caption={Custom hook for xTaskIncrementTick}, label={lst:inc_tick}]
@@ -201,21 +198,16 @@ if( xDomainTick >= pxCurrentDomainIndex + xDomains[pxCurrentDomainIndex].uxLengt
 }
 \end{lstlisting}
 
-As such, whenever there is a machine timer tick, the code calculates in constant time
-the time slice (xDomainTick) and checks whether a domain switch should occur. If
-the check finds that a new domain should be scheduled, then the data is switched to the new
-domain and a temporal flush is performed to clear the microarchitectural state. The
-flush happens in such a manner that any data accessed in regard to the new
-domain is non-interfering with the previous domain. Once a switch has been decided,
-only data that is within the incoming domain is retrieved
-following the flush, this means that the new domains execution will not be
-based on the microarchitectural state of the previous domain.
-
-Note this comes with some constraints. Most notably the implementation defines a time
-slice in relation to the machine timer interrupt timing, which is configurable
-in FreeRTOS through the \texttt{configTICK\_RATE\_HZ}. To make this more
-flexible, the \texttt{configNUM\_TICKS\_PER\_SLICE} flag is introduced so as not to limit the domain
-level scheduler with respect to the inter domain priority based scheduler.
+As such, whenever there is a machine timer tick, the code calculates in
+constant time the time slice (xDomainTick) and checks whether a domain switch
+should occur. If the check finds that a new domain should be scheduled, then
+the data is switched to the new domain and a temporal flush is performed to
+clear the microarchitectural state. The flush happens in such a manner that any
+data accessed in regard to the new domain is non-interfering with the previous
+domain. Once a switch has been decided, only data that is within the incoming
+domain is retrieved following the flush, this means that the new domains
+execution will not be based on the microarchitectural state of the previous
+domain.
 
 \subsection{Constant time domain creation}
 To keep track of the different domains new global constants are defined:
@@ -250,16 +242,15 @@ PRIVILEGED_DATA static DomainBlock_t xDomains[configNUM_TIME_SLICES] = {
 
 For now the main data structure introduced is an array, namely xDomains,
 storing the timeline. This array is indexable by the start time of the current
-group of time slices and contains information about the current group of domain
-slices, such as the length. Two example states of this array can be seen
-visualized in Figure~\ref{fig:example_timeline}. For the case where Domain 0
-owns all time slices xDomains would only contain a single valid index, namely
-the 0 index, which stores that it is domain 0, that owns the group of time
-slices and the group has a length of 6.
+group of time slices and contains information about which domain owns the group
+and the length. Two example states of this array can be seen visualized in
+Figure~\ref{fig:example_timeline}. For the case where Domain 0 owns all time
+slices xDomains would only contain a single valid index, namely the 0 index,
+which stores that it is domain 0, that owns the group of time slices and the
+group has a length of 6.
 
 This way, the domain switching can be directly indexed once a new domain switch
-is needed, providing constant time retrieval of
-the next domain.
+is needed, providing constant time retrieval of the next domain.
 
 At first glance domain creation also seems simple. In
 Figure~\ref{fig:example_a} there are three main cases for domain creation.
@@ -272,21 +263,21 @@ Figure~\ref{fig:example_b}, where Domain 0 runs at separate times of execution.
 This poses an issue when wanting to create yet another domain. As mentioned in
 Section~\ref{sec:api}, a user of the OS would provide the time slice for which
 to start a new domain and the length of the domain. Given that not all indices
-throughout the domain are defined, the array would need to be scanned from left to
-right to figure out if the current domain truly does "own" the given time
+throughout the domain are defined, the array would need to be scanned from left
+to right to figure out if the current domain truly does "own" the given time
 slices the user is attempting to access. If a user wants to create a new domain
 from Domain 0s time slice 4-6 (0 indexed), then the naive method would loop
 from the start of the array until reaching the group of time slices, which
 contains these time slices, namely indices 4-8. This execution is not constant
 time with respect to what domain 0 should know as the execution time of the
-loop depends on how many other domains are created before no matter which
-domain owns those time slices.
+loop depends on how many other domains exist.
 
 To solve this issue the \texttt{uxNext} field was introduced, which contains
 the index of the next group of time slices owned by the current domain. This
-field can then be used for the looping, when finding the encompassing group of
-time slices giving execution that is only dependent on information available
-to the current domain. In the case that there is no next domain the
+field is used as a singly linked list, which can be looped over to find the
+encompassing group of time slices. Given this only loops over this domains
+owned group of time slices, it does not leak information about the total number
+of domains as before. In the case that there is no next domain the
 \texttt{SIZE\_MAX} is used.
 
 With this in place, it allows finding the encompassing domain as follows:
@@ -357,10 +348,10 @@ else /* No left fragment: remove blockStart from parent's list */
 ...
 \end{lstlisting}
 
-First, the code checks whether a new right fragment of the current domain would be created.
-It would exist if the code is attempting to create a new domain whose start ends
-before the current domain. If such a fragment exists, then the index
-in \texttt{xDomains} is updated to track it.
+First, the code checks whether a new right fragment of the current domain would
+be created. It would exist if the code is attempting to create a new domain
+whose start ends before the current domain ends. If such a fragment exists,
+then the index in \texttt{xDomains} is updated to track it.
 
 Next, a check determines if a left fragment is created, and simply shrinks the
 encompassing time slice group, updating the \texttt{uxNext} field to indicate
@@ -424,9 +415,9 @@ As it stands, the FreeRTOS api has next to no information about the different
 domains, meaning that items such as the Queue used for message transferring
 between domains is not available. Generally this is a good thing, as by default
 there is domain isolation, as any internal handling within tasks.c makes use of
-the current domain. This restriction is quite strict, and one might assume that
-cross-domain communication should be possible. In FreeRTOS communication
-happens through Queues. The general workflow for Queue communication in the MPU
+the current domain. This restriction removes intended communication paths
+between domains. In FreeRTOS communication happens through Queues, where
+messages can be passed. The general workflow for Queue communication in the MPU
 version of FreeRTOS is as follows:
 
 \begin{itemize}
@@ -455,9 +446,7 @@ moves a task to the ready list, it does so through the function
 namely the tasks waiting on the queue, removes the first task from the list
 and moves the given task into the ready list if the scheduler is suspended and
 otherwise moves it to the \texttt{xPendingReadyList} to wait for the next
-scheduler suspension before moving into the true ready list. If the new task
-was found to have a higher priority, then notify that there should be a context
-switch.
+scheduler suspension before moving into the true ready list. 
 
 This is where changes must be made to allow for cross-domain communication.
 First, each task needs some way of tracking the domain it resides within, which

@@ -4,11 +4,11 @@ This section examines the default fixed-priority preemptive scheduler within
 FreeRTOS and explores various theoretical approaches for closing scheduler
 based timing channels. By evaluating the tradeoffs between the different
 approaches, this analysis provides the foundation for the implementation of the
-domain-level scheduler proposed in this thesis.
+domain-level scheduler implemented in this thesis.
 
 \subsection{The FreeRTOS scheduler}\label{sub:freertos_sched} % (fold)
 FreeRTOS provides different scheduling algorithms based on configurations and
-number of cores available on the system. By default on a single core FreeRTOS
+number of cores available on the system. By default, on a single core, FreeRTOS
 makes use of a fixed-priority preemptive scheduling policy, with round-robin
 time-slicing of equal priority tasks \cite{FreeRTOSschedulingsinglecore2026}.
 
@@ -26,10 +26,9 @@ modifications.
 
 \subsection{Closing Scheduling Based Timing Channels}
 
-There are a few approaches to closing the different side-channels, each with
-their own pros and cons. A general attribute among all of them is that
-starvation must not be possible, and as such the current approach to priority
-based scheduling is infeasible. 
+There are a few approaches to closing the different timing channels, each with
+their own pros and cons. The following presents the most notable approaches
+theorised during this thesis.
 
 \paragraph{Removing time:} One approach to solve a lot of the timing channels
 would be to disallow tasks to read the current time. This in theory would
@@ -57,7 +56,7 @@ same priority. Here, if A and B are assumed runnable, then they would be
 scheduled before the lower priority C and D. This would allow C and D to gather
 information about the runnability of the entire High priority noting that
 either A or B was runnable if C or D are delayed. However, within the same
-domain tasks A and B can not gather information about each other. Say for
+domain tasks A and B cannot gather information about each other. Say for
 example A gets to run, then it does not know whether task B is runnable or not,
 as the domain is always running the entire time slice defined by the
 aforementioned array.
@@ -99,12 +98,12 @@ scheduler. The general idea is quite similar to the protection-within-priority
 approach discussed above, but
 the idea of priorities is removed entirely and instead the focus is on
 domains. Each domain can have multiple tasks within, where timing channels are
-not a concern, and timing protection is only needed between different
+not a concern, and time protection is only enforced between different
 domains. In Figure~\ref{fig:static_domain_sched} an illustration of this
 scheduler can be seen. The idea is that at compile time, the different
 domains and their respective time slice allocations are known (in the example that
 would be 4 for both domain 1 and 2). The domain scheduler then takes care of
-scheduling the domain, and guarantees timing protection only between the
+scheduling the domain, and guarantees time protection only between the
 different domains. This approach is still inhibited by the need to know the
 total number of time slices at compile time, and further it also needs the
 number of time slices for each domain at compile time. However, where this
@@ -117,25 +116,23 @@ An extension of this approach would be the one seen in
 Figure~\ref{fig:dynamic_domain_sched}, which closely follows the capability
 based scheduler in \cite{karlsson2025}. The idea is that within a specific
 domain, one can give up some of the attributed time to create a new subdomain.
-This would mean that there is timing protection between subdomain 1 and the
-rest of domain 1\footnote{Other than creation and finishing assuming a domain
-  is allowed to give back the time slices upon finishing, which would leak
-timing information}. In theory it should be possible to give up these time
-slices back to the domain-level scheduler, which would then treat this as a new
-domain. Whether or not some timing channels persist after creation remains to
-be seen.
+This would mean that there is time protection between subdomain 1 and the rest
+of domain 1\footnote{Other than creation and finishing assuming a domain is
+  allowed to give back the time slices upon finishing, which would leak timing
+information}. In theory it should be possible to give up these time slices back
+to the domain-level scheduler, which would then treat this as a new domain.
 
 This approach seems by far the most flexible and most robust in terms of real
 world applications. As such, this thesis attempts to implement this domain
 scheduler within the FreeRTOS kernel.
 
-It is important to note that this approach does not remove all timing
-channels. Each domain uses a round-robin scheduler, which as discussed in Section~\ref{sub:freertos_sched}
-is susceptible to timing channels. The idea is instead that such
-channels are allowed in tasks where protection is not relevant and throughput
-is valued higher. Instead, when one explicitly wants a safe execution
-environment a domain can be created for this, which is then protected after
-initialization.
+It is important to note that this approach does not remove all timing channels.
+Each domain uses a round-robin scheduler, which as discussed in
+Section~\ref{sub:freertos_sched} is susceptible to timing channels. The idea is
+instead that such channels are allowed in tasks where protection is not
+relevant and throughput is valued higher. Instead, when one explicitly wants a
+safe execution environment a domain can be created for this, which is then
+protected after initialization.
 
 % subsection The FreeRTOS scheduler (end)
 
