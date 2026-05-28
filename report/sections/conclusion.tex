@@ -1,60 +1,57 @@
 \section{Conclusion}
-It is clear that timing channels pose a security threat in modern operating
-systems. As more of the low hanging fruit gets patched, these advanced methods
-of breaking intended OS barriers become more prevalent. The FreeRTOS default
-priority-based scheduler is inherently vulnerable to these types of timing
-channels, and can be used to leak information via timing channels by two
-collaborating tasks. Prior work exists in creating secure microkernels
+Timing channels pose a security threat in modern operating systems. As more of
+the simple security issues get patched, more advanced methods of breaking OS
+barriers become prevalent. Prior work exists in creating secure microkernels
 \cite{ge2019, karlsson2025} as well as promising developments in the user-level
 mitigations \cite{cauligi2019}. However, there still exists a gap in how time
-protection can be implemented in a reasonable manner in existing operating
-systems.
+protection can be implemented in existing operating systems.
 
-This thesis attempts to bridge this gap, by implementing a domain-level
-scheduler within the existing framework of the FreeRTOS kernel. It does so,
-while keeping true to the foundation of FreeRTOS and keeping the priority-based
-scheduler within each of these domains. On a given domain switch, the domain
-level scheduler makes use of the temporal fence instruction \cite{wistoff2023,
-wistoff2025} to clear the microarchitectural state eliminating. Another focus
-was placed on the domain creation to be constant-time, so as not to
-inadvertently leak information. This was all implemented as a modification of
-the FreeRTOS RISC-V MPU port, such that the MPU protections can be used to
-completely separate domains. Further, an intended communication channel was
-added between domains by modifying the Queue message passing native to
-FreeRTOS, so that it functions both cross-domain and within domain.
+To bridge this gap, this work proposes a domain-level scheduler paired with
+flushing during domain switches. Conceptually, this implementation isolates
+domains by partitioning execution time into a fixed number of time slices,
+which are then dynamically distributed among them. When a domain switch occurs,
+the microarchitectural footprint of the previous domain is cleared via the
+temporal fence instruction \cite{wistoff2023, wistoff2025}, preventing
+cross-domain information leakage through the shared microarchitectural state.
 
-The evaluation shows that the implementation is functional, and that in regards
-to the QEMU specific system emulation it has constant-time time slices. The
-round trip times have a cycle count of 50000 with a variance of just 1 cycle.
+To realize this model, the implementation is built as a modification of the
+FreeRTOS RISC-V MPU port, such that MPU protections can be used to completely
+separate domains. Because FreeRTOS natively uses a priority-based scheduler, it
+is inherently vulnerable to scheduler-based timing attacks where malicious
+tasks can infer information from scheduling behaviour. To resolve this, the
+domain-level scheduler is introduced on top to manage time slices, while
+preserving the native priority-based scheduler within each individual domain.
+This approach creates a middle ground, where one can optimize throughput when
+time protection is unnecessary. To allow for an intended communication channel
+across domain boundaries, the preexisting Queue structure was modified to allow
+for cross-domain communication.
 
-The implementation is not without its limitations. Notably it changes some of
-the fundamental expectations in FreeRTOS. As an example the vTaskDelayUntil
-function is only relative to within a domain as it depends on a within-domain
-xTicks that is only incremented when the domain is run. Due to the
-constraints of the current MPU port, any privileged task can break all
-partitioning and access data across domains without restrictions, meaning that
-only user mode to user mode cross-domain protection is enforced. Due to the
-large code base, not all of the system calls are checked for information
-leakage, and as such it could be possible there exist unknown channels here.
-Lastly, higher-level caches are not cleared with the temporal fence instruction
-and remain vulnerable. This includes the kernel memory usage itself, as the
-implementation does not make use of a scratchpad memory as seen in the S3K
-kernel \cite{karlsson2025}.
+Empirical evaluation shows that the implementation is functional. Within the
+QEMU-based system emulation, the framework achieves strictly constant-time time
+slices, with resulting round-trip times showing a stable cycle count of 50,000,
+with a variance of just a single cycle.
 
-Further, the evaluation itself was significantly limited by the lack of real
-world hardware. The evaluation does not take into account the underlying
-microarchitectural state and as such the implementation focused solely on the
-scheduling based timing channels. While it does make use of the temporal fence
-instruction on domain switching, this functionality remains untested given the
-testing constraints.
+However, the implementation is not without its limitations. Notably, it changes
+some of the fundamental expectations in FreeRTOS and adds a significant amount
+of complexity to the scheduler. There is also known shared state still present,
+such as the higher-level caches, which is not isolated through temporal or
+spatial partitioning. Some of these areas require more help from hardware,
+which would allow for either spatial partitioning or temporal partitioning,
+such as in the case of the scratchpad memory used in the S3K kernel
+\cite{karlsson2025}. Further, the evaluation itself was significantly limited
+by the lack of real-world hardware. The evaluation does not take into account
+the underlying microarchitectural state, and as such, the implementation can
+only theorize on the efficacy of the temporal fence instruction on domain
+switches. It remains as future work to test the implementation on hardware
+where such an instruction is present.
 
 Even with this, this thesis has contributed by showing that time protection can
 be added into an existing mainstream kernel, while showing intended behaviour
 on the QEMU system emulation platform. It shows that time protection is
 achievable, but comes with significant trade-offs in complexity, performance
-and usability. So while it is possible, a full domain-level scheduler is most
-likely not suitable for more generic operating systems, but would remain viable
-for environments where a specialized microkernel with security is needed. 
+and usability. So while a full domain-level scheduler is most likely not
+suitable for more generic operating systems, it remains viable for environments
+where a specialized microkernel with security is needed. 
 
 With this in mind, there are still aspects of time protection that could be
 used in the more generic operating systems. Specifically, future research can
@@ -78,6 +75,6 @@ make use of these concepts:
     sensitive tasks.
 \end{itemize}
 
-However, to fully guarantee this security contract, significant future work
-remains to formally prove time protection as a whole, while also validating the
-correctness for this specific use case.
+Finally, to fully guarantee the security contract involved in time protection,
+significant work remains in formal verification. As far as this thesis is
+concerned, this remains an open challenge.
