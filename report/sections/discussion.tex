@@ -1,4 +1,7 @@
 \section{Discussion}\label{sec:discussion} % (fold)
+%TODO: Maybe gather this together with the Future Work section, and then expand
+%on the introduction to the sections. If decide not to still provide a little
+%introduction to this section.
 
 \subsection{Partitioned hardware}\label{sec:hardware}
 While this thesis makes use of the \texttt{fence.t} instruction to clear the
@@ -58,6 +61,9 @@ and something where depending on the use case the correct solution could
 vary.
 
 \subsection{Reflection}
+%TODO: Change this to a complexity added and how this could be approached.
+%Don't repeat in regards to what happens in the conclusion. This feels more
+%like a conclusion section at this point.
 The underlying implementation is functional and via the evaluation seems to
 provide the correct time slice based scheduling. However, the implementation
 adds a significant amount of complexity to the FreeRTOS kernel, and this new
@@ -89,8 +95,8 @@ However, one could still find situations where this is simply not enough. In
 these high security environments a truly time protected kernel is still needed.
 It gives guarantees that possible covert channels are not possible and in turn
 guarantees the closure of timing channels. In these environments formal
-verifications are also necessary. At the time of writing there is no formally verified
-kernel, which guarantees time protection, which these environments would
-require. 
+verifications are also necessary. At the time of writing there is no formally
+verified kernel, which guarantees time protection, which these environments
+would require. 
 
 % section Discussion (end)

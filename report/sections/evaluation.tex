@@ -13,6 +13,9 @@ are evaluated using the QEMU system emulation with instruction based counting
 to provide for deterministic execution for the guest system, which in this case
 is the modified FreeRTOS kernel.
 
+%TODO: Short explanation of QEMU what it can and cannot do.
+%\subsection{QEMU instruction counting}. Create this section.
+
 \subsection{The blinky example}
 \begin{figure}
   \begin{center}
@@ -82,14 +85,16 @@ constant amount of time before interruptions. To truly show that this runs in
 constant time, the evaluation is limited by the tools available. QEMU does not
 provide cycle-accurate emulation, and by default makes use of the host system
 clock for interrupts, meaning that the demo's execution is dependent on the
-rest of the host system. This issue is something that will be discussed later
-in Section~\ref{sec:qemu_cycle_accuracy}. QEMU does however provide a flag
-known as \texttt{-icount}, which provides deterministic execution from the
-guest point of view. Instead of making use of the host interrupt, QEMU instead
-makes use of instruction counting to determine elapsed time
-\cite{TCGInstructionCounting}. While this by no means is cycle-accurate and
-does not take into account any microarchitectural state, it can be used to
-approximate the time each domain is allowed to run before a scheduling occurs.
+rest of the host system. 
+
+%TODO: Move this QEMU explanation to the start of the evaluation
+QEMU does however provide a flag known as
+\texttt{-icount}, which provides deterministic execution from the guest point
+of view. Instead of making use of the host interrupt, QEMU instead makes use of
+instruction counting to determine elapsed time \cite{TCGInstructionCounting}.
+While this by no means is cycle-accurate and does not take into account any
+microarchitectural state, it can be used to approximate the time each domain is
+allowed to run before a scheduling occurs.
 
 In RISC-V the \texttt{rdcycle} instruction reads XLEN bits of the
 \texttt{cycle} counter, which holds a count of the number of clock cycles

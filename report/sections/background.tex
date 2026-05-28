@@ -6,6 +6,8 @@ foundation for the work that follows and aims to build a foundational
 understanding about what channels are and how isolation can be used as a means
 for protection.
 
+%TODO: Give an explanation of each subsection.
+
 \subsection{Side-channels}\label{sec:side-channel}
 Side-channels are unintended information channels that leak information about
 the process. These channels infer secret data often through observable
@@ -106,7 +108,10 @@ run and might inadvertently leak important information about the schedulability
 of a task through this behaviour. Examples of a side-channel in the priority
 based real time schedulers can be seen in \cite{chen2019}, and other timing
 side channels in more general shared schedulers can be seen in
-\cite{kadloor2016}.
+\cite{kadloor2016}. %TODO: Explain shortly what the papers are about
+
+%TODO: Give a more in depth example. Take from this section: \subsection{The
+%FreeRTOS scheduler}\label{sub:freertos_sched} % (fold)
 
 Further, it can easily be seen that the schedulability can be used as a covert
 channel as two collaborating tasks can communicate by either sleeping or not.
@@ -120,6 +125,7 @@ channels that is both broad and difficult to eliminate in software alone. These
 are the channels that often require explicit help from hardware mechanisms such
 as the temporal fence instruction \cite{wistoff2023, wistoff2025}, which are
 investigated further in Section~\ref{sub:temporal}.
+
 \paragraph{Interrupt-based channels}
 Many shared resources in an OS are protected by locks or critical sections. The
 interrupt mechanism itself, as well as the latency it introduces, can carry
@@ -132,7 +138,7 @@ tasks.
 Mitigating these channels requires a combination of mechanisms to provide true
 time protection.
 
-\subsection{Isolation}
+\subsection{Isolation} %TODO: Perhaps move this before the previous subsection
 Throughout many timing channel mitigations, isolation is a common factor.
 Generally there exist two types of isolation, namely \textbf{spatial} and
 \textbf{temporal} isolation. Spatial isolation partitions software into
