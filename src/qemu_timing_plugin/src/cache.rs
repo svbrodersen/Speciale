@@ -46,6 +46,14 @@ pub struct RandPolicy {
     rng: StdRng,
 }
 
+impl RandPolicy {
+    pub fn new_with_seed(seed: u64) -> Self {
+        Self {
+            rng: StdRng::seed_from_u64(seed),
+        }
+    }
+}
+
 pub trait EvictionPolicy: Send {
     fn new(assoc: usize) -> Self;
     fn on_access(&mut self, idx: usize, is_hit: bool);
@@ -64,18 +72,16 @@ fn handle_domain(
     block: &mut CacheBlock,
     was_valid: bool,
 ) -> Option<DomainViolation> {
-    // Only update domain if available
     let prev_domain = block.cur_domain;
     block.cur_domain = domain_option;
     match (domain_option, prev_domain) {
         (Some((new_domain, new_is_kernel)), Some((prev_domain, prev_is_kernel))) => {
-            // Only trigger a violation if the block was previously valid and the domain changed
             if was_valid && (prev_domain != new_domain) {
                 return Some(DomainViolation {
                     orig: prev_domain,
                     orig_is_kernel: prev_is_kernel,
                     new: new_domain,
-                    new_is_kernel: new_is_kernel,
+                    new_is_kernel,
                     block_idx: replace_idx,
                     set_idx: 0,
                     level: CacheLevel::Unknown,
@@ -88,6 +94,7 @@ fn handle_domain(
 }
 
 impl CacheBlock {
+    #[must_use]
     pub fn new(tag: usize, valid: bool) -> Self {
         Self {
             tag,
@@ -189,12 +196,8 @@ impl EvictionPolicy for RandPolicy {
 }
 
 impl EvictionPolicy for FifoPolicy {
-    fn new(assoc: usize) -> Self {
-        let mut q = queue![];
-        for i in 0..assoc {
-            let _ = q.add(i);
-        }
-        Self { queue: q }
+    fn new(_assoc: usize) -> Self {
+        Self { queue: queue![] }
     }
     fn on_access(&mut self, idx: usize, is_hit: bool) {
         if !is_hit {
@@ -205,12 +208,8 @@ impl EvictionPolicy for FifoPolicy {
         self.queue.remove().unwrap_or(0)
     }
 
-    fn reset(&mut self, assoc: usize) {
-        let mut q = queue![];
-        for i in 0..assoc {
-            let _ = q.add(i);
-        }
-        self.queue = q;
+    fn reset(&mut self, _assoc: usize) {
+        self.queue = queue![];
     }
 }
 
