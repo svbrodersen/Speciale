@@ -8,6 +8,8 @@ pub use self::s3k::S3KDomainRetriever as ActiveRetriever;
 #[cfg(feature = "s3k")]
 pub use self::s3k::is_temporal_fence;
 #[cfg(feature = "s3k")]
+pub use self::s3k::is_round_trip_marker;
+#[cfg(feature = "s3k")]
 pub use self::s3k::is_timing_end;
 #[cfg(feature = "s3k")]
 pub use self::s3k::is_timing_start;
@@ -31,6 +33,8 @@ mod noop;
 pub type ActiveRetriever = noop::NoOpRetriever;
 #[cfg(not(feature = "retriever"))]
 pub use self::noop::is_temporal_fence;
+#[cfg(not(feature = "retriever"))]
+pub use self::noop::is_round_trip_marker;
 #[cfg(not(feature = "retriever"))]
 pub use self::noop::is_timing_end;
 #[cfg(not(feature = "retriever"))]
