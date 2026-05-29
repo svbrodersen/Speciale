@@ -6,9 +6,22 @@ foundation for the work that follows and aims to build a foundational
 understanding about what channels are and how isolation can be used as a means
 for protection.
 
-%TODO: Give an explanation of each subsection.
+The remainder of this section is structured as follows. First,
+Section~\ref{sub:side-channel} explores side-channels, detailing how tasks can
+involuntarily leak information through execution time and speculative
+execution. Section~\ref{sub:covert-channel} investigates the extension of this,
+where two colluding processes intentionally attempt to bypass security
+boundaries. Section~\ref{sub:timing_channels} categorizes the specific timing
+channels an operating system faces, splitting them into scheduler-based,
+shared-state and interrupt-based vulnerabilities. Section~\ref{sub:isolation}
+shifts the focus toward mitigation, detailing the principles of spatial and
+temporal isolation, before Section~\ref{sub:temporal} reviews the
+hardware-assisted \texttt{fence.t} instruction designed to eliminate
+microarchitectural state leakage with temporal isolation. Finally,
+Section~\ref{sub:FreeRTOS} introduces the FreeRTOS ecosystem and the RISC-V
+platform used as the foundational environment for this thesis.
 
-\subsection{Side-channels}\label{sec:side-channel}
+\subsection{Side-channels}\label{sub:side-channel}
 Side-channels are unintended information channels that leak information about
 the process. These channels infer secret data often through observable
 execution time of a process. The general case of such a channel can be seen
@@ -71,7 +84,7 @@ code, might still leak secret information.
 A multitude of such attacks, which make use of these side-channels are
 presented in \cite{osvik2006, liu2015}.
 
-\subsection{Covert channels}
+\subsection{Covert channels}\label{sub:covert-channel}
 While side-channels are passive and exploit unintended leakage, covert channels
 involve two processes working together.  This usually revolves around a sender
 (Trojan) and a receiver (spy), where the sender has access to high security
@@ -102,24 +115,31 @@ kernel, these shared resources take several distinct forms. This subsection
 presents some of the timing channels an OS kernel could face, categorising the
 items that enable the channel.
 
-\paragraph{Scheduler-based channels} The OS scheduler itself can function as
-an unintended information channel. The scheduler controls which tasks get to
-run and might inadvertently leak important information about the schedulability
-of a task through this behaviour. Examples of a side-channel in the priority
-based real time schedulers can be seen in \cite{chen2019}, and other timing
-side channels in more general shared schedulers can be seen in
-\cite{kadloor2016}. %TODO: Explain shortly what the papers are about
+\paragraph{Scheduler-based channels} The OS scheduler itself can function as an
+unintended information channel. The scheduler controls which tasks get to run
+and might inadvertently leak important information about the schedulability of
+a task through this behaviour. Examples of a side-channel in the priority based
+real time schedulers can be seen in \cite{chen2019}, where they demonstrate how
+an unprivileged, low-priority task (in user space) can infer execution
+behaviours of critical, high-priority periodic tasks. They show how this
+information is useful to launch other more devastating attacks and demonstrate
+two such examples. Further, in \cite{kadloor2016} they study more general
+shared schedulers and how information leakage arise in the context of shared
+event schedulers and argue about the different trade-off between privacy and
+performance.
 
-%TODO: Give a more in depth example. Take from this section: \subsection{The
-%FreeRTOS scheduler}\label{sub:freertos_sched} % (fold)
-
-Further, it can easily be seen that the schedulability can be used as a covert
-channel as two collaborating tasks can communicate by either sleeping or not.
+A simple example of a timing channel could be one present in a priority-based
+scheduler. In such a scheduler the highest priority can inhibit execution of
+lower priority tasks. This could be used as a covert channel, where the higher
+priority task can signal either a 0 or 1 by simply going to sleep, thus
+allowing the lower priority task to run, or it could block execution of the
+lower priority task. The lower priority task can measure its last wake time,
+and infer if the higher priority task attempted to signal either a 0 or 1.
 
 \paragraph{Shared state channels}
 Microarchitectural resources such as caches, TLBs, and branch predictors are
 typically shared across tasks executing on a core. As demonstrated in
-Section~\ref{sec:side-channel}, the state left in these components by one task
+Section~\ref{sub:side-channel}, the state left in these components by one task
 can be observed by another through timing measurements, creating a class of
 channels that is both broad and difficult to eliminate in software alone. These
 are the channels that often require explicit help from hardware mechanisms such
@@ -138,7 +158,7 @@ tasks.
 Mitigating these channels requires a combination of mechanisms to provide true
 time protection.
 
-\subsection{Isolation} %TODO: Perhaps move this before the previous subsection
+\subsection{Isolation}\label{sub:isolation}
 Throughout many timing channel mitigations, isolation is a common factor.
 Generally there exist two types of isolation, namely \textbf{spatial} and
 \textbf{temporal} isolation. Spatial isolation partitions software into
@@ -213,10 +233,13 @@ average performance impact of 1.0\%.
 
 \subsection{FreeRTOS}\label{sub:FreeRTOS} % (fold)
 FreeRTOS is a class of real-time operating systems (RTOS) designed to be small
-enough for microcontrollers, while not limiting its application to microcontrollers
-alone. Out of the box, FreeRTOS provides core real-time scheduling functionality,
-inter-task communication, timing and synchronisation primitives, along with
-other optional add-on features \cite{WhatFreeRTOSFreeRTOS2026}.
+enough for microcontrollers, while not limiting its application to
+microcontrollers alone. Out of the box, FreeRTOS provides core real-time
+scheduling functionality, inter-task communication, timing and synchronisation
+primitives, along with other optional add-on features
+\cite{WhatFreeRTOSFreeRTOS2026}. It does this through the use of a
+priority-based scheduler, which is inherently not fair and can starve lower
+priority tasks.
 
 FreeRTOS-MPU is a memory-protected version of FreeRTOS, which at the time of
 writing is supported on select ARM-based microcontrollers. It enables tasks to

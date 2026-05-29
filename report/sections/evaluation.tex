@@ -13,8 +13,20 @@ are evaluated using the QEMU system emulation with instruction based counting
 to provide for deterministic execution for the guest system, which in this case
 is the modified FreeRTOS kernel.
 
-%TODO: Short explanation of QEMU what it can and cannot do.
-%\subsection{QEMU instruction counting}. Create this section.
+These scenarios are evaluated using QEMU (Quick Emulator), an open-source
+machine emulator and virtualizer. QEMU allows for full system emulation of the
+target RISC-V architecture, enabling the modified FreeRTOS kernel to run
+without physical hardware. However, QEMU does not natively provide
+cycle-accurate emulation, instead it defaults to the host system clock virtual
+interrupts, meaning that execution time can be influence by the host system.
+
+To achieve a reliable baseline, the evaluation utilizes QEMU's \texttt{-icount}
+flag, which provides deterministic execution from the guest point of view.
+Instead of making use of the host interrupt, QEMU instead makes use of
+instruction counting to determine elapsed time \cite{TCGInstructionCounting}.
+While this by no means is cycle-accurate and does not take into account any
+microarchitectural state (such as cache misses), it can be used to approximate
+the time each domain is allowed to run before a scheduling occurs.
 
 \subsection{The blinky example}
 \begin{figure}
@@ -82,27 +94,17 @@ While the previous example shows that the Domain Tick seems constant for
 both\footnote{If it varies then the likely culprit is the priority based
 scheduler within each domain.}, it does not show that each domain runs for a
 constant amount of time before interruptions. To truly show that this runs in
-constant time, the evaluation is limited by the tools available. QEMU does not
-provide cycle-accurate emulation, and by default makes use of the host system
-clock for interrupts, meaning that the demo's execution is dependent on the
-rest of the host system. 
-
-%TODO: Move this QEMU explanation to the start of the evaluation
-QEMU does however provide a flag known as
-\texttt{-icount}, which provides deterministic execution from the guest point
-of view. Instead of making use of the host interrupt, QEMU instead makes use of
-instruction counting to determine elapsed time \cite{TCGInstructionCounting}.
-While this by no means is cycle-accurate and does not take into account any
-microarchitectural state, it can be used to approximate the time each domain is
-allowed to run before a scheduling occurs.
+constant time, the evaluation is limited by the tools available. As mentioned,
+QEMU does not provide cycle-accurate emulation and so instead the following is
+evaluated using instruction based counting.
 
 In RISC-V the \texttt{rdcycle} instruction reads XLEN bits of the
 \texttt{cycle} counter, which holds a count of the number of clock cycles
 executed by the processor core on which the hart is running from an arbitrary
 start time in the past. Given FreeRTOS runs with XLEN 32-bit, it is necessary
 to also make use of the \texttt{rdcycleh} instruction, to read the upper 32
-bits of the cycle counter, to get the true cycle count. This means that one
-can find a round trip time of the domain switch in the following fashion:
+bits of the cycle counter, to get the true cycle count. This means that one can
+find a round trip time of the domain switch in the following fashion:
 \begin{lstlisting}[language={c}]
 static uint64_t ullPrevMtime = 0;
 
@@ -277,3 +279,27 @@ before looping until its time slice is up. The same sequence follows for the
 other domains, before all the unprivileged tasks are the only ones producing
 output, where we can see the two time slices given to each of the domains and
 how the scheduler is upholding the number of time slices for each domain.
+
+\subsection{Architectural Complexity and Cost Analysis}
+While the evaluation demonstrates that the domain-level scheduler successfully
+achieves functional time slice isolation, this security guarantee introduces
+substantial structural complexity to the FreeRTOS kernel. The domain-level
+abstraction diverges significantly from native FreeRTOS scheduling, which
+alters the behaviour of some of the timing-dependent components.
+
+A consequence of this complexity is the change of standard API assumptions.
+Take for example the \texttt{vTaskDelayUntil} function from FreeRTOS. This
+function takes the number of ticks the current task should wait until it can be
+scheduled again. This works via the global \texttt{xTicks}, which is now domain
+specific in the domain scheduler. This means that if a task attempts to sleep
+for 2 ticks, those two ticks are only counted when the task's own domain is
+running.
+
+Beyond structural complexity, achieving time protection reduces the overall
+throughput of tasks by adding idle time to guarantee the time slice scheduling.
+While it has not been evaluated here, this will almost certainly reduce the
+average case throughput. Further, the implementation itself adds significant
+complexity to the code itself, which could be seen as a challenge for future
+development, where FreeRTOS is generally seen as a quite minimal RTOS
+implementation, this domain-level scheduler most definitely breaks this
+assumption.

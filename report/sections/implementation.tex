@@ -9,10 +9,32 @@ about how constant-time domain creation was implemented, while keeping the
 functionality of the priority based scheduler within each domain, is also
 presented.
 
-%TODO: Give an explanation of each subsection in a short form with an
-%introduction to some of the terms used.
+To guide the reader through these structural changes, it is necessary to first
+define a few foundational terms used throughout this section. A \textit{domain}
+refers to an isolated execution environment containing its own security
+boundaries and a dedicated priority-based scheduler. The global execution
+timeline is partitioned into discrete units of time called \textit{time
+slices}, which are dynamically assigned to domains. Within these domains,
+individual tasks are managed via extended versions of the standard FreeRTOS
+\textit{Task Control Block} (TCB).
 
-\subsection{Extending the api}\label{sec:api}
+The remainder of this section details the concrete implementation modifications
+required to the domain-level scheduler. First, Section~\ref{sub:api} explains
+how the FreeRTOS-MPU API is extended to pass domain-specific parameters during
+task creation. Next, Section~\ref{sub:config-flags} introduces the new
+compile-time configuration flags necessary to control compile time options for
+the scheduler. The underlying mechanics of domain switching, machine timer
+interrupts, and microarchitectural flushes are then explored in
+Section~\ref{sub:domain-switch}. This is followed by an explanation of the
+array-based index arithmetic that enables constant-time domain creation in
+Section~\ref{sub:constant-domain-creation}. Finally,
+Section~\ref{sub:per-domain-sched} details the multi-dimensional array
+transformations required for the functionality of the  intra-domain priority
+scheduler, before Section~\ref{sub:cross-communication} discusses the
+adjustments made to allow for an intended communication channel between
+domains.
+
+\subsection{Extending the api}\label{sub:api}
 To implement the domain-level scheduler I must first incorporate the idea into
 the existing FreeRTOS framework. With FreeRTOS MPU, I am able to create
 unprivileged tasks which have restricted access to syscalls and provide them
@@ -96,7 +118,7 @@ scheduler.
 
 With this, no more of the external api has to be changed.
 
-\subsection{New configuration flags}
+\subsection{New configuration flags}\label{sub:config-flags}
 To enable the functionality of domain-level scheduling, a few new compile flags
 need to be introduced.
 
@@ -115,7 +137,7 @@ constitute a single time slice. Say that the ticks is defined as
 configNUM\_TICKS\_PER\_SLICE (5)}, this would mean that a single time slice is
 equal to $\text{TIME\_SLICE} = \frac{1s}{1000} \cdot 5 = 5ms$.
 
-\subsection{Domain switching}
+\subsection{Domain switching}\label{sub:domain-switch}
 
 To keep to the fundamentals of FreeRTOS the idea is to keep the functionality
 of the priority based scheduler within FreeRTOS but internally in a domain.
@@ -212,7 +234,7 @@ domain is retrieved following the flush, this means that the new domains
 execution will not be based on the microarchitectural state of the previous
 domain.
 
-\subsection{Constant time domain creation}
+\subsection{Constant time domain creation}\label{sub:constant-domain-creation}
 To keep track of the different domains new global constants are defined:
 \begin{lstlisting}[language={c}, caption={Domain timeline}, label={lst:domain_def}]
 typedef struct DomainBlock {
@@ -264,7 +286,7 @@ domain, then the current domain is split and might be scheduled several times
 during a single round trip of the time slices. Such an example can be seen in
 Figure~\ref{fig:example_b}, where Domain 0 runs at separate times of execution.
 This poses an issue when wanting to create yet another domain. As mentioned in
-Section~\ref{sec:api}, a user of the OS would provide the time slice for which
+Section~\ref{sub:api}, a user of the OS would provide the time slice for which
 to start a new domain and the length of the domain. Given that not all indices
 throughout the domain are defined, the array would need to be scanned from left
 to right to figure out if the current domain truly does "own" the given time
@@ -386,7 +408,7 @@ The global xDomainInfo is the array used for scheduling the TCB within each
 domain, and is indexable by the domain id rather than the start of the time
 slice block.
 
-\subsection{Per domain scheduling}
+\subsection{Per domain scheduling}\label{sub:per-domain-sched}
 For the domain-level scheduler to work with intra-domain priority based
 schedulers, another dimension must be added to all of the items. That is, all
 variables that previously were a constant would have to be an array with length
@@ -413,7 +435,7 @@ With this, the general foundation of the domain-level scheduler is functional,
 and the standard \texttt{mpu\_blinky.c} example works given all tasks run
 within the same domain.
 
-\subsection{Cross domain communication}
+\subsection{Cross domain communication}\label{sub:cross-communication}
 As it stands, the FreeRTOS api has next to no information about the different
 domains, meaning that items such as the Queue used for message transferring
 between domains is not available. Generally this is a good thing, as by default

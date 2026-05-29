@@ -48,13 +48,14 @@ systems remains an open issue. To investigate this, the thesis addresses the
 following research question: \emph{Can time protection mechanisms be integrated
 into a mainstream OS to mitigate timing channels?}
 
-%TODO: Insert here about how a domain level scheduler and temporal fence will
-%provide some time protection. Note primary focus on scheduling based timing
-%channels and microarchitectural state. How they compliment each other and play
-%together. Reference this section about focus: \subsection{Timing
-%channels}\label{sub:timing_channels}
+To this end, this thesis investigates a defence mechanism composed of a
+domain-level scheduler with deterministic flushing on domain switching via the
+temporal fence instruction. This approach focuses primarily on mitigating
+scheduling-based timing channels and leaks through the shared
+microarchitectural state, both of which are discussed further in
+Section~\ref{sub:timing_channels}.
 
-To address this question, this thesis adds the following contributions.
+To achieve this mechanism, this thesis adds the following contributions.
 \begin{itemize}
   \item A domain-level scheduler that partitions execution into fixed time
     slices, ensuring execution of tasks in one domain does not affect the

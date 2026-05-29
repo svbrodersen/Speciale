@@ -1,4 +1,4 @@
-\section{Future work}
+\section{Future work and discussion}
 While the implementation does show promise, there are still significant items
 that are left for future work. There are both questions about the verification
 on true hardware, and a question about the broader scope of safe system calls.
@@ -40,7 +40,7 @@ With the current setup, when a new domain is created, it must be created with a
 task that is in privileged mode, if that domain should have more than a single task
 running. The reason for this is twofold. First, to create a task in
 FreeRTOS-MPU one must be in privileged mode. Secondly, to add a task to a
-domain with the new API presented in Section~\ref{sec:api}, one must either be
+domain with the new API presented in Section~\ref{sub:api}, one must either be
 inside the domain itself or be creating a new domain\footnote{Given the task
   runs in privileged mode, it could technically overwrite the memory locations
 forcefully, and not make use of the api at all.}. The requirement of a single
@@ -201,21 +201,6 @@ This analysis is purely theoretical and would require access to hardware to
 fully test, and as such should mainly be seen as one of the multitude of
 challenges a truly time protected kernel will face.
 
-\subsection{Remaining timing channels}
-While scheduling timing channels are a significant vulnerability, they are far
-from the only timing channel present in modern kernels. As such, the provided
-port of the FreeRTOS kernel is by no means time protected. One significant form
-of timing channel still available within the kernel is that of interrupts.
-During development it was assumed that the only interrupt is that of the
-preemption timer used for scheduling. In a real system this is not the case.
-Here, one would have to handle the external interrupts in a deterministic
-manner, without breaking the scheduling guarantees put forth during the time
-slot based scheduling. It might also be desired that some domains are not
-interrupted during execution, as this gives information about the availability
-of some external service that in itself might be deemed an information leak.
-It is up to future work to determine a method for handling these external
-interrupts in a manner where they uphold both of the aforementioned issues.
-
 \subsection{The FreeRTOS kernel is vast}
 One requirement for time protection specified within \cite{ge2019} is that the
 OS must be partitioned. This includes all system calls, which must be constant
@@ -234,3 +219,74 @@ information. As this is something beyond the scope of this thesis, the
 implementation can provide no guarantees that it is truly implementing time
 protection.
 
+\subsection{Remaining timing channels}
+While scheduling timing channels are a significant vulnerability, they are far
+from the only timing channel present in modern kernels. As such, the provided
+port of the FreeRTOS kernel is by no means time protected. One significant form
+of timing channel still available within the kernel is that of interrupts.
+During development it was assumed that the only interrupt is that of the
+preemption timer used for scheduling. In a real system this is not the case.
+Here, one would have to handle the external interrupts in a deterministic
+manner, without breaking the scheduling guarantees put forth during the time
+slot based scheduling. It might also be desired that some domains are not
+interrupted during execution, as this gives information about the availability
+of some external service that in itself might be deemed an information leak.
+It is up to future work to determine a method for handling these external
+interrupts in a manner where they uphold both of the aforementioned issues.
+
+\subsection{Partitioned hardware}\label{sec:hardware}
+While this thesis makes use of the \texttt{fence.t} instruction to clear the
+microarchitectural state on a domain switch, a lot of the hardware still remains
+shared. Larger caches such as the L2 and L3 cache are too large to simply
+flush \cite{wistoff2023}. This means higher level caches need another method for
+partitioning. In \cite{ge2019} they make use of cache coloring to partition the
+higher level caches. In essence cache coloring works by using some of the bits
+in the physical address to encode a color of the page. For example, if using 2
+bits in the physical address, one can encode 4 colors, and when the application
+asks to allocate consecutive pages, then the OS makes sure to map them to the
+correct colors \cite{dinh, WhatCacheColoring}. The L1 cache is usually indexed
+directly with virtual addresses, and as such can not be colored in this manner,
+whereas higher-level caches more often make use of elements of the physical
+address.
+
+Cache coloring utilises the cache in an unintended manner. In general, it
+reduces the average performance of the entire system, while for some specific
+applications it can improve performance by reducing cache interference.
+However, in truly secure kernel software partitioning is still required and as
+such it is a cost that is inevitable. The larger issue with cache coloring is
+the uncertainty that it poses. Where the Instruction Set Architecture(ISA)
+usually standardizes the architectural interface for virtual memory and the MMU
+behaviour, the same cannot be said for the underlying foundation of cache
+coloring. For example, in RISC-V the ISA specifies the programmer-visible MMU
+model, while the underlying cache implementation remains undefined. This means
+that the cache coloring implementation is CPU-specific based on things like
+cache indexing. This makes a cross platform implementation of cache coloring
+challenging, and any future development in cache architecture could break any
+such implementation \cite{WhatCacheColoring}.
+
+In recent years different architectures have added support for hardware
+cache partitioning. For example, Intel have added
+CAT \cite{IntroductionCacheAllocation}, ARM with the MPAM
+extension \cite{LearnarchitectureMemory} and similar work for RISC-V with the
+QoS register interfaces \cite{11IntroductionRISCV}. For a truly secure kernel,
+these items need to reach a maturity level, where domains can be guaranteed
+separate in the higher level caches that previously could not be partitioned.
+
+Another approach for safe OS execution is what was seen in \cite{karlsson2025}.
+Here they make use of the Scratch Pad Memory (SPM) which is a section of memory
+that is never backed up to the higher level caches. The kernel itself was then
+developed, such that all memory accesses by the kernel only left a footprint in
+the SPM, which was then flushed on a domain switch. This approach seems
+promising for the kernel data itself, assuming that the SPM is guaranteed large
+enough to hold the kernel footprint. Even when cache partitioning fully
+matures, this might still be a part of the solution, as it most likely would
+have performance improvements over cache partitioning, and would reduce the
+interference the OS would have on the user level applications using the higher
+level caches.
+
+Most likely there will never be a hardware solution which fits all. A general
+purpose operating system, where user-level constant-time programming can solve
+the most important issues, might not need specific domain separation and cache
+partitioning. On the other hand, in high security environments this is a must
+and something where depending on the use case the correct solution could
+vary.
