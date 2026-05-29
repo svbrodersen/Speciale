@@ -1,14 +1,18 @@
 \section{Future work and discussion}
 While the implementation does show promise, there are still significant items
-that are left for future work. There are both questions about the verification
-on true hardware, and a question about the broader scope of safe system calls.
-Further, while the domain scheduler removes a lot of microarchitectural side
-channels, through the use of temporal\_fence, and removes scheduler based
-timing channels these are far from all possible timing channels. This section
-attempts to address these issues, and how future work can overcome these
-issues.
+that are left for future work. This section addresses these remaining
+challenges across four main areas. First, Section~\ref{sub:cycle-accurate}
+discusses the transition from virtualised environments to cycle-accurate
+hardware emulation. Section~\ref{sub:safeguard-syscalls} then analyzes the
+challenges of safeguarding system calls and how to prevent them from
+inadvertently becoming a timing channel. Next, Section~\ref{sub:FreeRTOS-vast}
+outlines the necessity of a comprehensive audit of the full FreeRTOS kernel
+before any guarantees of time protection, as the shared parts of the kernel
+could still pose issues. Finally, Section~\ref{sub:remaining-channels} explores
+the remaining known timing channels, which are not fixed by scheduler design or
+flushing the microarchitectural state.
 
-\subsection{Verification on cycle-accurate hardware}\label{sec:cycle_accurate_hw}
+\subsection{Verification on cycle-accurate hardware}\label{sub:cycle-accurate}
 As mentioned previously, the QEMU virtual machine does not provide cycle
 accurate emulation. The closest provided is the instruction-based time counting
 as described in \cite{TCGInstructionCounting}. This means that any timing
@@ -35,10 +39,10 @@ evaluation. While other research has identified some challenges with gem5
 \cite{bossuet2023}, such a simulator could significantly reduce the barrier to
 entry and lead to more rapid development in the pursuit of time protection.
 
-\subsection{Safeguarding system calls}
+\subsection{Safeguarding system calls}\label{sub:safeguard-syscalls}
 With the current setup, when a new domain is created, it must be created with a
-task that is in privileged mode, if that domain should have more than a single task
-running. The reason for this is twofold. First, to create a task in
+task that is in privileged mode, if that domain should have more than a single
+task running. The reason for this is twofold. First, to create a task in
 FreeRTOS-MPU one must be in privileged mode. Secondly, to add a task to a
 domain with the new API presented in Section~\ref{sub:api}, one must either be
 inside the domain itself or be creating a new domain\footnote{Given the task
@@ -201,7 +205,7 @@ This analysis is purely theoretical and would require access to hardware to
 fully test, and as such should mainly be seen as one of the multitude of
 challenges a truly time protected kernel will face.
 
-\subsection{The FreeRTOS kernel is vast}
+\subsection{The FreeRTOS kernel is vast}\label{sub:FreeRTOS-vast}
 One requirement for time protection specified within \cite{ge2019} is that the
 OS must be partitioned. This includes all system calls, which must be constant
 time in regard to available information within each domain. Given that the
@@ -219,7 +223,7 @@ information. As this is something beyond the scope of this thesis, the
 implementation can provide no guarantees that it is truly implementing time
 protection.
 
-\subsection{Remaining timing channels}
+\subsection{Remaining timing channels and shared hardware}\label{sub:remaining-channels}
 While scheduling timing channels are a significant vulnerability, they are far
 from the only timing channel present in modern kernels. As such, the provided
 port of the FreeRTOS kernel is by no means time protected. One significant form
@@ -234,20 +238,21 @@ of some external service that in itself might be deemed an information leak.
 It is up to future work to determine a method for handling these external
 interrupts in a manner where they uphold both of the aforementioned issues.
 
-\subsection{Partitioned hardware}\label{sec:hardware}
-While this thesis makes use of the \texttt{fence.t} instruction to clear the
-microarchitectural state on a domain switch, a lot of the hardware still remains
-shared. Larger caches such as the L2 and L3 cache are too large to simply
-flush \cite{wistoff2023}. This means higher level caches need another method for
-partitioning. In \cite{ge2019} they make use of cache coloring to partition the
-higher level caches. In essence cache coloring works by using some of the bits
-in the physical address to encode a color of the page. For example, if using 2
-bits in the physical address, one can encode 4 colors, and when the application
-asks to allocate consecutive pages, then the OS makes sure to map them to the
-correct colors \cite{dinh, WhatCacheColoring}. The L1 cache is usually indexed
-directly with virtual addresses, and as such can not be colored in this manner,
-whereas higher-level caches more often make use of elements of the physical
-address.
+Beyond the purely asynchronous software events a substantial amount of
+remaining timing channels originate from non-isolated, shared hardware
+structures. While this thesis makes use of the \texttt{fence.t} instruction to
+clear the microarchitectural state on a domain switch, a lot of the hardware
+still remains shared. Larger caches such as the L2 and L3 cache are too large
+to simply flush \cite{wistoff2023}. This means higher level caches need another
+method for partitioning. In \cite{ge2019} they make use of cache coloring to
+partition the higher level caches. In essence cache coloring works by using
+some of the bits in the physical address to encode a color of the page. For
+example, if using 2 bits in the physical address, one can encode 4 colors, and
+when the application asks to allocate consecutive pages, then the OS makes sure
+to map them to the correct colors \cite{dinh, WhatCacheColoring}. The L1 cache
+is usually indexed directly with virtual addresses, and as such can not be
+colored in this manner, whereas higher-level caches more often make use of
+elements of the physical address.
 
 Cache coloring utilises the cache in an unintended manner. In general, it
 reduces the average performance of the entire system, while for some specific
@@ -264,11 +269,11 @@ cache indexing. This makes a cross platform implementation of cache coloring
 challenging, and any future development in cache architecture could break any
 such implementation \cite{WhatCacheColoring}.
 
-In recent years different architectures have added support for hardware
-cache partitioning. For example, Intel have added
-CAT \cite{IntroductionCacheAllocation}, ARM with the MPAM
-extension \cite{LearnarchitectureMemory} and similar work for RISC-V with the
-QoS register interfaces \cite{11IntroductionRISCV}. For a truly secure kernel,
+In recent years different architectures have added support for hardware cache
+partitioning. For example, Intel have added CAT
+\cite{IntroductionCacheAllocation}, ARM with the MPAM extension
+\cite{LearnarchitectureMemory} and similar work for RISC-V with the QoS
+register interfaces \cite{11IntroductionRISCV}. For a truly secure kernel,
 these items need to reach a maturity level, where domains can be guaranteed
 separate in the higher level caches that previously could not be partitioned.
 
@@ -288,5 +293,4 @@ Most likely there will never be a hardware solution which fits all. A general
 purpose operating system, where user-level constant-time programming can solve
 the most important issues, might not need specific domain separation and cache
 partitioning. On the other hand, in high security environments this is a must
-and something where depending on the use case the correct solution could
-vary.
+and something where depending on the use case the correct solution could vary.
