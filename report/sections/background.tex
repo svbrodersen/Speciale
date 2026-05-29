@@ -1,4 +1,4 @@
-\section{Background}
+\section{Background}\label{sec:Background}
 To address the challenges of time protection, it is essential to first
 establish a general understanding of how these vulnerabilities manifest and key
 terms used when explaining timing channels. This section provides the technical
@@ -6,20 +6,20 @@ foundation for the work that follows and aims to build a foundational
 understanding about what channels are and how isolation can be used as a means
 for protection.
 
-The remainder of this section is structured as follows. First,
-Section~\ref{sub:side-channel} explores side-channels, detailing how tasks can
-involuntarily leak information through execution time and speculative
-execution. Section~\ref{sub:covert-channel} investigates the extension of this,
-where two colluding processes intentionally attempt to bypass security
-boundaries. Section~\ref{sub:timing_channels} categorizes the specific timing
-channels an operating system faces, splitting them into scheduler-based,
-shared-state and interrupt-based vulnerabilities. Section~\ref{sub:isolation}
-shifts the focus toward mitigation, detailing the principles of spatial and
-temporal isolation, before Section~\ref{sub:temporal} reviews the
-hardware-assisted \texttt{fence.t} instruction designed to eliminate
-microarchitectural state leakage with temporal isolation. Finally,
-Section~\ref{sub:FreeRTOS} introduces the FreeRTOS ecosystem and the RISC-V
-platform used as the foundational environment for this thesis.
+First, Section~\ref{sub:side-channel} explores side-channels, detailing how
+tasks can involuntarily leak information through execution time and
+speculative execution. Section~\ref{sub:covert-channel} investigates the
+extension of this, where two colluding processes intentionally attempt to
+bypass security boundaries. Section~\ref{sub:timing_channels} categorizes the
+specific timing channels an operating system faces, splitting them into
+scheduler-based, shared-state and delay-based vulnerabilities.
+Section~\ref{sub:isolation} shifts the focus toward mitigation, detailing the
+principles of spatial and temporal isolation, before
+Section~\ref{sub:temporal} reviews the hardware-assisted \texttt{fence.t}
+instruction designed to eliminate microarchitectural state leakage with
+temporal isolation. Finally, Section~\ref{sub:FreeRTOS} introduces the
+FreeRTOS ecosystem and the RISC-V platform used as the foundational
+environment for this thesis.
 
 \subsection{Side-channels}\label{sub:side-channel}
 Side-channels are unintended information channels that leak information about
@@ -27,7 +27,7 @@ the process. These channels infer secret data often through observable
 execution time of a process. The general case of such a channel can be seen
 in the snippet below:
 
-\begin{algorithm}
+\begin{algorithm}[H]
   \floatname{algorithm}{Naive side-channel example}
   \begin{algorithmic}[1]
     \If{secret}
@@ -38,23 +38,21 @@ in the snippet below:
   \end{algorithmic}
 \end{algorithm}
 
-This algorithm is a naive example, which simply branches on some secret, and
-the execution time of the program reveals the secret. If for example this
-algorithm was part of some library, then an attacker could infer information
-about the secret by simply measuring the execution time of the call to the
-algorithm. This example is quite naive, and is one of the side-channels
-constant time programming at the user level can prevent, such that one might do
-an equally long computation in both branches of the if statement. However, this
-still comes with some precautions, because even though the original program
-might seem sensibly constant time, some compilers might try to optimise the
-code, which could introduce new side-channel attacks such as the one seen in
+In this example, the program branches on a secret value, and the differing
+execution times of the two paths leak information about the secret. If, for
+instance, this algorithm were part of a library, an attacker could infer the
+secret by measuring the execution time of the call. This type of side-channel
+can be prevented through constant-time programming at the user level, where
+both branches perform an equally long computation. However, this approach
+remains fragile: even when the source code appears constant-time, compilers may
+introduce optimisations that reintroduce timing side-channels, as shown in
 \cite{schneider2025}.
 
 Further, more complex examples of side-channels includes those specified within
 \cite{kocher2019}, where speculative execution can be used to leak information
 about an otherwise safe algorithm. An example from the paper is the following:
 
-\begin{algorithm}
+\begin{algorithm}[H]
   \floatname{algorithm}{Spectre side-channel example}
   \algrenewcommand\algorithmicrequire{\textbf{Input: some unsigned integer, x}}
   \begin{algorithmic}[1]
@@ -76,10 +74,12 @@ from \texttt{array2} into the cache, and the attacker could then use attacks
 such as Flush+Reload or Prime+Probe to reveal which part of array2 was loaded
 into the cache. With this, it can gather the index of the loaded item, and can
 figure out what was read from array1[x], which could be some arbitrary secret
-that was obtained by the out of bounds indexing that was made possible by the
-branch predictor. A more detailed explanation along with a proof-of-concept is
-provided in \cite{kocher2019}, but this small example shows how seemingly safe
-code, might still leak secret information.
+obtained through the speculative out-of-bounds access enabled by the branch
+predictor. Such secrets might be sensitive data residing in memory immediately
+after the \texttt{array1} buffer, for instance cryptographic keys or passwords.
+A more detailed explanation along with a proof-of-concept is provided in
+\cite{kocher2019}, but this small example shows how seemingly safe code, might
+still leak secret information.
 
 A multitude of such attacks, which make use of these side-channels are
 presented in \cite{osvik2006, liu2015}.
@@ -128,13 +128,14 @@ shared schedulers and how information leakage arise in the context of shared
 event schedulers and argue about the different trade-off between privacy and
 performance.
 
-A simple example of a timing channel could be one present in a priority-based
-scheduler. In such a scheduler the highest priority can inhibit execution of
-lower priority tasks. This could be used as a covert channel, where the higher
-priority task can signal either a 0 or 1 by simply going to sleep, thus
-allowing the lower priority task to run, or it could block execution of the
-lower priority task. The lower priority task can measure its last wake time,
-and infer if the higher priority task attempted to signal either a 0 or 1.
+A simple example of a scheduler-based channel could be one present in a
+priority-based scheduler. In such a scheduler the highest priority task can
+inhibit execution of lower priority tasks. This could be used as a covert
+channel, where the higher priority task can signal either a 0 or 1 by simply
+going to sleep, thus allowing the lower priority task to run, or it could block
+execution of the lower priority task. The lower priority task can measure its
+last wake time, and infer if the higher priority task attempted to signal
+either a 0 or 1.
 
 \paragraph{Shared state channels}
 Microarchitectural resources such as caches, TLBs, and branch predictors are
@@ -146,14 +147,15 @@ are the channels that often require explicit help from hardware mechanisms such
 as the temporal fence instruction \cite{wistoff2023, wistoff2025}, which are
 investigated further in Section~\ref{sub:temporal}.
 
-\paragraph{Interrupt-based channels}
-Many shared resources in an OS are protected by locks or critical sections. The
-interrupt mechanism itself, as well as the latency it introduces, can carry
-timing information. A task could trigger different interrupts, which would
-delay another task leading to another timing channel. A task could also simply
-hold a lock and in doing so prevent another task from gathering the same lock,
-which again would delay execution and transfer information between the two
-tasks.
+\paragraph{Delay-based channels}
+The interrupt mechanism itself, together with the latency it introduces, can
+carry timing information. A task could trigger different interrupts, each
+delaying another task's execution and thereby forming a timing channel. One
+might also state that external interrupts could be sensitive information, which
+again would be a source of timing channel depending on how the OS handles this.
+In a related manner, when a task holds a lock it prevents another task from
+acquiring the same resource, which again delays execution and leaks information
+between the two tasks.
 
 Mitigating these channels requires a combination of mechanisms to provide true
 time protection.

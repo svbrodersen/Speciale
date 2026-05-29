@@ -17,7 +17,7 @@ such as hiding kernel memory from user space tasks \cite{corbet2017} to prevent
 Meltdown attacks, and a move to more constant time programming in cryptographic
 libraries with help from domain specific languages(DSL) such as FaCT
 \cite{cauligi2019} that aims to guarantee constant-time execution with respect
-to secretly marked information. While these mitigations do prove valuable, more
+to secretly marked information. While these mitigations do prove valuable,
 modern CPUs' speculative execution still leaves doors open for more
 sophisticated attacks such as the ones seen in \cite{kocher2019}.
 
@@ -25,28 +25,30 @@ The attack front is clear, but the solution is not as simple. While some
 proposed solutions focus on the user side implementing secure programs, this
 creates a huge burden on the developer to implement secure code. Instead
 implementations of secure microkernels \cite{karlsson2025, ge2019} attempt to
-guarantee security through the OS. The operating system would be in charge of
-partitioning domains, such that no channel between domains is possible. This is
-already done for memory, and examples of formally proven memory-safe kernels
-are available \cite{murray2013}. Attempts to create similar proof against the
-presence of timing channels have been carried out \cite{buckley2023}, but as
-far as this paper is aware no kernel is formally verified against timing
-channels.
+guarantee security through the OS. The OS would be in charge of partitioning
+domains, such that no channel between domains is possible. This is already done
+for memory, and examples of formally proven memory-safe kernels are available
+\cite{murray2013}. Attempts to create similar proof against the presence of
+timing channels have been carried out \cite{buckley2023}, but as far as this
+paper is aware no kernel is formally verified against timing channels.
 
 Many of these attempts are focused on the creation of a highly secure OS from
-the ground up, providing timing protection as a foundation of the OS. While
-this is a more robust solution for a truly safe OS the authors of \cite{ge2019}
-hint that "there is no reason time protection cannot be implemented in other
-systems...", something which could bring timing protection to more mainstream
-applications. 
+the ground up, providing time protection as a foundation of the OS. While this
+is a more robust solution for a truly safe OS the authors of \cite{ge2019} hint
+that "there is no reason time protection cannot be implemented in other
+systems...", something which could bring time protection to more mainstream
+applications. However, adding time protection into an existing kernel is a
+fundamentally different task than designing it from scratch.
 
-FreeRTOS is an example of such a mainstream system, which provides a default
-priority-based preemptive scheduler, which is inherently vulnerable to timing
-channels. While ground-up microkernels have proven effective against timing
-channels, adding these time protection mechanisms into existing operating
-systems remains an open issue. To investigate this, the thesis addresses the
-following research question: \emph{Can time protection mechanisms be integrated
-into a mainstream OS to mitigate timing channels?}
+FreeRTOS serves as the target platform for investigating this challenge.
+FreeRTOS is a widely deployed real-time operating system, which relies on a
+priority-based preemptive scheduler that is inherently vulnerable to
+scheduling-based timing channels. While ground-up microkernels have
+demonstrated that time protection is achievable, whether comparable mechanisms
+can be integrated into an existing mainstream OS remains an open issue. The
+thesis therefore addresses the following research question: \emph{Can time
+protection mechanisms be integrated into a mainstream OS to mitigate timing
+channels?}
 
 To this end, this thesis investigates a defence mechanism composed of a
 domain-level scheduler with deterministic flushing on domain switching via the
@@ -67,15 +69,16 @@ To achieve this mechanism, this thesis adds the following contributions.
     scheduling.
 \end{itemize}
 
-The remainder of this thesis is organized as follows. Section~2 provides the
-technical background on timing channels, the \texttt{fence.t} instruction, and
-the FreeRTOS kernel. Section~3 surveys related work on user-level mitigations,
-the seL4 time-protection kernel, and the S3K real-time operating system.
-Section~4 analyses the FreeRTOS scheduler's vulnerability to timing channels
-and explores different methods for closing them, and introduces the
-domain-level scheduler. Section~5 details the implementation of this scheduler
-within the FreeRTOS-MPU RISC-V port. Section~6 presents the evaluation using
-QEMU system emulation with two workloads and shows a constant round trip using
-the cycle-count. Section~7 outlines directions for future work, and Section~8
-discusses the broader implications of partitioned hardware and time protection.
-Finally, Section~9 concludes the thesis.
+The remainder of this thesis is organized as follows. Section~\ref{sec:Background}
+provides the technical background on timing channels, the \texttt{fence.t}
+instruction, and the FreeRTOS kernel. Section~\ref{sec:Related Work} surveys
+related work on user-level mitigations, the seL4 time-protection kernel, and the
+S3K real-time operating system. Section~\ref{sec:Scheduling} analyses the
+FreeRTOS scheduler's vulnerability to timing channels and explores different
+methods for closing them, and introduces the domain-level scheduler.
+Section~\ref{sec:Implementation} details the implementation of this scheduler
+within the FreeRTOS-MPU RISC-V port. Section~\ref{sec:Evaluation} presents the
+evaluation using QEMU system emulation with two workloads and shows a constant
+round trip using the cycle-count. Section~\ref{sec:FutureWork} discusses
+directions for future work and the broader implications of partitioned hardware
+and time protection. Finally, Section~\ref{sec:Conclusion} concludes the thesis.

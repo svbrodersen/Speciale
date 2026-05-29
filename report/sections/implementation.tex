@@ -1,38 +1,26 @@
-\section{Implementation}
-Moving from theoretical analysis to a functional secure system requires changes
-within the existing FreeRTOS framework. This section provides an in-depth
-explanation of the specific architectural modifications required to provide the
-domain-level scheduler discussed in the previous section. It aims to cover the
-extensions of the FreeRTOS-MPU API, the introduction of new configuration
-flags, and the core logic behind the domain-level scheduler. The specifics
-about how constant-time domain creation was implemented, while keeping the
-functionality of the priority based scheduler within each domain, is also
-presented.
+\section{Implementation}\label{sec:Implementation}
+Building on the design decisions made in Section~\ref{sec:Scheduling}, this
+section presents the concrete implementation of the domain-level scheduler
+within the FreeRTOS kernel. The preceding analysis settled on a dynamic domain
+scheduler where domains may divide their allocated time slices to create new
+subdomains, with a priority-based scheduler operating within each domain. This
+section translates that design into practice by extending FreeRTOS's existing
+MPU infrastructure, by introducing the domain abstraction at the architectural
+level while preserving the standard priority-based scheduler within each
+domain.
 
-To guide the reader through these structural changes, it is necessary to first
-define a few foundational terms used throughout this section. A \textit{domain}
-refers to an isolated execution environment containing its own security
-boundaries and a dedicated priority-based scheduler. The global execution
-timeline is partitioned into discrete units of time called \textit{time
-slices}, which are dynamically assigned to domains. Within these domains,
-individual tasks are managed via extended versions of the standard FreeRTOS
-\textit{Task Control Block} (TCB).
-
-The remainder of this section details the concrete implementation modifications
-required to the domain-level scheduler. First, Section~\ref{sub:api} explains
-how the FreeRTOS-MPU API is extended to pass domain-specific parameters during
-task creation. Next, Section~\ref{sub:config-flags} introduces the new
-compile-time configuration flags necessary to control compile time options for
-the scheduler. The underlying mechanics of domain switching, machine timer
-interrupts, and microarchitectural flushes are then explored in
-Section~\ref{sub:domain-switch}. This is followed by an explanation of the
-array-based index arithmetic that enables constant-time domain creation in
-Section~\ref{sub:constant-domain-creation}. Finally,
-Section~\ref{sub:per-domain-sched} details the multi-dimensional array
-transformations required for the functionality of the  intra-domain priority
-scheduler, before Section~\ref{sub:cross-communication} discusses the
-adjustments made to allow for an intended communication channel between
-domains.
+The section proceeds as follows. Section~\ref{sub:api} explains how the
+FreeRTOS-MPU API is extended to pass domain-specific parameters during task
+creation. Section~\ref{sub:config-flags} introduces the compile-time
+configuration flags that control the scheduler's behaviour. The mechanics of
+domain switching, machine timer interrupts, and microarchitectural state
+flushes are explored in Section~\ref{sub:domain-switch}, followed by the
+array-based index arithmetic enabling constant-time domain creation in
+Section~\ref{sub:constant-domain-creation}. Section~\ref{sub:per-domain-sched}
+details the multi-dimensional array transformations required for per-domain
+priority scheduling, and finally Section~\ref{sub:cross-communication}
+discusses the adjustments needed to enable cross-domain communication through
+FreeRTOS queues.
 
 \subsection{Extending the api}\label{sub:api}
 To implement the domain-level scheduler I must first incorporate the idea into

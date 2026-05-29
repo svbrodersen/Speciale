@@ -61,10 +61,10 @@ The cloning process consists of three steps:
 \subsubsection{Cache coloring}
 To protect caches that are too large to be flushed, cache coloring is
 implemented. This ensures that separate security domains cannot access the same
-parts of cache, eliminating mutual influence. Cache coloring reduces the
-total amount of available cache space for each domain, meaning that the process
+parts of cache, eliminating mutual influence. Cache coloring reduces the total
+amount of available cache space for each domain, meaning that the process
 creating the security domains must account for this factor so that the
 distribution of cache space is sufficient for all domains. A more in depth
 explanation about cache coloring and other hardware specific items are
-referenced in Section~\ref{sub:hardware}
+referenced in Section~\ref{sub:remaining-channels}.
 
