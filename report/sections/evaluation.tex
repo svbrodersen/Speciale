@@ -8,17 +8,14 @@ a larger demo, which create 4 different domains, each with a single privileged
 task. This task then creates a new user level task with a higher priority than
 itself. The idea here is to show how the functionality of the within domain
 priority based scheduler still functions as expected, while the domain-level
-scheduler keeps a deterministic scheduling between the domains. These scenarios
-are evaluated using the QEMU system emulation with instruction based counting
-to provide for deterministic execution for the guest system, which in this case
-is the modified FreeRTOS kernel.
+scheduler keeps a deterministic scheduling between the domains. 
 
 These scenarios are evaluated using QEMU (Quick Emulator), an open-source
 machine emulator and virtualizer. QEMU allows for full system emulation of the
 target RISC-V architecture, enabling the modified FreeRTOS kernel to run
 without physical hardware. However, QEMU does not natively provide
-cycle-accurate emulation, instead it defaults to the host system clock virtual
-interrupts, meaning that execution time can be influence by the host system.
+cycle-accurate emulation, instead it defaults to use the host system clock,
+meaning that execution time can be influenced by the host system.
 
 To achieve a reliable baseline, the evaluation utilizes QEMU's \texttt{-icount}
 flag, which provides deterministic execution from the guest point of view.
@@ -26,7 +23,12 @@ Instead of making use of the host interrupt, QEMU instead makes use of
 instruction counting to determine elapsed time \cite{TCGInstructionCounting}.
 While this by no means is cycle-accurate and does not take into account any
 microarchitectural state (such as cache misses), it can be used to approximate
-the time each domain is allowed to run before a scheduling occurs.
+the time each domain is allowed to run before scheduling occurs.
+
+Following these example scenarios, an overall evaluation of the architectural
+complexity and cost introduced by the domain-level scheduler is discussed. This
+attempts to highlight some of the structural changes and the impact both on
+system throughput and complexity of the scheduler implementation as a whole.
 
 \subsection{The blinky example}
 \begin{figure}
@@ -51,7 +53,7 @@ domain. The scheduling timeline of this modified example is provided in
 Figure~\ref{fig:blinky_timeline}.
 
 That is, when the initial program is started and execution is within domain 0,
-then domain 0 has given up 2 time slices for the Sender (domain 2), and 2 time
+then domain 0 gives up 2 time slices for the Sender (domain 2), and 2 time
 slices for the Receiver domain (Domain 1). As it itself finishes execution, the
 rest of its time slices will simply be used by the idle task. Each task is
 capable of reading the current domain tick, and the demo simply prints this,
@@ -278,7 +280,7 @@ reaches the infinite loop, and prints that the domain tick incremented to two,
 before looping until its time slice is up. The same sequence follows for the
 other domains, before all the unprivileged tasks are the only ones producing
 output, where we can see the two time slices given to each of the domains and
-how the scheduler is upholding the number of time slices for each domain.
+how the scheduler is upholding this.
 
 \subsection{Architectural Complexity and Cost Analysis}
 While the evaluation demonstrates that the domain-level scheduler successfully

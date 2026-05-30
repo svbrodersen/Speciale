@@ -36,28 +36,28 @@ a hardware platform that supports the temporal fence instruction would be
 ideal. As an alternative, cycle-accurate simulators such as gem5
 \cite{lowe-powerGem5SimulatorVersion2020} could prove valuable for future
 evaluation. While other research has identified some challenges with gem5
-\cite{bossuet2023}, such a simulator could significantly reduce the barrier to
+\cite{bossuet2023}, such a simulator could significantly reduce the barrier of
 entry and lead to more rapid development in the pursuit of time protection.
 
 \subsection{Safeguarding system calls}\label{sub:safeguard-syscalls}
 With the current setup, when a new domain is created, it must be created with a
 task that is in privileged mode, if that domain should have more than a single
-task running. The reason for this is twofold. First, to create a task in
-FreeRTOS-MPU one must be in privileged mode. Secondly, to add a task to a
+task running. There are two primary reasons for this. First, to create a task
+in FreeRTOS-MPU one must be in privileged mode. Secondly, to add a task to a
 domain with the new API presented in Section~\ref{sub:api}, one must either be
 inside the domain itself or be creating a new domain\footnote{Given the task
   runs in privileged mode, it could technically overwrite the memory locations
 forcefully, and not make use of the api at all.}. The requirement of a single
 privileged task mainly comes from the FreeRTOS-MPU version, and to circumvent
-this issue would require significant changes from FreeRTOS itself. The larger
+this issue would require significant changes to FreeRTOS itself. The larger
 issue in regard to domain creation is that creating a new domain could delay
 scheduling. Specifically, many of the privileged functions enter a "critical"
 section within FreeRTOS. When entering such a critical section, on the RISC-V
 MPU version interrupts are disabled, including the machine timer interrupt,
-which drives the domain scheduling. This poses a significant burden on the
-privileged tasks within each domain, as they can inadvertently create timing
-side-channels. The issue is not only with the domain creation, but any call to
-functions that enter the critical sections. 
+which is the foundation of the domain scheduling. This poses a significant
+burden on the privileged tasks within each domain, as they can inadvertently
+create timing side-channels. The issue is not only with the domain creation,
+but any call to functions that enter the critical sections. 
 
 This issue poses a few challenges, and there are two primary solutions, which
 could be considered for future development. The first is taking inspiration
@@ -67,29 +67,31 @@ created within FreeRTOS does not do this, but many of the preexisting features
 of the within domain priority scheduler could be fully partitioned. For this to
 function, one would have to introduce two different kinds of critical sections.
 There is the cross-domain critical section, for which it would still be
-necessary to disable interrupts when it occurs, and there is the within domain
-critical section. When entering a within domain critical section, then the
-priority scheduling would be blocked such that the priority based scheduler is
-not left in an invalid state, but if there is a domain-level interrupt, then
-the context would be saved of the current execution and switch to another
-domain. When the old domain runs again, it would still be within the domain
-critical section at the same context point, allowing for a valid state of the
-within domain scheduler, while allowing the domain-level scheduler to schedule
-other domains without delays. This context saving and restoration would have to
-be taken into account for the worst case analysis of the domain switching, if
-it can not be guaranteed in constant time, but should propagate well to the
-majority of FreeRTOS' standard implementation. 
+necessary to disable interrupts, and there is the within domain critical
+section, which only runs the priority-based scheduler. When entering a within
+domain critical section, then the priority-based scheduling would block
+scheduling, such that the priority-based scheduler is not left in an invalid
+state. However, if there is a domain-level interrupt, then the context would be
+saved of the priority-based scheduler, and a switch to another domain would
+still happen. When the old domain runs again, it would still be within the
+domain critical section at the same context point, allowing for a valid state
+of the priority-based scheduler, while allowing the domain-level scheduler to
+schedule other domains without delays. This context saving and restoration
+would have to be taken into account for the worst case analysis of the domain
+switching, if it can not be guaranteed in constant time, but should propagate
+well to the majority of FreeRTOS' standard implementation.
 
 The next issue would be the cross-domain critical section. This part of the
-kernel is shared between all, and as such one cannot simply "ignore" the
-critical section as before. Instead one would have to guarantee that any call
-to cross domain critical functions would execute within the current domain. A
-solution to this problem would be to guarantee that any system call with such
-a cross-domain critical section runs within a single time slot, or allows for
-preemption within a time slice. Then, when entering the cross-domain critical
-section, the task would have to idle until it reaches the start of a time slice
-and then execute the system call. This would mean that execution is guaranteed
-to finish before the scheduler would attempt to schedule the next domain. 
+kernel is shared between all domains, and as such one cannot simply "ignore"
+the critical section as before. Instead one would have to guarantee that any
+call to cross domain critical functions would finish execution before the
+current domain is interrupted. A solution to this problem would be to guarantee
+that any system call with such a cross-domain critical section runs within a
+single time slot, or allows for preemption within a time slice. Then, when
+entering the cross-domain critical section, the task would have to idle until
+it reaches the start of a time slice and then execute the system call. This
+would mean that execution is guaranteed to finish before the scheduler would
+attempt to schedule the next domain. 
 
 For this to function correctly one would need proper hardware to find the
 running time of all such system calls, and make sure that the execution time is
@@ -98,7 +100,7 @@ requirement on the lowest possible value of the time slice duration. However,
 with these in mind truly isolated domains should be possible.
 
 Note however, that this side-channel would only be possible during the end of a
-domain's time slice, and would only be able to convey information between the
+domain's time slice, and would only be able to pass information between the
 current domain and the domain which comes immediately after. As an example, I
 believe this could be a possible timing channel within the S3K kernel. S3K
 makes use of a global TTAS lock. A lock is acquired through the following code
@@ -198,12 +200,12 @@ flag is true for the syscall, it checks that no preemption is pending while
 gathering the lock, but once it has the lock, it will delay scheduling if the
 scheduler runs while the syscall holds the lock. The syscalls in S3K attempt to
 rectify this by checking for preemption after a constant amount of work so as
-not to block the scheduler for too long, but if this constant time varies one
-these syscalls could be used in unintended ways and a domain could in theory
-cause predictable scheduling delay and relay information to the next domain.
-This analysis is purely theoretical and would require access to hardware to
-fully test, and as such should mainly be seen as one of the multitude of
-challenges a truly time protected kernel will face.
+not to block the scheduler for too long, but if this constant time varies
+between syscalls, it could be used in unintended ways and a domain could in
+theory cause predictable scheduling delays and relay information to the next
+domain. This analysis is purely theoretical and would require access to
+hardware to fully test, and as such should mainly be seen as one of the
+multitude of challenges a truly time protected kernel will face.
 
 \subsection{The FreeRTOS kernel is vast}\label{sub:FreeRTOS-vast}
 One requirement for time protection specified within \cite{ge2019} is that the
@@ -211,13 +213,13 @@ OS must be partitioned. This includes all system calls, which must be constant
 time in regard to available information within each domain. Given that the
 domain scheduler implemented creates a copy of the priority based scheduler for
 each domain, it can be assumed that a large portion of these system calls
-indirectly become constant time in this aspect. Further, as the User mode tasks
+indirectly become constant time in this aspect. Further, as the user mode tasks
 are unable to disable any interrupts this would indicate that the shared front
 that remains to be partitioned is anything regarding the domain-level scheduler
 itself. Given that these do make use of constant-time operations, and domain creation is
 restricted to Privileged mode, then it would seem that this requirement might
 be met to some extent. However, to truly show this partitioned OS one would
-need a full audit of all system calls available for User mode tasks, and make
+need a full audit of all system calls available for user mode tasks, and make
 sure that they are constant time with respect to the domain available
 information. As this is something beyond the scope of this thesis, the
 implementation can provide no guarantees that it is truly implementing time
@@ -229,14 +231,14 @@ from the only timing channel present in modern kernels. As such, the provided
 port of the FreeRTOS kernel is by no means time protected. One significant form
 of timing channel still available within the kernel is that of interrupts.
 During development it was assumed that the only interrupt is that of the
-preemption timer used for scheduling. In a real system this is not the case.
-Here, one would have to handle the external interrupts in a deterministic
-manner, without breaking the scheduling guarantees put forth during the time
-slot based scheduling. It might also be desired that some domains are not
-interrupted during execution, as this gives information about the availability
-of some external service that in itself might be deemed an information leak.
-It is up to future work to determine a method for handling these external
-interrupts in a manner where they uphold both of the aforementioned issues.
+machine timer used for scheduling. In a real system this is not the case. Here,
+one would have to handle the external interrupts in a deterministic manner,
+without breaking the scheduling guarantees of the domain-level scheduler. It
+might also be desired that some domains are not interrupted during execution,
+as this gives information about the availability of some external service that
+in itself might be deemed an information leak. It is up to future work to
+determine a method for handling these external interrupts in a manner where
+they uphold both of the aforementioned issues.
 
 Beyond the purely asynchronous software events a substantial amount of
 remaining timing channels originate from non-isolated, shared hardware
@@ -244,7 +246,7 @@ structures. While this thesis makes use of the \texttt{fence.t} instruction to
 clear the microarchitectural state on a domain switch, a lot of the hardware
 still remains shared. Larger caches such as the L2 and L3 cache are too large
 to simply flush \cite{wistoff2023}. This means higher level caches need another
-method for partitioning. In \cite{ge2019} they make use of cache coloring to
+method for isolation. In \cite{ge2019} they make use of cache coloring to
 partition the higher level caches. In essence cache coloring works by using
 some of the bits in the physical address to encode a color of the page. For
 example, if using 2 bits in the physical address, one can encode 4 colors, and
@@ -259,15 +261,14 @@ reduces the average performance of the entire system, while for some specific
 applications it can improve performance by reducing cache interference.
 However, in truly secure kernel software partitioning is still required and as
 such it is a cost that is inevitable. The larger issue with cache coloring is
-the uncertainty that it poses. Where the Instruction Set Architecture(ISA)
-usually standardizes the architectural interface for virtual memory and the MMU
-behaviour, the same cannot be said for the underlying foundation of cache
-coloring. For example, in RISC-V the ISA specifies the programmer-visible MMU
-model, while the underlying cache implementation remains undefined. This means
-that the cache coloring implementation is CPU-specific based on things like
-cache indexing. This makes a cross platform implementation of cache coloring
-challenging, and any future development in cache architecture could break any
-such implementation \cite{WhatCacheColoring}.
+the uncertainty that it poses. Where the ISA usually standardizes the
+architectural interface for virtual memory and the MMU behaviour, the same
+cannot be said for cache coloring. For example, in RISC-V the ISA specifies the
+programmer-visible MPU model, while the underlying cache implementation remains
+undefined. This means that the cache coloring implementation is CPU-specific
+based on things like cache indexing. This makes a cross platform implementation
+of cache coloring challenging, and any future development in cache architecture
+could break any such implementation \cite{WhatCacheColoring}.
 
 In recent years different architectures have added support for hardware cache
 partitioning. For example, Intel have added CAT
@@ -277,20 +278,22 @@ register interfaces \cite{11IntroductionRISCV}. For a truly secure kernel,
 these items need to reach a maturity level, where domains can be guaranteed
 separate in the higher level caches that previously could not be partitioned.
 
-Another approach for safe OS execution is what was seen in \cite{karlsson2025}.
-Here they make use of the Scratch Pad Memory (SPM) which is a section of memory
-that is never backed up to the higher level caches. The kernel itself was then
-developed, such that all memory accesses by the kernel only left a footprint in
-the SPM, which was then flushed on a domain switch. This approach seems
-promising for the kernel data itself, assuming that the SPM is guaranteed large
-enough to hold the kernel footprint. Even when cache partitioning fully
-matures, this might still be a part of the solution, as it most likely would
-have performance improvements over cache partitioning, and would reduce the
-interference the OS would have on the user level applications using the higher
-level caches.
+Another approach for safe OS execution is what was seen in S3K
+\cite{karlsson2025}. Here they make use of the Scratch Pad Memory (SPM) which
+is a section of memory that is never backed up to the higher level caches. The
+kernel itself was then developed, such that all memory accesses by the kernel
+only left a footprint in the SPM, which was then flushed on a domain switch.
+This approach seems promising for the kernel data itself, assuming that the SPM
+is guaranteed large enough to hold the kernel footprint. It might also offer
+performance improvements over cache partitioning, as it could reduce the
+interference the OS would have on user level applications. As such, it could be
+a part of the solution, but it would still need partitioning of higher level
+caches to ensure that user level application can remain partitioned.
 
 Most likely there will never be a hardware solution which fits all. A general
 purpose operating system, where user-level constant-time programming can solve
-the most important issues, might not need specific domain separation and cache
+a large amount of issues, might not need specific domain separation and cache
 partitioning. On the other hand, in high security environments this is a must
 and something where depending on the use case the correct solution could vary.
+It is up to future work to gather the understanding on where this boundary is,
+and what hardware changes are needed for time protection.
