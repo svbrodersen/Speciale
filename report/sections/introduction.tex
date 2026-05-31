@@ -1,20 +1,20 @@
 \section{Introduction}
-Information channels are methods of communication in an unintended manner. One
-such example is timing channels, which occur when a task's execution time
-varies based on the execution of another task in the system. Whether
-inadvertently or purposely, the other task is given unintended information
-about the current task by altering its execution time.  In this way, timing
-channels bypass the operating system's (OS's) security enforcement leaking
-information through timing of observable events. At first many attacks were
-targeting different cryptographic libraries and leaking information about
-secret keys through these timing channels \cite{dhem2000, aciicmez2005}.
-Further, attacks have shown that it is possible to gather information across
-VMs running in a cloud computing setting \cite{ristenpart2009}. Not only that,
-side-effects from out-of-order executions on modern processors gave way to the
-Meltdown attacks to read arbitrary kernel-memory locations including personal
-data and passwords \cite{lipp2018}. Different mitigations are moving forward,
-such as hiding kernel memory from user space tasks \cite{corbet2017} to prevent
-Meltdown attacks, and a move to more constant time programming in cryptographic
+Information channels are methods of communication, often in an unintended
+manner. One such example is timing channels, which occur when a task's
+execution time varies based on the execution of another task in the system.
+Whether inadvertently or purposely, the other task is given information about
+the current task by altering its execution time.  In this way, timing channels
+bypass the operating system's (OS's) security enforcement leaking information
+through timing of observable events. At first many attacks were targeting
+different cryptographic libraries and leaking information about secret keys
+through these timing channels \cite{dhem2000, aciicmez2005}. Further, attacks
+have shown that it is possible to gather information across VMs running in a
+cloud computing setting \cite{ristenpart2009}. Not only that, side-effects from
+out-of-order executions on modern processors gave way to the Meltdown attacks
+to read arbitrary kernel-memory locations including personal data and passwords
+\cite{lipp2018}. Different mitigations are moving forward, such as hiding
+kernel memory from user space tasks \cite{corbet2017} to prevent Meltdown
+attacks, and a move to more constant time programming in cryptographic
 libraries with help from domain specific languages(DSL) such as FaCT
 \cite{cauligi2019} that aims to guarantee constant-time execution with respect
 to secretly marked information. While these mitigations do prove valuable,
@@ -44,11 +44,10 @@ FreeRTOS serves as the target platform for investigating this challenge.
 FreeRTOS is a widely deployed real-time operating system, which relies on a
 priority-based preemptive scheduler that is inherently vulnerable to
 scheduling-based timing channels. While ground-up microkernels have
-demonstrated that time protection is achievable, whether comparable mechanisms
-can be integrated into an existing mainstream OS remains an open issue. The
-thesis therefore addresses the following research question: \emph{Can time
-protection mechanisms be integrated into a mainstream OS to mitigate timing
-channels?}
+demonstrated that time protection is achievable, it remains an open issue
+whether these mechanisms can be integrated into an existing OS. The thesis
+therefore addresses the following research question: \emph{Can time protection
+mechanisms be integrated into a mainstream OS to mitigate timing channels?}
 
 To this end, this thesis investigates a defence mechanism composed of a
 domain-level scheduler with deterministic flushing on domain switching via the
@@ -69,16 +68,18 @@ To achieve this mechanism, this thesis adds the following contributions.
     scheduling.
 \end{itemize}
 
-The remainder of this thesis is organized as follows. Section~\ref{sec:Background}
-provides the technical background on timing channels, the \texttt{fence.t}
-instruction, and the FreeRTOS kernel. Section~\ref{sec:Related Work} surveys
-related work on user-level mitigations, the seL4 time-protection kernel, and the
-S3K real-time operating system. Section~\ref{sec:Scheduling} analyses the
-FreeRTOS scheduler's vulnerability to timing channels and explores different
-methods for closing them, and introduces the domain-level scheduler.
+The remainder of this thesis is organized as follows.
+Section~\ref{sec:Background} provides the technical background on timing
+channels, the \texttt{fence.t} instruction, and the FreeRTOS kernel.
+Section~\ref{sec:related_work} surveys related work on user-level mitigations,
+the modified time protected seL4 kernel, and the S3K real-time operating
+system. Section~\ref{sec:Scheduling} analyses the FreeRTOS scheduler's
+vulnerability to timing channels and explores different methods for closing
+them, and introduces the domain-level scheduler.
 Section~\ref{sec:Implementation} details the implementation of this scheduler
 within the FreeRTOS-MPU RISC-V port. Section~\ref{sec:Evaluation} presents the
 evaluation using QEMU system emulation with two workloads and shows a constant
 round trip using the cycle-count. Section~\ref{sec:FutureWork} discusses
 directions for future work and the broader implications of partitioned hardware
-and time protection. Finally, Section~\ref{sec:Conclusion} concludes the thesis.
+and time protection. Finally, Section~\ref{sec:Conclusion} concludes the
+thesis.
