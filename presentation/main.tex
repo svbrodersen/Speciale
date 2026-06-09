@@ -2,8 +2,27 @@
 \documentclass[t,24pt,aspectratio=169]{beamer}
 
 \usepackage{KUstyle}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{shapes, positioning, decorations.pathreplacing}
 
-\toplinje{Text at top} % The text at top. Remove the command if no text is desired
+\lstset{
+    language=C,
+    basicstyle=\scriptsize\ttfamily,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=2,
+    columns=flexible,
+    keepspaces=true,
+    frame=single,
+    framesep=3pt,
+    rulecolor=\color{black!30},
+    backgroundcolor=\color{gray!5},
+    aboveskip=0.5em,
+    belowskip=0.5em,
+}
+
+\toplinje{Master's Thesis Defence} % The text at top. Remove the command if no text is desired
 
 \begin{document}
 
@@ -41,6 +60,5 @@
 \input{slides/implementation.tex}
 \input{slides/evaluation.tex}
 \input{slides/future_work.tex}
-\input{slides/conclusion.tex}
 
 \end{document}

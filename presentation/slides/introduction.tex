@@ -1,5 +1,38 @@
-% A standard slide. It's important that [hoved] is included after \begin{frame}
+% Slide 1: The Problem
 \begin{frame}[hoved]
-\frametitle{Introduction}
+\frametitle{Timing Channels: The Problem}
+
+\begin{itemize}
+  \item Timing channels leak information through observable execution time
+  \item Real-world attacks:
+    \begin{itemize}
+      \item Cryptographic key extraction (Meltdown, Spectre)
+      \item Cross-VM information leakage in cloud computing
+    \end{itemize}
+  \item The OS scheduler itself is a channel:
+    \begin{itemize}
+      \item Priority-based schedulers leak task runnability
+      \item Shared caches and branch predictors leak state
+    \end{itemize}
+  \item \textbf{Core challenge:} Closing these channels at the OS level
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[hoved]
+\frametitle{Research Question \& Contributions}
+
+\textbf{Research Question:}
+\begin{quote}
+Can time protection mechanisms be integrated into a mainstream OS to mitigate timing channels?
+\end{quote}
+
+\vspace{0.5cm}
+\textbf{Contributions:}
+\begin{enumerate}
+  \item A \textbf{domain-level scheduler} partitioning execution into fixed time slices
+  \item \textbf{Temporal isolation} via the \texttt{fence.t} instruction on domain switches
+  \item \textbf{Evaluation} on QEMU showing constant-time domain scheduling
+\end{enumerate}
 
 \end{frame}
