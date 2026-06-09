@@ -11,10 +11,15 @@ FreeRTOS uses a priority-based preemptive scheduler --- inherently unfair and vu
 \vspace{0.3cm}
 \textbf{The channel:} A high-priority task signals \texttt{0} or \texttt{1} by sleeping or running, and the low-priority task measures its own wake time.
 
+%TODO: Insert reference to the paper with scheduler based timing channels.
+
 \end{frame}
 
 \begin{frame}
 \frametitle{Design: Domain Scheduling}
+%TODO: This slide should be more introduction on what different techniques could be
+%TODO: Change first diagram into fixed time slices for each task in the previous example.
+%TODO: Explain what a Domain is
 
 \textbf{Chosen approach:} Domain-level scheduling
 
