@@ -51,7 +51,7 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 
 \end{frame}
 
-\begin{frame}[hoved]
+\begin{frame}[fragile]
 \frametitle{Implementation: Constant-Time Domain Creation}
 
 \begin{columns}
@@ -84,7 +84,6 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 \texttt{xQueueSend} moves tasks to the ready list, but by default adds them to the \textit{current} domain's ready list
 
 \vspace{0.2cm}
-\textbf{The fix:}
 \begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
 typedef struct tskTaskControlBlock {
     ...

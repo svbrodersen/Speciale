@@ -1,0 +1,20 @@
+\begin{frame}
+\frametitle{Why OS-Level Mitigation?}
+
+\begin{itemize}
+  \item \textbf{User-level mitigations} (e.g., FaCT DSL) guarantee constant-time code
+    \begin{itemize}
+      \item Cannot close channels involving OS state --- scheduler, interrupts, caches
+    \end{itemize}
+  \item \textbf{The OS scheduler as a channel:}
+    \begin{itemize}
+      \item Priority-based scheduling leaks task runnability
+      \item Shared microarchitectural state retains cross-task information
+    \end{itemize}
+  \item \textbf{Ground-up secure OSes} (seL4, S3K) exist, but:
+    \begin{itemize}
+      \item Designed from scratch --- not applicable to existing systems
+    \end{itemize}
+\end{itemize}
+
+\end{frame}

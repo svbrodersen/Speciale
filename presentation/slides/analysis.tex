@@ -1,4 +1,4 @@
-\begin{frame}[hoved]
+\begin{frame}
 \frametitle{Vulnerability: Priority-Based Scheduling}
 
 FreeRTOS uses a priority-based preemptive scheduler --- inherently unfair and vulnerable.
@@ -13,7 +13,7 @@ FreeRTOS uses a priority-based preemptive scheduler --- inherently unfair and vu
 
 \end{frame}
 
-\begin{frame}[hoved]
+\begin{frame}
 \frametitle{Design: Domain Scheduling}
 
 \textbf{Chosen approach:} Domain-level scheduling
@@ -37,7 +37,7 @@ FreeRTOS uses a priority-based preemptive scheduler --- inherently unfair and vu
 \begin{itemize}
   \item Domains receive fixed time slices
   \item Tasks within a domain use standard priority scheduling
-  \item Time protection is enforced only \textit{between} domains
+  \item Time protection is enforced only between domains
 \end{itemize}
 
 \end{frame}

@@ -1,4 +1,4 @@
-\begin{frame}[hoved]
+\begin{frame}
 \frametitle{Evaluation: Blinky Demo}
 
 Two tasks in separate domains communicating via a Queue:
@@ -17,7 +17,7 @@ Two tasks in separate domains communicating via a Queue:
 
 \end{frame}
 
-\begin{frame}[hoved]
+\begin{frame}
 \frametitle{Evaluation: Multi-Domain Demo}
 
 4 domains, each with a privileged task that creates a higher-priority unprivileged task:
@@ -30,7 +30,7 @@ Two tasks in separate domains communicating via a Queue:
 \vspace{0.2cm}
 \begin{itemize}
   \item Domain ticks are deterministic (1, 3, 5, 7, ...)
-  \item Priority scheduler still works \textit{within} each domain
+  \item Priority scheduler still works within each domain
   \item Trade-off: domain-relative delays, added complexity, reduced throughput
 \end{itemize}
 
