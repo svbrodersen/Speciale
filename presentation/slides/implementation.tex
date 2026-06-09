@@ -1,0 +1,105 @@
+\begin{frame}[fragile]
+\frametitle{Implementation: Extending the FreeRTOS API}
+
+\begin{itemize}
+  \item Extend \texttt{xTaskCreateRestricted} with domain parameters:
+\end{itemize}
+
+\vspace{0.2cm}
+\begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
+typedef struct xDOMAIN_PARAMETERS {
+  uint32_t ulSliceIndex;   // Start time slice
+  uint32_t ulSliceLength;  // Number of slices
+} DomainParameters_t;
+\end{lstlisting}
+
+\vspace{0.2cm}
+\begin{itemize}
+  \item \texttt{NULL} domain params = task stays in caller's domain
+  \item Three compile-time flags:
+    \begin{itemize}
+      \item \texttt{configENABLE\_DOMAINS}
+      \item \texttt{configNUM\_TIME\_SLICES}
+      \item \texttt{configNUM\_TICKS\_PER\_SLICE}
+    \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Implementation: Domain Switching}
+
+Hook into \texttt{xTaskIncrementTick} to check for domain switches:
+
+\vspace{0.2cm}
+\begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
+xDomainTick = (xEffectiveTick / NUM_TICKS_PER_SLICE) 
+                % NUM_TIME_SLICES;
+
+if (xDomainTick >= current + length || xDomainTick < current) {
+    temporal_fence_t();          // Flush microarchitectural state
+    pxCurrentDomainIndex += length;
+    // ... restore next domain's task
+}
+\end{lstlisting}
+
+\vspace{0.2cm}
+\begin{itemize}
+  \item Flush happens \textit{before} any new-domain data is accessed
+  \item Prevents cross-domain leakage through shared microarchitectural state
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[hoved]
+\frametitle{Implementation: Constant-Time Domain Creation}
+
+\begin{columns}
+\begin{column}{0.45\textwidth}
+\begin{center}
+\small Single domain\\[0.2cm]
+\resizebox{\textwidth}{!}{\input{figures/example_timeline_a.tex}}
+\end{center}
+\end{column}
+\begin{column}{0.45\textwidth}
+\begin{center}
+\small Fragmented domain\\[0.2cm]
+\resizebox{\textwidth}{!}{\input{figures/example_timeline_b.tex}}
+\end{center}
+\end{column}
+\end{columns}
+
+\vspace{0.3cm}
+\begin{itemize}
+  \item \texttt{xDomains} array indexed by time-slice start
+  \item \texttt{uxNext} linked list finds parent blocks in \textbf{constant time}
+  \item Index arithmetic splits left / right fragments without scanning
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Implementation: Cross-Domain Queues}
+
+\texttt{xQueueSend} moves tasks to the ready list, but by default adds them to the \textit{current} domain's ready list
+
+\vspace{0.2cm}
+\textbf{The fix:}
+\begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
+typedef struct tskTaskControlBlock {
+    ...
+    #if (configENABLE_DOMAINS == 1)
+        UBaseType_t uxDomainID;
+    #endif
+} tskTCB;
+\end{lstlisting}
+
+\vspace{0.2cm}
+\begin{itemize}
+  \item \texttt{xTaskRemoveFromEventList} now uses the task's \texttt{uxDomainID}
+  \item Adds the unblocked task to the \textit{correct} domain's ready list
+  \item Verified with cross-domain \texttt{mpu\_blinky} demo
+  \item \textbf{Caveat:} communicating domains can time each other
+\end{itemize}
+
+\end{frame}

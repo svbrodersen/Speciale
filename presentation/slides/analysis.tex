@@ -1,0 +1,43 @@
+\begin{frame}[hoved]
+\frametitle{Vulnerability: Priority-Based Scheduling}
+
+FreeRTOS uses a priority-based preemptive scheduler --- inherently unfair and vulnerable.
+
+\vspace{0.3cm}
+\begin{center}
+\resizebox{0.70\textwidth}{!}{\input{figures/priority_sched.tex}}
+\end{center}
+
+\vspace{0.3cm}
+\textbf{The channel:} A high-priority task signals \texttt{0} or \texttt{1} by sleeping or running, and the low-priority task measures its own wake time.
+
+\end{frame}
+
+\begin{frame}[hoved]
+\frametitle{Design: Domain Scheduling}
+
+\textbf{Chosen approach:} Domain-level scheduling
+
+\vspace{0.1cm}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\centering
+\scriptsize Static domains\\[0.05cm]
+\resizebox{0.8\textwidth}{!}{\input{figures/static_domain_sched.tex}}
+\end{column}
+\hfill
+\begin{column}{0.48\textwidth}
+\centering
+\scriptsize Dynamic domains\\[0.05cm]
+\resizebox{0.8\textwidth}{!}{\input{figures/dynamic_domain_sched.tex}}
+\end{column}
+\end{columns}
+
+\vspace{0.2cm}
+\begin{itemize}
+  \item Domains receive fixed time slices
+  \item Tasks within a domain use standard priority scheduling
+  \item Time protection is enforced only \textit{between} domains
+\end{itemize}
+
+\end{frame}

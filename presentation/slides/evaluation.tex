@@ -1,0 +1,37 @@
+\begin{frame}[hoved]
+\frametitle{Evaluation: Blinky Demo}
+
+Two tasks in separate domains communicating via a Queue:
+
+\vspace{0.2cm}
+\begin{center}
+\resizebox{0.70\textwidth}{!}{\input{figures/blinky_timeline.tex}}
+\end{center}
+
+\vspace{0.2cm}
+\begin{itemize}
+  \item Sender scheduled at domain tick 4, Receiver at domain tick 2
+  \item Round-trip time measured with \texttt{rdcycle}: \textbf{50,000 cycles} $\pm$ \textbf{1 cycle}
+  \item Demonstrates constant-time domain switching
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[hoved]
+\frametitle{Evaluation: Multi-Domain Demo}
+
+4 domains, each with a privileged task that creates a higher-priority unprivileged task:
+
+\vspace{0.2cm}
+\begin{center}
+\resizebox{0.9\textwidth}{!}{\input{figures/domain_full.tex}}
+\end{center}
+
+\vspace{0.2cm}
+\begin{itemize}
+  \item Domain ticks are deterministic (1, 3, 5, 7, ...)
+  \item Priority scheduler still works \textit{within} each domain
+  \item Trade-off: domain-relative delays, added complexity, reduced throughput
+\end{itemize}
+
+\end{frame}

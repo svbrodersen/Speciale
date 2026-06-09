@@ -1,0 +1,23 @@
+\begin{frame}[hoved]
+\frametitle{Conclusion}
+
+\small
+\textbf{What I showed:}
+\begin{itemize}
+  \item Time protection mechanisms \textit{can} be integrated into an existing mainstream OS
+  \item Domain-level scheduler achieves constant-time scheduling in QEMU
+  \item Trade-offs in complexity, performance, and usability are significant
+\end{itemize}
+
+\vspace{0.15cm}
+\textbf{Future directions:}
+\begin{itemize}
+  \item Evaluation on real hardware with \texttt{fence.t} support (or gem5)
+  \item Safeguarding system calls: critical sections delay scheduling
+  \item Remaining channels: interrupts, higher-level caches
+\end{itemize}
+
+\vspace{0.15cm}
+\textbf{Broader takeaway:} Selective temporal partitioning may be more practical than full domain isolation for general-purpose systems.
+
+\end{frame}

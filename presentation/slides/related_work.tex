@@ -1,0 +1,19 @@
+\begin{frame}[hoved]
+\frametitle{Related Work}
+
+\begin{itemize}
+  \item \textbf{FaCT (user-level):} DSL for constant-time crypto --- insufficient for OS-level channels
+  \item \textbf{seL4 Time Protection:} Ground-up secure microkernel
+    \begin{itemize}
+      \item OS cloning, cache coloring, deterministic flushing
+    \end{itemize}
+  \item \textbf{S3K:} Capability-based RTOS with deterministic scheduling
+    \begin{itemize}
+      \item Scratchpad memory, constant-time system calls
+    \end{itemize}
+\end{itemize}
+
+\vspace{0.5cm}
+\textbf{The Gap:} No prior work integrates these mechanisms into an \textit{existing} mainstream OS like FreeRTOS.
+
+\end{frame}
