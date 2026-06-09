@@ -2,6 +2,7 @@
 
 \RequirePackage[ddmmyyyy]{datetime}
 \RequirePackage{fontspec}
+\setmainfont{TeX Gyre Termes}
 \RequirePackage{etoolbox}
 \RequirePackage[absolute,overlay]{textpos}
 \RequirePackage{hyperref}
@@ -25,13 +26,14 @@
 
 \makeatletter
 \define@key{beamerframe}{hoved}[true] {
+    \setlength{\headheight}{14.5pt}
     \setbeamertemplate{headline}{
         \begin{textblock}{10}(0.6,0.3)
                 \vspace{-0.1cm}
                 \includegraphics[height=9pt]{KU/KU-logo.png}
         \end{textblock}
         \begin{textblock}{10}(1,0.3)
-                \fontsize{5}{5}\fontfamily{ptm}\selectfont \textls[200]{UNIVERSITY OF COPENHAGEN}
+                \fontsize{5}{5}\rmfamily \textls[200]{UNIVERSITY OF COPENHAGEN}
         \end{textblock}
         \ifdefined\@toplinje
         \begin{textblock}{10}(3.6,0.3)
