@@ -1,24 +1,32 @@
 \begin{frame}
 \frametitle{Conclusion}
-
-\small
 \textbf{What I showed:}
 \begin{itemize}
   \item Time protection mechanisms \textit{can} be integrated into an existing mainstream OS
   \item Domain-level scheduler achieves constant-time scheduling in QEMU
-  \item Trade-offs in complexity, performance, and usability are significant
+  \item Trade-offs 
+    \begin{itemize}
+      \item \textbf{Complexity:} %TODO:Fill out
+      \item \textbf{Performance:} %TODO: Fill out
+    \end{itemize}
 \end{itemize}
 
-\vspace{0.15cm}
-\textbf{Future work:}
+\textbf{Conclusion:} Full domain isolation is possible and functional in
+general operating systems.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Future work}
 \begin{itemize}
   \item Evaluation on real hardware with \texttt{fence.t} support (or gem5)
-  \item Safeguarding system calls: critical sections delay scheduling
+  \item Review system calls: critical sections delay scheduling, only user-level protection
+    %TODO: Mention two level locking system of domain and cross-domain
   \item Remaining channels: interrupts, higher-level caches
 \end{itemize}
 
 \vspace{0.15cm}
-\textbf{Takeaway:} Selective temporal partitioning may be more practical than
-full domain isolation for general-purpose systems.
+%TODO Rewrite this takeaway
+Selective temporal partitioning might be more feasible in general operating systems.
 
 \end{frame}

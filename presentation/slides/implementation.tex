@@ -16,12 +16,6 @@ typedef struct xDOMAIN_PARAMETERS {
 \vspace{0.2cm}
 \begin{itemize}
   \item \texttt{NULL} domain params = task stays in caller's domain
-  \item Three compile-time flags:
-    \begin{itemize}
-      \item \texttt{configENABLE\_DOMAINS}
-      \item \texttt{configNUM\_TIME\_SLICES}
-      \item \texttt{configNUM\_TICKS\_PER\_SLICE}
-    \end{itemize}
 \end{itemize}
 
 \end{frame}
@@ -45,7 +39,7 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 
 \vspace{0.2cm}
 \begin{itemize}
-  \item Flush happens \textit{before} any new-domain data is accessed
+  \item Flush happens \textit{before} any new-domain data is accessed (temporal\_fence\_t)
   \item Prevents cross-domain leakage through shared microarchitectural state
 \end{itemize}
 
@@ -80,6 +74,7 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 
 \begin{frame}[fragile]
 \frametitle{Implementation: Cross-Domain Queues}
+%TODO: Explain what Queues are. What the problem is, and how to issue was solved. Do it at a conceptually high level.
 
 \texttt{xQueueSend} moves tasks to the ready list, but by default adds them to the \textit{current} domain's ready list
 
