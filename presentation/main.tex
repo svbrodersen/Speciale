@@ -1,25 +1,46 @@
-\documentclass{beamer}
+%! TeX program = lualatex
+\documentclass[t,24pt,aspectratio=169]{beamer}
 
-\usetheme{Madrid}
-\usecolortheme{seahorse}
+\usepackage{KUstyle}
 
-\usepackage[utf8]{inputenc}
-\usepackage{listings}
-\usepackage{xcolor}
-
-\title{Eliminating Timing Channels in Microkernels}
-\author{}
-\institute{}
-\date{\today}
+\toplinje{Text at top} % The text at top. Remove the command if no text is desired
 
 \begin{document}
 
+% The first slide. One can for instance change the main title, the subtitle, speaker, KU-unit and date
+{
+\setbeamertemplate{background}{\includegraphics[width=\paperwidth,height=\paperheight]{KU/forside.pdf}}
 \begin{frame}
-	\titlepage
+    \begin{textblock*}{\textwidth}(0\textwidth,0.1\textheight)
+        \begin{beamercolorbox}[wd=7.8cm,ht=7.3cm,sep=0.5cm]{hvidbox}
+            \fontsize{5}{10}\fontfamily{ptm}\selectfont \textls[200]{UNIVERSITY OF COPENHAGEN}
+            \noindent\textcolor{KUrod}{\rule{6.8cm}{0.4pt}}
+        \end{beamercolorbox}
+    \end{textblock*}
+    \begin{textblock*}{\textwidth}(0\textwidth,0.1\textheight)
+        \begin{beamercolorbox}[wd=7.8cm,sep=0.5cm]{hvidbox}
+                \Huge \textcolor{KUrod}{Eliminating Timing Channels in Microkernels}
+                \vspace{0.5cm}
+                \par
+                \Large Integrating Time Protection Mechanisms into FreeRTOS
+                \vspace{0.5cm}
+                \par
+                \normalsize Simon V. Brodersen, \today
+        \end{beamercolorbox}
+    \end{textblock*}
+    \begin{textblock}{1}(6.3,11.38)
+        \includegraphics[width=1cm]{KU/KU-logo.png}
+    \end{textblock}
 \end{frame}
+}
 
-\begin{frame}{Table of content}
-	\tableofcontents
-\end{frame}
+\input{slides/introduction.tex}
+\input{slides/background.tex}
+\input{slides/related_work.tex}
+\input{slides/analysis.tex}
+\input{slides/implementation.tex}
+\input{slides/evaluation.tex}
+\input{slides/future_work.tex}
+\input{slides/conclusion.tex}
 
 \end{document}
