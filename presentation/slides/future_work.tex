@@ -21,7 +21,16 @@ general operating systems.
 \begin{itemize}
   \item Evaluation on real hardware with \texttt{fence.t} support (or gem5)
   \item Review system calls: critical sections delay scheduling, only user-level protection
-    %TODO: Mention two level locking system of domain and cross-domain
+  \item Introduce a two level locking system.
+    \begin{itemize}
+      \item FreeRTOS has a notion of "critical section". These sections grab a
+        global lock to ensure consistency of the priority-based scheduler. 
+      \item Currently the domain level scheduler uses the same lock.
+      \item \textbf{Idea:} Allow for a separate locking mechanism for
+        cross-domain consistency. This would allow scheduling a new domain
+        while holding the priority-based scheduler lock.
+    \end{itemize}
+  
   \item Remaining channels: interrupts, higher-level caches
 \end{itemize}
 
