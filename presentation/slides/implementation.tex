@@ -1,9 +1,7 @@
 \begin{frame}[fragile]
 \frametitle{Implementation: Extending the FreeRTOS API}
-
-\begin{itemize}
-  \item Extend \texttt{xTaskCreateRestricted} with domain parameters:
-\end{itemize}
+FreeRTOS MPU allows for the creation of restricted tasks through the
+\texttt{xTaskCreateRestricted}. To introduced the notion of domains, the API for creating tasks are extended with the following parameter.
 
 \vspace{0.2cm}
 \begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
@@ -13,17 +11,22 @@ typedef struct xDOMAIN_PARAMETERS {
 } DomainParameters_t;
 \end{lstlisting}
 
-\vspace{0.2cm}
 \begin{itemize}
-  \item \texttt{NULL} domain params = task stays in caller's domain
+  \item When creating a restricted task, one must pass the start of the group of time
+slices and their length
+\item If no \texttt{DomainParamters\_t} is passed, then it creates the tasks within the current domain
 \end{itemize}
 
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Implementation: Domain Switching}
+The general time unit within FreeRTOS is a \emph{Tick}. In the RISC-V version
+of FreeRTOS the Tick is incremented when there is a machine timer interrupt.
 
-Hook into \texttt{xTaskIncrementTick} to check for domain switches:
+\vspace{0.1cm}
+
+\textbf{Idea:} Hook into \texttt{xTaskIncrementTick} to check for domain switches:
 
 \vspace{0.2cm}
 \begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
@@ -31,6 +34,7 @@ xDomainTick = (xEffectiveTick / NUM_TICKS_PER_SLICE)
                 % NUM_TIME_SLICES;
 
 if (xDomainTick >= current + length || xDomainTick < current) {
+    ...
     temporal_fence_t();          // Flush microarchitectural state
     pxCurrentDomainIndex += length;
     // ... restore next domain's task
@@ -39,8 +43,8 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 
 \vspace{0.2cm}
 \begin{itemize}
-  \item Flush happens \textit{before} any new-domain data is accessed (temporal\_fence\_t)
-  \item Prevents cross-domain leakage through shared microarchitectural state
+  \item Keep track of our own xDomainTick, to check if we should schedule a new domain
+  \item Flush when a domain switch is needed
 \end{itemize}
 
 \end{frame}
@@ -74,26 +78,20 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 
 \begin{frame}[fragile]
 \frametitle{Implementation: Cross-Domain Queues}
-%TODO: Explain what Queues are. What the problem is, and how to issue was solved. Do it at a conceptually high level.
+In FreeRTOS \texttt{Queues} are used as the primary tool for communication
+between different tasks.
 
-\texttt{xQueueSend} moves tasks to the ready list, but by default adds them to the \textit{current} domain's ready list
+\vspace{0.1cm}
 
-\vspace{0.2cm}
-\begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
-typedef struct tskTaskControlBlock {
-    ...
-    #if (configENABLE_DOMAINS == 1)
-        UBaseType_t uxDomainID;
-    #endif
-} tskTCB;
-\end{lstlisting}
-
-\vspace{0.2cm}
 \begin{itemize}
-  \item \texttt{xTaskRemoveFromEventList} now uses the task's \texttt{uxDomainID}
-  \item Adds the unblocked task to the \textit{correct} domain's ready list
-  \item Verified with cross-domain \texttt{mpu\_blinky} demo
-  \item \textbf{Caveat:} communicating domains can time each other
+  \item There exists a ready queue, which tracks tasks that are ready to be executed
+  \item When a task requests a message on the \texttt{Queue}, it adds itself to
+    a list of \textbf{waiting} tasks
+  \item When the \texttt{xQueueSend} sends a message on the \texttt{Queue}, it moves all the waiting tasks to the ready queue. Tasks waiting on the \texttt{Queue}, might now come from different domains
+  \item \textbf{Solution:} Track which domain each task belongs to, to move them correctly.
 \end{itemize}
+
+This introduces clear timing channels between domains, but they are restricted
+to tasks on the \texttt{Queue}.
 
 \end{frame}

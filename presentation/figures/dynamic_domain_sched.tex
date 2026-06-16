@@ -9,7 +9,7 @@
     \def\ytimeline{\vtopprio - \barheight} % Vertical position of the minor frames timeline
 
     % Define standard tick positions
-    \def\timeslice{0.8}
+    \def\timeslice{1.2}
 
     % --- Bar Rows (drawn inside outlines) ---
     \path[draw, decorate, decoration=brace] (0, \vtopprio + 1.5) -- (\timeslice * 8, \vtopprio + 1.5) node[lbl, midway, above, yshift=0.3em]{Domain 0};
@@ -17,16 +17,16 @@
     % First domain
     \path[draw, decorate, decoration=brace] (0, \vtopprio + 1) -- (\timeslice * 4, \vtopprio + 1) node[lbl, midway, above, yshift=0.3em]{Domain 1};
     \draw (\timeslice*2, \vtopprio-\barheight/2) rectangle (\timeslice*4, \vtopprio+\barheight/2) 
-      node[lbl, midway]{RR};
+      node[lbl, midway]{PS};
 
     \path[draw, decorate, decoration=brace] (0, \vtopprio + 0.5) -- (\timeslice * 2, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 3};
     \draw (0, \vtopprio-\barheight/2) rectangle (\timeslice*2, \vtopprio+\barheight/2) 
-      node[lbl, midway]{RR};
+      node[lbl, midway]{PS};
 
     % Second domain
     \path[draw, decorate, decoration=brace] (\timeslice * 4, \vtopprio + 0.5) -- (\timeslice * 8, \vtopprio + 0.5) node[lbl, midway, above, yshift=0.3em]{Domain 2};
     \draw (\timeslice*4, \vtopprio-\barheight/2) rectangle (\timeslice*8, \vtopprio+\barheight/2) 
-      node[lbl, midway]{Round robin};
+      node[lbl, midway]{Priority Scheduler};
 
     % Main timeline axis
     \draw[thick] (0, \ytimeline) -- (8*\timeslice, \ytimeline);

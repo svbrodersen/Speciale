@@ -1,19 +1,36 @@
 \begin{frame}
-\frametitle{Related Work}
+\frametitle{The Missing OS Abstraction}
+The missing security components not addressed with user-level implementations gave way to more custom OS implementations.
+
+\vspace{0.2cm}
+\textbf{sel4 Time Protection}: Introduced the notion of time protection at the OS-level.
 
 \begin{itemize}
-  \item \textbf{FaCT (user-level):} DSL for constant-time crypto --- insufficient for OS-level channels
-  \item \textbf{seL4 Time Protection:} Ground-up secure microkernel
-    \begin{itemize}
-      \item OS cloning, cache coloring, deterministic flushing
-    \end{itemize}
-  \item \textbf{S3K:} Capability-based RTOS with deterministic scheduling
-    \begin{itemize}
-      \item Scratchpad memory, constant-time system calls
-    \end{itemize}
+  \item Build as a modification to the existing sel4 kernel
+  \item Copies the kernel code into each security domain
+  \item Flushes shared hardware, which can not be spatially partitioned
+  \item Cache-coloring to partition higher level caches
 \end{itemize}
 
-\vspace{0.5cm}
+\vspace{0.2cm}
+\tiny\fullcite{ge2019}
+\end{frame}
+\begin{frame}
+\frametitle{S3K capability-based RTOS}
+
+Another approach to Time Protection at the OS-level comes from S3K.
+S3K aimed to provide a more dynamic implementation.
+
+\begin{itemize}
+  \item A capability based model, which extends to time slices
+  \item A time-driven, capability-based scheduler with systematic use of \texttt{fence.t}
+  \item Predictable, constant-time system calls
+  \item Scratchpad memory for kernel code execution (backed by L1 cache, flushed on scheduling)
+\end{itemize}
+
 \textbf{The Gap:} No prior work integrates these mechanisms into an \textit{existing} mainstream OS like FreeRTOS.
+
+\vspace{0.2cm}
+\tiny\fullcite{karlsson2025}
 
 \end{frame}

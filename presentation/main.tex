@@ -4,7 +4,11 @@
 \usepackage{KUstyle}
 \usepackage{listings}
 \usepackage{tikz}
+\usepackage[backend=biber]{biblatex}
+\addbibresource{../report/refs.bib}
+
 \usetikzlibrary{shapes, positioning, decorations.pathreplacing}
+
 
 \lstset{
     language=C,
@@ -54,8 +58,8 @@
 }
 
 \input{slides/introduction.tex}
-\input{slides/motivation.tex}
 \input{slides/background.tex}
+\input{slides/motivation.tex}
 \input{slides/related_work.tex}
 \input{slides/analysis.tex}
 \input{slides/implementation.tex}

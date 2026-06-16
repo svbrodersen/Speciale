@@ -1,7 +1,7 @@
 \begin{frame}
 \frametitle{Vulnerability: Priority-Based Scheduling}
 
-FreeRTOS uses a priority-based preemptive scheduler --- inherently unfair and vulnerable.
+FreeRTOS uses a priority-based preemptive scheduler, which is inherently unfair and vulnerable.
 
 \vspace{0.3cm}
 \begin{center}
@@ -9,41 +9,50 @@ FreeRTOS uses a priority-based preemptive scheduler --- inherently unfair and vu
 \end{center}
 
 \vspace{0.3cm}
-\textbf{The channel:} A high-priority task signals \texttt{0} or \texttt{1} by sleeping or running, and the low-priority task measures its own wake time.
+\textbf{The channel:} A high-priority task signals \texttt{0} or \texttt{1} by
+sleeping or running, and the low-priority task measures its own wake time.
 
-%TODO: Insert reference to the paper with scheduler based timing channels.
+\vspace{0.2cm}
+\tiny\fullcite{chen2019}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Possible Solutions}
+To solve the priority based scheduling, a few different approach were considered.
+
+\begin{itemize}
+  \item \textbf{Fixed execution time:} Each priority could have a known fix execution time and scheduling.
+  \item \textbf{Introduction of Domains:}
+    \begin{itemize}
+      \item A domain is a group of tasks, which the scheduler treats as a
+        single environment
+      \item Only partition across domain boundaries, allows for intra-domain
+        channels
+      \item Requires the notion of time slices, which is a fixed execution time
+        serving as the smallest unit of "time" for the scheduler
+      \item Should domains be dynamic or static?
+    \end{itemize}
+\end{itemize}
 
 \end{frame}
 
 \begin{frame}
 \frametitle{Design: Domain Scheduling}
-%TODO: This slide should be more introduction on what different techniques could be
-%TODO: Change first diagram into fixed time slices for each task in the previous example
-%TODO: Explain the dynamic functionality and trade off between throughput and security
-%TODO: Explain what a Domain is
-
-\textbf{Chosen approach:} Domain-level scheduling
-
+\textbf{Chosen approach:} Domain scheduling
 \vspace{0.1cm}
-\begin{columns}[T,onlytextwidth]
-\begin{column}{0.48\textwidth}
+\begin{center}
 \centering
-\scriptsize Static domains\\[0.05cm]
-\resizebox{0.8\textwidth}{!}{\input{figures/static_domain_sched.tex}}
-\end{column}
-\hfill
-\begin{column}{0.48\textwidth}
-\centering
-\scriptsize Dynamic domains\\[0.05cm]
-\resizebox{0.8\textwidth}{!}{\input{figures/dynamic_domain_sched.tex}}
-\end{column}
-\end{columns}
+\resizebox{0.5\textwidth}{!}{\input{figures/dynamic_domain_sched.tex}}
+\end{center}
 
 \vspace{0.2cm}
 \begin{itemize}
-  \item Domains receive fixed time slices
+  \item Initially all time slices are given to Domain 0
+  \item Domain 0 gives up fixed time slices to other domains on creation
   \item Tasks within a domain use standard priority scheduling
-  \item Time protection is enforced only between domains
+  \item Allows for a trade-off between the throughput (priority) and
+    partitioning (domain)
 \end{itemize}
 
 \end{frame}

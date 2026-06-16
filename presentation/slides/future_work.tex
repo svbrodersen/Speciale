@@ -6,8 +6,8 @@
   \item Domain-level scheduler achieves constant-time scheduling in QEMU
   \item Trade-offs 
     \begin{itemize}
-      \item \textbf{Complexity:} %TODO:Fill out
-      \item \textbf{Performance:} %TODO: Fill out
+      \item \textbf{Complexity:} A significant amount of complexity has been added to the code. Future work onFreeRTOS would be more cumbersome with the extra code complexity.
+      \item \textbf{Performance:} Given the implementation makes use of idle time, the total performance is most likely reduced significantly. Further, more memory accesses is needed for the domain Scheduler to function, so while asymptotically the same, it is a larger overhead.
     \end{itemize}
 \end{itemize}
 
@@ -26,7 +26,7 @@ general operating systems.
 \end{itemize}
 
 \vspace{0.15cm}
-%TODO Rewrite this takeaway
+%TODO: Rewrite this takeaway
 Selective temporal partitioning might be more feasible in general operating systems.
 
 \end{frame}

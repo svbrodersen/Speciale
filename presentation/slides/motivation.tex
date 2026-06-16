@@ -1,20 +1,21 @@
 \begin{frame}
-\frametitle{Why OS-Level Mitigation?}
+\frametitle{User-level mitigations}
+By easing the restriction of time protection to allow for non-complete partitioning, we give way to some user-level implementations that help reduce timing channels.
 
+\vspace{0.2cm}
 \begin{itemize}
-  \item \textbf{User-level mitigations} (e.g., FaCT DSL) guarantee constant-time code
-    \begin{itemize}
-      \item Cannot close channels involving OS state --- scheduler, interrupts, caches
-    \end{itemize}
-  \item \textbf{The OS scheduler as a channel:}
-    \begin{itemize}
-      \item Priority-based scheduling leaks task runnability
-      \item Shared microarchitectural state retains cross-task information
-    \end{itemize}
-  \item \textbf{Ground-up secure OSes} (seL4, S3K) exist, but:
-    \begin{itemize}
-      \item Designed from scratch --- not applicable to existing systems
-    \end{itemize}
+  \item \textbf{An example:} FaCT is a domain specific language, which sought
+    to make it easier to write cryptographic code
+  \item The programmer marks secret information, and FaCT modifies the source code such that it become constant-time in respect to the secret information
+  \item Seemingly safe code at the C-level
+\end{itemize}
+\vspace{0.1cm}
+\textbf{Shortcomings:}
+\begin{itemize}
+  \item Variable execution time of operators, for example the numerator of division
+  \item Compiler introduced optimizations
+  \item Is scheduling sensitive information?
 \end{itemize}
 
 \end{frame}
+
