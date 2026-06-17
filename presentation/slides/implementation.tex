@@ -1,7 +1,7 @@
 \begin{frame}[fragile]
 \frametitle{Implementation: Extending the FreeRTOS API}
 FreeRTOS MPU allows for the creation of restricted tasks through the
-\texttt{xTaskCreateRestricted}. To introduced the notion of domains, the API for creating tasks are extended with the following parameter.
+\texttt{xTaskCreateRestricted}. To introduced the notion of domains, the API for creating tasks is extended with the following parameter.
 
 \vspace{0.2cm}
 \begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
@@ -15,6 +15,33 @@ typedef struct xDOMAIN_PARAMETERS {
   \item When creating a restricted task, one must pass the start of the group of time
 slices and their length
 \item If no \texttt{DomainParamters\_t} is passed, then it creates the tasks within the current domain
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Implementation: Constant-Time Domain Creation}
+
+\begin{columns}
+\begin{column}{0.45\textwidth}
+\begin{center}
+\small Single domain\\[0.2cm]
+\resizebox{\textwidth}{!}{\input{figures/example_timeline_a.tex}}
+\end{center}
+\end{column}
+\begin{column}{0.45\textwidth}
+\begin{center}
+\small Fragmented domain\\[0.2cm]
+\resizebox{\textwidth}{!}{\input{figures/example_timeline_b.tex}}
+\end{center}
+\end{column}
+\end{columns}
+
+\vspace{0.3cm}
+\begin{itemize}
+  \item \textt{xDomainInfo} array indexed by domain id, contains start index of domain in \texttt{xDomains}
+  \item \texttt{xDomains} array indexed by time-slice start
+  \item \texttt{uxNext} linked list finds next block of the current domain in \textbf{constant time}
 \end{itemize}
 
 \end{frame}
@@ -49,32 +76,6 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 
 \end{frame}
 
-\begin{frame}[fragile]
-\frametitle{Implementation: Constant-Time Domain Creation}
-
-\begin{columns}
-\begin{column}{0.45\textwidth}
-\begin{center}
-\small Single domain\\[0.2cm]
-\resizebox{\textwidth}{!}{\input{figures/example_timeline_a.tex}}
-\end{center}
-\end{column}
-\begin{column}{0.45\textwidth}
-\begin{center}
-\small Fragmented domain\\[0.2cm]
-\resizebox{\textwidth}{!}{\input{figures/example_timeline_b.tex}}
-\end{center}
-\end{column}
-\end{columns}
-
-\vspace{0.3cm}
-\begin{itemize}
-  \item \texttt{xDomains} array indexed by time-slice start
-  \item \texttt{uxNext} linked list finds parent blocks in \textbf{constant time}
-  \item Index arithmetic splits left / right fragments without scanning
-\end{itemize}
-
-\end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Implementation: Cross-Domain Queues}

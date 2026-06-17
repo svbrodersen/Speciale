@@ -19,10 +19,11 @@ sleeping or running, and the low-priority task measures its own wake time.
 
 \begin{frame}
 \frametitle{Possible Solutions}
-To solve the priority based scheduling, a few different approach were considered.
+Different approaches were considered to solve the timing vulnerabilities
+presented by priority based scheduling.
 
 \begin{itemize}
-  \item \textbf{Fixed execution time:} Each priority could have a known fix execution time and scheduling.
+  \item \textbf{Fixed execution time:} Each priority would have a known fixed execution time and scheduling. \textcolor{red}{Significant idle time}
   \item \textbf{Introduction of Domains:}
     \begin{itemize}
       \item A domain is a group of tasks, which the scheduler treats as a

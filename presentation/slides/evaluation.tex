@@ -1,4 +1,24 @@
-%TODO: Should be a slide about how QEMU is used and the shortcomings of this.
+\begin{frame}
+\frametitle{Evaluation: QEMU Platform \& Limitations}
+
+\textbf{Why QEMU?}
+\begin{itemize}
+  \item Full system emulation of the RISC-V QEMU VIRT platform
+  \item Allows approximating the time each domain runs before scheduling
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Shortcomings:}
+\begin{itemize}
+  \item No cycle-accurate emulation: microarchitectural state (caches, TLBs, predictors) \textit{not} modeled
+  \item Timing channels from shared microarchitectural state cannot be diagnosed
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Implication:} Only constant-time execution paths can be verified. Real hardware with \texttt{fence.t} support (or gem5) is needed to fully evaluate temporal isolation.
+
+\end{frame}
+
 \begin{frame}
 \frametitle{Evaluation: Blinky Demo}
 
