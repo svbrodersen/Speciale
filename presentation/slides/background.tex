@@ -24,13 +24,12 @@ Three categories of timing channels in operating systems:
 
 \begin{itemize}
   \item Hardware-assisted temporal isolation for RISC-V
-  \item Flushes on-core microarchitectural state on domain switches:
-    \begin{itemize}
-      \item L1 caches, TLBs, branch predictors
-      \item LFSR state, memory arbiters (full flush)
-    \end{itemize}
+  \item Flushes on-core microarchitectural state on domain switches
+  \item Deterministic execution time --- independent of hardware state
   \item Overhead in seL4: only \textbf{0.7\%}
   \item Software-supported variant (\texttt{fence.t.s}) for out-of-order cores: \textbf{1.0\%}
 \end{itemize}
+
+\tiny\fullcite{wistoff2023, wistoff2025}
 
 \end{frame}

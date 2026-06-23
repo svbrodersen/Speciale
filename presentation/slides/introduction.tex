@@ -8,10 +8,10 @@
       \item Cryptographic key extraction (Meltdown, Spectre)
       \item Cross-VM information leakage in cloud computing
     \end{itemize}
-  \item The OS scheduler itself is a channel:
+  \item Difficult to eliminate:
     \begin{itemize}
-      \item Priority-based schedulers leak task runnability
-      \item Shared caches and branch predictors leak state
+      \item Hard to diagnose
+      \item Inherent tension between performance (sharing) and security (isolation)
     \end{itemize}
   \item \textbf{Core challenge:} Closing timing channels at the OS level
 \end{itemize}
