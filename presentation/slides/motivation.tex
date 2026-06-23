@@ -1,12 +1,14 @@
 \begin{frame}
 \frametitle{User-level mitigations}
+%TODO: Cut down long sentences
 By easing the restriction of time protection to allow for non-complete partitioning, we give way to some user-level implementations that help reduce timing channels.
 
 \vspace{0.2cm}
 \begin{itemize}
+  \item Constant time application code
   \item \textbf{An example:} FaCT a domain specific language; Focus on cryptographic code
   \item Mark secret information --- FaCT creates constant time through information flow analysis
-  \item Seemingly safe code at the C-level
+  \item Safe code at the C level
 \end{itemize}
 \vspace{0.1cm}
 \textbf{Shortcomings:}

@@ -1,7 +1,10 @@
 \begin{frame}[fragile]
+%TODO: Cut down long sentences
 \frametitle{Implementation: Extending the FreeRTOS API}
 FreeRTOS MPU allows for the creation of restricted tasks through the
-\texttt{xTaskCreateRestricted}. To introduced the notion of domains, the API for creating tasks is extended with the following parameter.
+\texttt{xTaskCreateRestricted}. 
+
+To introduce the notion of domains, the API for creating tasks is extended with the following parameter.
 
 \vspace{0.2cm}
 \begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
@@ -48,12 +51,14 @@ slices and their length
 
 \begin{frame}[fragile]
 \frametitle{Implementation: Domain Switching}
+
+%TODO: Cut down long sentences
 The general time unit within FreeRTOS is a \emph{Tick}. In the RISC-V version
 of FreeRTOS the Tick is incremented when there is a machine timer interrupt.
 
 \vspace{0.1cm}
 
-\textbf{Idea:} Hook into \texttt{xTaskIncrementTick} to check for domain switches:
+\textbf{Idea:} Check for domain switch when increment the \emph{Tick}:
 
 \vspace{0.2cm}
 \begin{lstlisting}[language=C, basicstyle=\scriptsize\ttfamily]
@@ -78,18 +83,19 @@ if (xDomainTick >= current + length || xDomainTick < current) {
 
 
 \begin{frame}[fragile]
-\frametitle{Implementation: Cross-Domain Queues}
-In FreeRTOS \texttt{Queues} are used as the primary tool for communication
+\frametitle{Implementation: Managing Cross-Domain Queues}
+In FreeRTOS \texttt{Queues} are used for communication
 between different tasks.
 
 \vspace{0.1cm}
 
 \begin{itemize}
-  \item There exists a ready queue, which tracks tasks that are ready to be executed
-  \item When a task requests a message on the \texttt{Queue}, it adds itself to
-    a list of \textbf{waiting} tasks
-  \item When the \texttt{xQueueSend} sends a message on the \texttt{Queue}, it moves all the waiting tasks to the ready queue. Tasks waiting on the \texttt{Queue}, might now come from different domains
-  \item \textbf{Solution:} Track which domain each task belongs to, to move them correctly.
+  \item Each \texttt{Queue} object has a waiting queue attached
+  \item There exists a ready queue for each domain
+  \item When a task requests a message on the \texttt{Queue}, it is added to the \textbf{waiting} queue
+  \item When a message is sent on the \texttt{Queue}, move from \textbf{waiting} to \textbf{ready}
+  \item \emph{Issue:} Adding tasks to the correct ready queue
+  \item \textbf{Solution:} Track which domain each task belongs to, move them correctly.
 \end{itemize}
 
 This introduces clear timing channels between domains, but they are restricted

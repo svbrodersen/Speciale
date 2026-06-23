@@ -1,7 +1,7 @@
 \begin{frame}
 \frametitle{Vulnerability: Priority-Based Scheduling}
 
-FreeRTOS uses a priority-based preemptive scheduler, which is inherently unfair and vulnerable.
+FreeRTOS uses a priority-based preemptive scheduler, which is inherently unfair and vulnerable to timing attacks.
 
 \vspace{0.3cm}
 \begin{center}
@@ -19,6 +19,7 @@ sleeping or running, and the low-priority task measures its own wake time.
 
 \begin{frame}
 \frametitle{Possible Solutions}
+%TODO: Cut down long sentences
 Different approaches were considered to solve the timing vulnerabilities
 presented by priority based scheduling.
 
