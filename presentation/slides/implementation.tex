@@ -66,21 +66,35 @@ FreeRTOS's basic time unit is a \emph{Tick}, incremented on each machine timer i
 
 \begin{frame}[fragile]
 \frametitle{Implementation: Managing Cross-Domain Queues}
-In FreeRTOS \texttt{Queues} are used for communication
-between different tasks.
 
-\vspace{0.1cm}
+\textbf{Problem:} With multiple domains, which ready queue should a blocked task wake up on?
 
+\vspace{0.2cm}
+
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Normal Queue Operation}
 \begin{itemize}
-  \item Each \texttt{Queue} object has a waiting queue attached
-  \item There exists a ready queue for each domain
-  \item When a task requests a message on the \texttt{Queue}, it is added to the \textbf{waiting} queue
-  \item When a message is sent on the \texttt{Queue}, move from \textbf{waiting} to \textbf{ready}
-  \item \emph{Issue:} Adding tasks to the correct ready queue
-  \item \textbf{Solution:} Track which domain each task belongs to, move them correctly.
+  \item \texttt{Queue} has an attached \textbf{waiting} list
+  \item Tasks block on the waiting list when requesting messages
+  \item On message send, task moves from waiting $\to$ ready
 \end{itemize}
+\end{column}
 
-This introduces clear timing channels between domains, but they are restricted
-to tasks on the \texttt{Queue}.
+\begin{column}{0.48\textwidth}
+\textbf{Domain Complication}
+\begin{itemize}
+  \item Each domain has its own \textbf{ready} queue
+  \item A blocked task must be routed to the correct domain's ready queue
+\end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{0.2cm}
+
+\textbf{Solution:} Track each task's domain ID; on wake-up, enqueue it to the correct domain's ready queue.
+
+\vspace{0.15cm}
+{\small Itroduces timing channels for tasks with access to the \texttt{Queue} object.}
 
 \end{frame}
