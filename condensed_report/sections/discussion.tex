@@ -1,0 +1,68 @@
+\section{Discussion and Future Work}
+\label{sec:discussion}
+
+% Target: ~0.75 two-column page (~1.5 single-column equivalent)
+% Condense report sections/future_work.tex.
+
+\subsection{Hardware Verification}
+\label{sub:hw_verification}
+
+% [~0.3 column]
+%   - QEMU evaluation demonstrates constant-time execution paths but does
+%     not validate microarchitectural isolation. fence.t behaviour (cache
+%     line flush, TLB invalidation, branch-predictor reset) is not modelled.
+%   - Next step: port to a cycle-accurate simulator (gem5 with RISC-V
+%     support) or real silicon with fence.t. A gem5 evaluation would allow
+%     measuring actual microarchitectural state leakage and validating that
+%     fence.t closes all on-core channels.
+%   - Preliminary attempt at a QEMU TCG plugin for cycle-accurate modelling
+%     was unsuccessful due to the complexity of emulating cache and pipeline
+%     behaviour at the instruction level.
+
+\subsection{System-Call Audit}
+\label{sub:syscall_audit}
+
+% [~0.3 column]
+%   - Not all FreeRTOS system calls are guaranteed constant-time with
+%     respect to domain state. Calls that acquire the scheduler lock
+%     (`vTaskSuspendAll`) create critical sections that delay domain
+%     switches.
+%   - Proposed mitigation: a two-level locking system distinguishing
+%     cross-domain critical sections (block domain switches) from
+%     within-domain critical sections (only block intra-domain preemption).
+%   - Example: the S3K TTAS (test-and-test-and-set) lock design could
+%     serve as a model for constant-time cross-domain synchronisation.
+%   - A full audit of all FreeRTOS system calls remains future work.
+
+\subsection{Remaining Timing Channels}
+\label{sub:remaining_channels}
+
+% [~0.5 column]
+%   - External interrupts: not partitioned by domain. An interrupt handler
+%     executes in the currently active domain's context, creating a timing
+%     channel.
+%   - Higher-level caches (L2, L3): not flushed by fence.t. Cache colouring
+%     (as in seL4) or hardware cache partitioning (Intel CAT, ARM MPAM,
+%     RISC-V QoS) could address this, but are not implemented.
+%   - The S3K approach of placing the kernel in scratchpad memory eliminates
+%     kernel cache footprints entirely. This could be adapted to FreeRTOS
+%     on hardware with SPM support.
+%   - Memory bus contention (DRAM refresh, DMA): beyond the scope of
+%     OS-level mitigation.
+
+\subsection{Lighter-Weight Alternatives}
+\label{sub:alternatives}
+
+% [~0.3 column]
+%   - Full domain scheduling may be overkill for systems that only require
+%     isolation between specific ``secure'' and ``untrusted'' tasks.
+%   - Alternative: secure-task partitioning. Mark a subset of tasks as
+%     security-sensitive. On entry/exit of a secure task, execute fence.t
+%     to flush the residual state of the previous (potentially untrusted)
+%     task. No time-slice partitioning required.
+%   - Alternative: scratchpad-resident buffers. For tasks that compute on
+%     secret-indexed data, place buffers in scratchpad memory (as in S3K)
+%     to prevent cache footprints from being observable.
+%   - These approaches offer a spectrum of protection vs.\ overhead; the
+%     domain scheduler represents the strongest but most costly point on
+%     this spectrum.

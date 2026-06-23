@@ -1,0 +1,13 @@
+% TUptm.fd -- Font definition file for Times Roman in TU encoding
+% Maps ptm family requests to lmr (Latin Modern Roman), which is always
+% available under LuaLaTeX via fontspec/luaotfload.
+\ProvidesFile{TUptm.fd}[2024/01/01 TU Times Roman aliases]
+\DeclareFontFamily{TU}{ptm}{}
+\DeclareFontShape{TU}{ptm}{m}{n}{<-> ssub * lmr/m/n}{}
+\DeclareFontShape{TU}{ptm}{m}{it}{<-> ssub * lmr/m/it}{}
+\DeclareFontShape{TU}{ptm}{bx}{n}{<-> ssub * lmr/bx/n}{}
+\DeclareFontShape{TU}{ptm}{bx}{it}{<-> ssub * lmr/bx/it}{}
+\DeclareFontShape{TU}{ptm}{m}{sc}{<-> ssub * lmr/m/sc}{}
+\DeclareFontShape{TU}{ptm}{b}{n}{<-> ssub * lmr/bx/n}{}
+\DeclareFontShape{TU}{ptm}{b}{it}{<-> ssub * lmr/bx/it}{}
+\endinput

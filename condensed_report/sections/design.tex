@@ -1,0 +1,106 @@
+\section{Design}
+\label{sec:design}
+
+% Target: ~2 two-column pages (~4 single-column equivalent)
+% This is the core contribution section. Condense report sections/analysis.tex.
+% Present the vulnerability analysis, solution-space exploration, and the
+% chosen domain-scheduler design.
+
+\subsection{FreeRTOS Scheduler Vulnerability}
+\label{sub:vulnerability}
+
+% [~0.5 column -- motivate the need for redesign]
+%   - FreeRTOS uses fixed-priority preemptive scheduling with optional
+%     round-robin among equal-priority tasks.
+%   - The scheduler is inherently unfair by design: a higher-priority task
+%     that never yields starves all lower-priority tasks.
+%   - Timing-channel exploit: a high-priority Trojan encodes a secret bit
+%     by choosing to sleep (allowing lower-priority spy to run immediately)
+%     or spin (delaying spy). The spy measures its own wake-up latency via
+%     the system tick counter to infer the bit.
+%   - This is not a bug but a consequence of priority semantics. The channel
+%     exists across all priority levels unless time is decoupled from
+%     scheduling priority.
+
+\subsection{Approaches to Closing Scheduling-Based Channels}
+\label{sub:approaches}
+
+% [~1 column -- evaluate alternatives, justify choice]
+%   - Approach 1: Remove time access. If tasks cannot read the system clock
+%     or tick counter, timing channels through the scheduler vanish. Drawback:
+%     real-time systems \emph{require} time for correct operation (deadlines,
+%     periodic tasks). Infeasible for FreeRTOS.
+%   - Approach 2: Protection within priority. Partition a single priority
+%     level into fixed execution quanta, ensuring that two tasks at the same
+%     priority cannot observe each other's execution time. Drawback: does
+%     not address cross-priority channels; higher-priority tasks still leak.
+%   - Approach 3: Domain scheduling. Introduce an abstraction layer above
+%     priorities: groups of tasks (domains) that are collectively allocated
+%     fixed time slices in a round-robin fashion. Within each domain, the
+%     existing priority scheduler runs unchanged. Only domain-boundary
+%     switches are externally observable.
+%   - Chosen approach: domain scheduling (Approach 3). It provides the
+%     strongest isolation with minimal changes to the existing scheduler.
+
+\subsection{Domain-Level Scheduler Design}
+\label{sub:domain_design}
+
+% [~1.5 columns -- detailed design description]
+%   - Domain 0 is the initial domain owning all time slices. Each subsequent
+%     domain creation carves a contiguous range of slices from Domain 0.
+%   - Time slices are numbered 0 through configNUM\_TIME\_SLICES $-$ 1.
+%     configNUM\_TICKS\_PER\_SLICE determines granularity.
+%   - At boot, Domain 0 has all slices. When Domain 1 is created with
+%     (start\_slice = 4, num\_slices = 3), slices 4--6 are transferred.
+%     Domain 0 retains slices 0--3 and 7--(N$-$1).
+%   - The domain scheduler iterates through time slices in order. On reaching
+%     a slice owned by a different domain, it triggers a domain switch.
+%   - Domain switch procedure:
+%     \begin{enumerate}
+%       \item Save current domain's task context (existing FreeRTOS
+%         mechanism).
+%       \item Execute fence.t to flush microarchitectural state.
+%       \item Restore next domain's ready task.
+%     \end{enumerate}
+%   - Within a domain, the standard priority preemptive scheduler operates
+%     unchanged. Tasks are only preempted by higher-priority tasks \emph{in
+%     the same domain}.
+
+\subsection{Constant-Time Domain Creation}
+\label{sub:constant_time_creation}
+
+% [~0.75 column]
+%   - Naive approach: scan the time-slice array to find free slices.
+%     Information leak: the scan time reveals how many domains already exist
+%     (i.e., the amount of free space).
+%   - Design: an array `xDomains[configNUM\_TIME\_SLICES]` indexed by slice
+%     number, combined with a `uxNext` singly-linked list through Domain 0's
+%     unowned slices.
+%   - Domain 0 maintains a free-list head pointer. Creating a domain:
+%     \begin{enumerate}
+%       \item Walk `num\_slices` steps in the free list (constant work per
+%         slice irrespective of total system load).
+%       \item Assign the traversed slice entries to the new domain.
+%       \item Splice the remainder of the free list past the removed region.
+%     \end{enumerate}
+%   - Split operations on the left/right fragments are O(1) using the list
+%     structure. No dependence on the number of existing domains.
+
+% [Optional figure: Domain timeline diagram showing slice ownership]
+%   - Include a TikZ or imported figure from report/figures/ showing the
+%     time-slice array with colour-coded domain ownership.
+
+\subsection{Cross-Domain Communication}
+\label{sub:cross_domain_comm}
+
+% [~0.5 column]
+%   - FreeRTOS queues move tasks between ready lists when data is sent/
+%     received. This can move a task across domain boundaries, introducing
+%     a timing channel constrained to tasks sharing a queue.
+%   - Design decision: accept this residual channel. Each TCB tracks its
+%     `uxDomainID`. When a task is unblocked by a queue operation, it
+%     resumes in its home domain's next available time slice.
+%   - Alternative considered: prohibit cross-domain queues entirely. Rejected
+%     because inter-domain communication is essential for practical systems.
+%   - A synchronisation primitive (e.g., lock) shared across domains remains
+%     an acknowledged timing channel, discussed further in Section VII.

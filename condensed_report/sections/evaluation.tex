@@ -1,0 +1,92 @@
+\section{Evaluation}
+\label{sec:evaluation}
+
+% Target: ~2 two-column pages (~4 single-column equivalent)
+% Condense report sections/evaluation.tex. Present QEMU limitations upfront,
+% then two demo workloads with results, and architectural cost analysis.
+
+\subsection{Evaluation Platform and Limitations}
+\label{sub:platform}
+
+% [~0.5 column]
+%   - Platform: QEMU system emulation (v7.2.0), RISC-V ``virt'' machine.
+%     RISC-V RV32IMAC with Machine and User modes. FreeRTOS-MPU RISC-V port
+%     compiled with configENABLE\_DOMAINS = 1.
+%   - Cycle counting: RISC-V `rdcycle`/`rdcycleh` CSR instructions read the
+%     `mcycle` counter. QEMU increments this per \emph{instruction} rather
+%     than per clock cycle; it does not model pipeline stalls, cache misses,
+%     or branch mispredictions.
+%   - Implication: the evaluation verifies \emph{constant-time execution
+%     paths} (instruction-level determinism) but cannot validate
+%     microarchitectural temporal isolation. True hardware evaluation
+%     requires silicon with fence.t support or a cycle-accurate simulator
+%     (gem5). This is discussed in Section VII.
+%   - Metrics: instruction count variance across repeated domain-switch
+%     cycles; round-trip latency for cross-domain communication.
+
+\subsection{Blinky Demo: Two Domains}
+\label{sub:blinky}
+
+% [~0.75 column]
+%   - Setup: Domain 0 contains a sender task at slice 4; Domain 1 contains
+%     a receiver task at slice 2. Tasks communicate via a shared queue.
+%     Sender sends a counter value; receiver echoes it back. Round trip =
+%     sender $\to$ receiver $\to$ sender.
+%   - Configuration: 8 total time slices, 1 tick per slice.
+%   - Measurement: `rdcycle` captured at sender task entry and after queue
+%     receive. Repeated over 1000 iterations.
+%   - Results:
+%     \begin{itemize}
+%       \item Mean round-trip instruction count: 50,000 cycles.
+%       \item Variance: $\pm 1$ cycle across all 1000 iterations.
+%       \item The $\pm 1$ cycle is attributable to a single conditional
+%         branch in the queue-receive path (empty vs.\ non-empty queue).
+%     \end{itemize}
+%   - Interpretation: the domain scheduler produces deterministic,
+%     instruction-count-constant execution across domains. No information
+%     about other domains is leaked through instruction count.
+%   - [Optional figure: bar chart of round-trip cycle counts with error bars
+%     showing $\pm 1$.]
+
+\subsection{Multi-Domain Demo: Four Domains}
+\label{sub:multi_domain}
+
+% [~0.75 column]
+%   - Setup: 4 domains (Domain 0--3), each allocated 2 time slices. Within
+%     each domain, a privileged task creates a higher-priority unprivileged
+%     task. The unprivileged task preempts within its domain's slice.
+%   - Expected behaviour:
+%     \begin{itemize}
+%       \item Domain ticks advance 0, 1, 2, 3, 4, 5, 6, 7 cyclically.
+%       \item Each domain gets exactly its allocated slices per round.
+%       \item Intra-domain: the higher-priority unprivileged task correctly
+%         preempts the privileged task within the domain's slice.
+%       \item Domain boundaries are respected: no domain's execution bleeds
+%         into another's slices.
+%     \end{itemize}
+%   - Results: the observed domain-tick sequence matches the expected
+%     deterministic schedule. Cycle counts per domain per round are
+%     constant.
+%   - Trade-off: tasks that previously ran with low scheduling latency now
+%     experience domain-relative delays. A task delayed at slice $N$ must
+%     wait until its domain's next slice before resuming. This is the cost
+%     of temporal isolation.
+
+\subsection{Architectural Complexity and Throughput Cost}
+\label{sub:cost}
+
+% [~0.5 column]
+%   - Code complexity: the domain scheduler adds approximately 500 lines of
+%     C across the FreeRTOS kernel. The main changes are concentrated in
+%     tasks.c (scheduler) and port.c (tick handling).
+%   - Throughput impact: domain scheduling introduces mandatory idle time.
+%     When a domain has no ready tasks, its time slices are wasted. In the
+%     worst case (one active domain, $N$ domains total), throughput is
+%     reduced to $1/N$ of unmodified FreeRTOS.
+%   - `vTaskDelayUntil()` semantics change: a task that calls
+%     `vTaskDelayUntil()` may oversleep if the target wake time falls in
+%     another domain's slice. This breaks the real-time guarantee of the
+%     existing API.
+%   - Memory overhead: state arrays scale linearly with
+%     `configNUM\_TIME\_SLICES` $\times$ `configMAX\_PRIORITIES`. Configurable
+%     at compile time.

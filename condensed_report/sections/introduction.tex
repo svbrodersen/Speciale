@@ -1,0 +1,58 @@
+\section{Introduction}\label{sec:introduction}
+
+% Target: ~1.5 two-column pages (~3 single-column equivalent)
+
+% [Paragraph 1: Problem statement and motivation.]
+%   - Define information channels; introduce timing channels as a covert
+%     communication mechanism that bypasses OS security enforcement.
+%   - Cite real-world attacks: Dhem et al. (2000), Aciicmez (2005) for crypto
+%     side-channels; Ristenpart et al. (2009) for cross-VM leaks in cloud
+%     environments; Lipp et al. (2018) for Meltdown; Kocher et al. (2019) for
+%     Spectre and speculative-execution attacks.
+%   - Emphasise that the OS scheduler itself can act as a timing channel by
+%     making task execution time observable across security domains.
+
+% [Paragraph 2: Existing mitigations and their limitations.]
+%   - User-level approaches: constant-time cryptography (FaCT, Cauligi et al.
+%     2019), kernel page-table isolation (Corbet 2017). Burden on developer;
+%     cannot address scheduling-level or microarchitectural leaks.
+%   - Clean-slate secure microkernels: seL4 time protection (Ge et al. 2019),
+%     S3K (Karlsson et al. 2025). Built from ground up with formal guarantees;
+%     not deployable on existing mainstream OS without a complete rewrite.
+%   - Formal verification gap: seL4 memory isolation is formally verified
+%     (Murray et al. 2013), but no kernel is formally verified against timing
+%     channels (Buckley et al. 2023).
+
+% [Paragraph 3: Research gap and research question.]
+%   - Ge et al. hint that time protection could be implemented in other systems,
+%     but retrofitting into an existing kernel is fundamentally different from
+%     designing from scratch.
+%   - FreeRTOS as target: widely deployed, priority-based preemptive scheduler
+%     inherently vulnerable to scheduling-based timing channels.
+%   - Research question: \emph{Can time protection mechanisms be integrated into
+%     a mainstream OS to mitigate timing channels?}
+
+% [Paragraph 4: Approach and contributions.]
+%   - Defence mechanism: domain-level scheduler that partitions execution into
+%     fixed time slices, combined with deterministic microarchitectural state
+%     flushing via the RISC-V temporal fence (fence.t) instruction.
+%   - Three contributions:
+%     \begin{itemize}
+%       \item A domain-level scheduler built on FreeRTOS-MPU that decouples
+%         task schedulability across security domains.
+%       \item Temporal isolation through fence.t flushing on every domain
+%         switch, preventing shared microarchitectural state leakage.
+%       \item An evaluation on QEMU system emulation with instruction-based
+%         cycle counting, demonstrating constant-time domain scheduling with
+%         negligible variance.
+%     \end{itemize}
+
+% [Paragraph 5: Paper outline.]
+%   - Section II: Background on timing channels, isolation, fence.t, and
+%     FreeRTOS.
+%   - Section III: Related work (user-level mitigations, seL4, S3K).
+%   - Section IV: Design and analysis of the domain-level scheduler.
+%   - Section V: Implementation details.
+%   - Section VI: Evaluation results.
+%   - Section VII: Discussion and future work.
+%   - Section VIII: Conclusion.

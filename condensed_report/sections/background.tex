@@ -1,0 +1,73 @@
+\section{Background}
+\label{sec:background}
+
+% Target: ~1 two-column page (~2 single-column equivalent)
+% Condense report sections/background.tex significantly. Focus on what is
+% essential for understanding the design and evaluation.
+
+\subsection{Side-Channels and Covert Channels}
+\label{sub:channels}
+
+% [~0.5 column -- brief definitions]
+%   - Side-channel: Unintended information leakage through observable
+%     execution characteristics (timing, power, EM emanations).
+%   - Covert channel: Intentional communication between colluding processes
+%     (sender/Trojan and receiver/spy) that bypasses OS security boundaries.
+%   - Distinction matters for threat modelling: side-channels are passive
+%     observation; covert channels require active collusion.
+%   - Running example: a naive Trojan that branches on a secret bit causes
+%     observable timing difference in cache state; a Spectre-style gadget
+%     uses speculative execution to encode secrets into the cache.
+
+\subsection{OS-Level Timing Channels}
+\label{sub:timing_channels}
+
+% [~0.5 column -- three categories, one paragraph each]
+%   1. Scheduler-based: Priority/preemptive scheduler makes task progress
+%      observable. A high-priority task can encode information by choosing
+%      to yield or spin; a low-priority spy measures its own wake latency.
+%      This is the primary target of this work.
+%   2. Shared-state (microarchitectural): Caches, TLBs, branch predictors,
+%      and prefetchers retain state across context switches. A spy can probe
+%      these structures after a victim runs.
+%   3. Delay-based: A Trojan consumes a shared resource (e.g., memory bus,
+%      disk I/O), and a spy measures increased latency.
+
+\subsection{Spatial and Temporal Isolation}
+\label{sub:isolation}
+
+% [~0.5 column]
+%   - Spatial isolation: Hardware enforcement of memory partitioning via
+%     MMU/MPU. Well understood; FreeRTOS-MPU already provides per-task
+%     memory protection.
+%   - Temporal isolation: Resetting shared state to a known default between
+%     security domains. This is the missing primitive that this work adds
+%     to FreeRTOS.
+%   - The two work together: spatial isolation prevents direct reads;
+%     temporal isolation prevents indirect inference through timing.
+
+\subsection{The \texttt{fence.t} Instruction}
+\label{sub:fence_t}
+
+% [~0.5 column]
+%   - RISC-V extension: hardware instruction that drains on-core
+%     microarchitectural state (L1 caches, TLBs, branch predictors, store
+%     buffers) on in-order cores.
+%   - fence.t.s variant for out-of-order CPUs with software support.
+%   - Measured overhead in seL4: ~0.7\% on domain switches. Critical for
+%     making temporal isolation practical.
+%   - This work uses the QEMU emulation of fence.t (no real silicon
+%     available at time of writing).
+
+\subsection{FreeRTOS and FreeRTOS-MPU}
+\label{sub:freertos}
+
+% [~0.25 column]
+%   - Widely deployed real-time OS for embedded systems. Default scheduler
+%     is fixed-priority preemptive with round-robin among equal priorities.
+%   - FreeRTOS-MPU variant provides per-task memory protection on
+%     microcontrollers with a Memory Protection Unit. RISC-V MPU port used
+%     as implementation platform.
+%   - Existing MPU infrastructure (privileged/unprivileged tasks,
+%     restricted task creation API) provides a natural foundation for
+%     adding domain-level isolation.

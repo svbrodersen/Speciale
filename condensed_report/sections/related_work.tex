@@ -1,0 +1,66 @@
+\section{Related Work}
+\label{sec:related_work}
+
+% Target: ~0.75 two-column page (~1.5 single-column equivalent)
+% Condense report sections/related_work/*.tex and presentation slides.
+% One subsection per approach, concluding with the research gap.
+
+\subsection{User-Level Mitigations}
+\label{sub:user_level}
+
+% [~0.25 column]
+%   - FaCT (Cauligi et al. 2019): DSL that guarantees constant-time
+%     execution w.r.t. secret-labeled data. Compiler enforces data-flow
+%     restrictions.
+%   - Limitations: cannot control hardware variability (execution-unit
+%     contention, cache interference), compiler optimisations can
+%     inadvertently introduce branches, and the OS scheduler itself
+%     remains an uncontrolled channel.
+%   - Conclusion: user-level is necessary but insufficient for full time
+%     protection.
+
+\subsection{seL4 Time Protection}
+\label{sub:sel4}
+
+% [~0.5 column]
+%   - Ge et al. (2019): extended seL4 with time protection by (i) cloning
+%     kernel code into each domain, (ii) flushing shared on-core state that
+%     cannot be spatially partitioned, and (iii) using cache colouring for
+%     higher-level caches too large to flush.
+%   - Five requirements: flush on-core state, partition the OS, enforce
+%     deterministic data sharing, flush deterministically, partition
+%     interrupts.
+%   - Threat model: Trojan in a separate domain from spy; covert and side
+%     channels via shared microarchitectural state.
+%   - Key difference from this work: seL4 is designed from scratch with
+%     capabilities and formal verification; this work retrofits into an
+%     existing mainstream kernel.
+
+\subsection{S3K}
+\label{sub:s3k}
+
+% [~0.5 column]
+%   - Karlsson et al. (2025): capability-based multicore partitioning
+%     kernel for RISC-V with time protection as a first-class primitive.
+%   - Time-driven scheduler: major/minor frame scheme with time-slice
+%     capabilities that can be subdivided and delegated.
+%   - Entire kernel resides in scratchpad memory (SPM) backed by L1 cache
+%     to avoid leaving cache footprints. fence.t used on every context
+%     switch. Constant-time system calls by design.
+%   - Evaluation demonstrates no measurable information flow between Trojan
+%     and spy when SPM is used.
+%   - Key difference from this work: S3K is a new kernel, not a retrofit
+%     into an existing OS. FreeRTOS is orders of magnitude more widely
+%     deployed.
+
+\subsection{Research Gap}
+\label{sub:research_gap}
+
+% [~0.15 column -- transition paragraph]
+%   - Both seL4 and S3K demonstrate that time protection is architecturally
+%     feasible when designed from the ground up. Neither addresses the
+%     fundamentally different challenge of integrating these mechanisms
+%     into an existing, widely deployed OS.
+%   - This paper fills that gap by showing how domain scheduling and
+%     temporal flushing can be added to FreeRTOS without a complete
+%     redesign.

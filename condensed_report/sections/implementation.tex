@@ -1,0 +1,93 @@
+\section{Implementation}
+\label{sec:implementation}
+
+% Target: ~2 two-column pages (~4 single-column equivalent)
+% Condense report sections/implementation.tex. Focus on concrete mechanisms,
+% data structures, and the domain-switch path. Use code snippets sparingly
+% (IEEE page budget is tight).
+
+\subsection{API Extensions}
+\label{sub:api}
+
+% [~0.3 column]
+%   - FreeRTOS-MPU creates tasks via `xTaskCreateRestricted()`. This
+%     function receives a `TaskParameters_t` struct containing stack,
+%     priority, and MPU region descriptors.
+%   - Extension: add `DomainParameters_t` with fields `uxStartSlice` and
+%     `uxNumSlices`. If `uxNumSlices == 0`, the task is created in the
+%     caller's domain (no domain carving).
+%   - If a new domain is created, the slices are carved from Domain 0.
+%     Domain 0 is the implicit initial domain.
+%   - Short code snippet showing the extended struct definition (4--5 lines).
+
+\subsection{Configuration Flags}
+\label{sub:config}
+
+% [~0.2 column]
+%   - Three compile-time flags in `FreeRTOSConfig.h`:
+%     \begin{itemize}
+%       \item \texttt{configENABLE\_DOMAINS}: global enable/disable (0 or 1).
+%       \item \texttt{configNUM\_TIME\_SLICES}: total number of slices in the
+%         scheduling timeline.
+%       \item \texttt{configNUM\_TICKS\_PER\_SLICE}: OS ticks per slice.
+%     \end{itemize}
+%   - When domains are disabled, the kernel compiles to standard FreeRTOS
+%     with zero overhead.
+
+\subsection{Domain Switching}
+\label{sub:domain_switching}
+
+% [~1 column]
+%   - Hook into `xTaskIncrementTick()` (called from machine timer interrupt).
+%     Each tick increments the effective tick counter. Domain tick =
+%       effective\_tick / configNUM\_TICKS\_PER\_SLICE (integer division,
+%       wrapping at configNUM\_TIME\_SLICES).
+%   - Maintain a `uxCurrentDomainIndex` tracking the active domain for the
+%     current slice. On a domain-tick change, look up `xDomains[domain\_tick]`
+%     to determine the target domain.
+%   - If `target\_domain != current\_domain`:
+%     \begin{enumerate}
+%       \item Invoke `temporal\_fence\_t()` to flush on-core
+%         microarchitectural state.
+%       \item Save the current task's context (using FreeRTOS's existing
+%         `portSAVE\_CONTEXT`).
+%       \item Select the highest-priority ready task from the target domain's
+%         ready list.
+%       \item Restore that task's context.
+%     \end{enumerate}
+%   - `temporal\_fence\_t()` is implemented as inline assembly:
+%     \begin{verbatim}
+%       asm volatile("fence.t" ::: "memory");
+%     \end{verbatim}
+%   - On QEMU, this is a no-op (no microarchitectural state to flush) but
+%     the instruction is recognised and the execution path is exercised.
+
+\subsection{Per-Domain Scheduling State}
+\label{sub:per_domain_state}
+
+% [~0.5 column]
+%   - FreeRTOS tracks scheduling state in global variables:
+%     `pxCurrentTCB`, task ready lists (`pxReadyTasksLists`),
+%     `uxCurrentNumberOfTasks`, etc.
+%   - Domain extension: convert these to arrays indexed by domain ID.
+%     `pxCurrentTCBs[domainID]` replaces `pxCurrentTCB`;
+%     `pxReadyTasksLists[domainID][priority]` replaces
+%     `pxReadyTasksLists[priority]`.
+%   - The tick-interrupt handler selects `pxCurrentTCBs[target\_domain]`
+%     after the domain switch.
+%   - Within-domain scheduling is unchanged: `vTaskSwitchContext()` is
+%     parameterised by domain and operates on that domain's ready lists.
+
+\subsection{Cross-Domain Queues}
+\label{sub:queues}
+
+% [~0.3 column]
+%   - Each TCB stores `uxDomainID`. When a queue `xQueueSend()` or
+%     `xQueueReceive()` unblocks a task, the task's TCB domain ID is used
+%     to place it in the correct domain's ready list.
+%   - No changes to the queue data structure itself; only the insertion
+%     logic in `xTaskRemoveFromEventList()` is modified to use the task's
+%     `uxDomainID`.
+%   - Acknowledged limitation: tasks that share a queue can still infer
+%     timing information through queue send/receive latency. This is
+%     discussed in Section VII.

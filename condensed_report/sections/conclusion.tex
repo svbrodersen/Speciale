@@ -1,0 +1,31 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+% Target: ~0.25 two-column page (~0.5 single-column equivalent)
+% Condense report sections/conclusion.tex.
+
+% [Paragraph 1: Summary of what was done.]
+%   This paper investigated the feasibility of integrating time protection
+%   mechanisms into a mainstream operating system by extending FreeRTOS-MPU
+%   with a domain-level scheduler. The scheduler partitions execution into
+%   fixed time slices across security domains and employs the RISC-V
+%   temporal fence (fence.t) instruction on every domain switch to clear
+%   shared microarchitectural state, thereby closing scheduler-based and
+%   shared-state timing channels.
+
+% [Paragraph 2: Key results.]
+%   Evaluation on QEMU system emulation, using instruction-based cycle
+%   counting, demonstrates constant-time domain switching with $\pm 1$ cycle
+%   variance across two workloads. The multi-domain demo confirms that the
+%   scheduler preserves intra-domain priority semantics while enforcing
+%   strict temporal isolation at domain boundaries.
+
+% [Paragraph 3: Limitations and closing.]
+%   The evaluation is limited to instruction-level determinism; validation
+%   of microarchitectural isolation requires real hardware or cycle-accurate
+%   simulation. Further work is needed to audit system-call timing, partition
+%   higher-level caches, and explore lighter-weight alternatives that balance
+%   protection and throughput. Nevertheless, this work demonstrates that
+%   time protection is not exclusive to clean-slate microkernels: it can be
+%   integrated into an existing, widely deployed RTOS, bringing meaningful
+%   timing-channel mitigation to mainstream embedded systems.
