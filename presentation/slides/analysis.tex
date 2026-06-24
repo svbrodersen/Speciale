@@ -27,7 +27,7 @@ We considered several approaches to address priority-based timing vulnerabilitie
     \begin{itemize}
       \item A domain is a group of tasks, which the scheduler treats as a
         single environment
-      \item Only partition across domain boundaries, allows for intra-domain
+      \item Only partitioning across domain boundaries allows for intra-domain
         channels
       \item Requires the notion of time slices, which is a fixed execution time
         serving as the smallest unit of "time" for the scheduler
@@ -48,7 +48,7 @@ We considered several approaches to address priority-based timing vulnerabilitie
 
 \vspace{0.2cm}
 \begin{itemize}
-  \item Initially all time slices are given to Domain 0
+  \item Initially, all time slices are given to Domain 0
   \item Domain 0 gives up fixed time slices to other domains on creation
   \item Tasks within a domain use standard priority scheduling
   \item Allows for a trade-off between the throughput (priority) and

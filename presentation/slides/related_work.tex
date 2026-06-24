@@ -3,13 +3,13 @@
 Gaps in user-level solutions led to custom OS-level approaches.
 
 \vspace{0.2cm}
-\textbf{sel4 Time Protection}: Introduced the notion of time protection at the OS-level.
+\textbf{seL4 Time Protection}: Introduced the notion of time protection at the OS level.
 
 \begin{itemize}
-  \item Build as a modification to the existing sel4 kernel
+  \item Built as a modification to the existing seL4 kernel
   \item Copies the kernel code into each security domain
-  \item Flushes shared hardware, which can not be spatially partitioned
-  \item Cache-coloring to partition higher level caches
+  \item Flushes shared hardware that cannot be spatially partitioned
+  \item Cache coloring to partition higher-level caches
 \end{itemize}
 
 \vspace{0.2cm}
@@ -20,7 +20,7 @@ Gaps in user-level solutions led to custom OS-level approaches.
 S3K provides a more dynamic, capability-based approach to OS-level time protection.
 
 \begin{itemize}
-  \item A capability based model, which extends to time slices
+  \item A capability-based model that extends to time slices
   \item A time-driven, capability-based scheduler with systematic use of \texttt{fence.t}
   \item Predictable, constant-time system calls
   \item Scratchpad memory for kernel code execution (backed by L1 cache, flushed on scheduling)

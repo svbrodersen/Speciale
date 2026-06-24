@@ -14,7 +14,7 @@ typedef struct xDOMAIN_PARAMETERS {
 \begin{itemize}
   \item When creating a restricted task, one must pass the start of the group of time
 slices and their length
-\item If no \texttt{DomainParamters\_t} is passed, then it creates the tasks within the current domain
+\item If no \texttt{DomainParameters\_t} is passed, it creates the tasks within the current domain
 \end{itemize}
 
 \end{frame}
@@ -39,7 +39,7 @@ slices and their length
 
 \vspace{0.3cm}
 \begin{itemize}
-  \item \textt{xDomainInfo} array indexed by domain id, contains start index of domain in \texttt{xDomains}
+  \item \texttt{xDomainInfo} array indexed by domain id, contains the start index of the domain in \texttt{xDomains}
   \item \texttt{xDomains} array indexed by time-slice start
   \item \texttt{uxNext} linked list finds next block of the current domain in \textbf{constant time}
 \end{itemize}
@@ -53,10 +53,10 @@ FreeRTOS's basic time unit is a \emph{Tick}, incremented on each machine timer i
 
 \vspace{0.1cm}
 
-\textbf{Idea:} Relate time slices with \emph{Tick}
+\textbf{Idea:} Tie time slices to \emph{Tick}
 \vspace{0.2cm}
 \begin{itemize}
-  \item Allow for \emph{Tick} to be used by priority base scheduler
+  \item Allow for \emph{Tick} to be used by the priority-based scheduler
   \item Check for end of time slice when incrementing Tick
   \item Flush microarchitecture with \texttt{fence.t} on domain switch
 \end{itemize}
@@ -67,8 +67,6 @@ FreeRTOS's basic time unit is a \emph{Tick}, incremented on each machine timer i
 \begin{frame}[fragile]
 \frametitle{Implementation: Managing Cross-Domain Queues}
 FreeRTOS \texttt{Queues}: primary tool for communication between different tasks.
-
-\textbf{Problem:} With multiple domains, which ready queue should a blocked task wake up on?
 
 \vspace{0.2cm}
 
@@ -96,6 +94,6 @@ FreeRTOS \texttt{Queues}: primary tool for communication between different tasks
 \textbf{Solution:} Track each task's domain ID; on wake-up, enqueue it to the correct domain's ready queue.
 
 \vspace{0.15cm}
-{\small Itroduces timing channels for tasks with access to the \texttt{Queue} object.}
+{\small Introduces timing channels for tasks with access to the \texttt{Queue} object.}
 
 \end{frame}

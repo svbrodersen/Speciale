@@ -2,12 +2,11 @@
 	\frametitle{Conclusion}
 	\textbf{What I showed:}
 	\begin{itemize}
-		\item Time protection mechanisms \textit{can} be integrated into an existing mainstream OS
 		\item Domain-level scheduler achieves constant-time scheduling in QEMU
 		\item Trade-offs
 		      \begin{itemize}
-			      \item \textbf{Complexity:} A significant amount of complexity has been added to the code. Future work onFreeRTOS would be more cumbersome with the extra code complexity.
-			      \item \textbf{Performance:} Given the implementation makes use of idle time, the total performance is most likely reduced significantly. Further, more memory accesses is needed for the domain Scheduler to function, so while asymptotically the same, it is a larger overhead.
+       \item \textbf{Complexity:} A significant amount of complexity has been added to the code. Future work on FreeRTOS would be more cumbersome with the extra code complexity.
+       \item \textbf{Performance:} Given the implementation makes use of idle time, total performance is most likely reduced significantly. Further, more memory accesses are needed for the domain scheduler to function, so while asymptotically the same, it incurs a larger overhead.
 		      \end{itemize}
 	\end{itemize}
 
@@ -21,11 +20,11 @@
 	\begin{itemize}
 		\item Evaluation on real hardware with \texttt{fence.t} support (or gem5)
 		\item Review system calls: critical sections delay scheduling, only user-level protection
-		\item Introduce a two level locking system.
+       \item Introduce a two-level locking system.
 		      \begin{itemize}
 			      \item FreeRTOS has a notion of "critical section". These sections grab a
 			            global lock to ensure consistency of the priority-based scheduler.
-			      \item Currently the domain level scheduler uses the same lock.
+			      \item Currently the domain-level scheduler uses the same lock.
 			      \item \textbf{Idea:} Allow for a separate locking mechanism for
 			            cross-domain consistency. This would allow scheduling a new domain
 			            while holding the priority-based scheduler lock.
@@ -37,19 +36,19 @@
 \end{frame}
 
 \begin{frame}
-	\frametitle{Toward safe general purpose OS}
+	\frametitle{Toward a Safe General-Purpose OS}
 
-	While a full domain level scheduling setup does function, it performs worse and
-	adds complexity. The primary goal of the general OS is throughput, the domain
-	level scheduler seems overkill. An idea could be to introduce aspects.
+	While a full domain-level scheduling setup does function, it performs worse and
+	adds complexity. The primary goal of a general-purpose OS is throughput; the domain-level
+	scheduler seems like overkill. An alternative is to introduce aspects.
 
   \vspace{0.2cm}
 
 	\begin{itemize}
 		\item Allow for the creation of "secure" tasks, which would be partitioned. Two general aspects could be tested
 		      \begin{itemize}
-			      \item Flush before and after a secure task, and allow for partitioned
-			            higher level caches.
+         \item Flush before and after a secure task, and allow for partitioned
+                   higher-level caches.
 			      \item Introduce the Scratchpad Memory. Here one could either restrict the
 			            task to this memory footprint, or use the Scratchpad Memory as a buffer,
 			            which we can index with secrets. This would require loading all data into

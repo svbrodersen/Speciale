@@ -1,18 +1,15 @@
 \begin{frame}
 \frametitle{User-level mitigations}
-Relaxing time protection to partial partitioning enables user-level timing channel mitigations.
-
-\vspace{0.2cm}
 \begin{itemize}
   \item Constant time application code
-  \item \textbf{An example:} FaCT a domain specific language; Focus on cryptographic code
-  \item Mark secret information --- FaCT creates constant time through information flow analysis
+  \item \textbf{An example:} FaCT is a domain-specific language focused on cryptographic code
+  \item The programmer marks secret information; FaCT creates constant-time code through information flow analysis
   \item Safe code at the C level
 \end{itemize}
 \vspace{0.1cm}
 \textbf{Shortcomings:}
 \begin{itemize}
-  \item Variable execution time of operators, for example the numerator of division
+  \item Variable execution time of operators; for example, division time depends on the numerator
   \item Compiler introduced optimizations
   \item Is scheduling sensitive information?
 \end{itemize}
